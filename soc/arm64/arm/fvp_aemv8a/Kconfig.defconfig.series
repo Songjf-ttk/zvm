@@ -29,4 +29,21 @@ config FLASH_BASE_ADDRESS
 
 endif # SOC_FVP_BASE_REVC_2XAEMV8A
 
+if SOC_FVP_CORTEX_A55
+
+config SOC
+	default "fvp_cortex_a55"
+
+# Workaround for not being able to have commas in macro arguments
+DT_CHOSEN_Z_FLASH := zephyr,flash
+
+config FLASH_SIZE
+	default $(dt_chosen_reg_size_int,$(DT_CHOSEN_Z_FLASH),0,K)
+
+config FLASH_BASE_ADDRESS
+	default $(dt_chosen_reg_addr_hex,$(DT_CHOSEN_Z_FLASH))
+
+endif # SOC_FVP_CORTEX_A55
+
+
 endif # SOC_SERIES_FVP_AEMV8A

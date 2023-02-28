@@ -52,6 +52,39 @@
 	str	\xreg1, [\xreg0, #___cpu_t_nested_OFFSET]
 .endm
 
+
+.macro	__dcache_line_size, reg, tmp
+	mrs 	\tmp, ctr_el0
+	ubfm	\tmp, \tmp, #16, #19	// cache line size encoding
+	mov		\reg, #4		// bytes per word
+	lsl		\reg, \reg, \tmp	// actual cache line size
+.endm
+
+.macro	adr_l, dst, sym
+	adrp	\dst, \sym
+	add	\dst, \dst, :lo12:\sym
+.endm
+
+.macro	ldr_l, dst, sym, tmp=
+	.ifb	\tmp
+	adrp	\dst, \sym
+	ldr	\dst, [\dst, :lo12:\sym]
+	.else
+	adrp	\tmp, \sym
+	ldr	\dst, [\tmp, :lo12:\sym]
+	.endif
+	.endm
+
+/* smp related process for get current cpu context */
+.macro this_cpu_address, dst, sym, tmp
+    adrp    \tmp,   \sym
+    add     \dst,   \tmp, #:lo12:\sym
+    mrs     \tmp,   tpidr_el2
+    add     \dst,   \dst, \tmp
+.endm
+
+
+
 #endif /* _ASMLANGUAGE */
 
 #endif /* _MACRO_PRIV_INC_ */

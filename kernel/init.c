@@ -399,7 +399,11 @@ sys_rand_fallback:
 __boot_func
 FUNC_NORETURN void z_cstart(void)
 {
+
 	/* gcov hook needed to get the coverage report.*/
+#ifdef CONFIG_SOC_RK3568
+	printascii("\n ########Success start z_start, ready to init system device...\n");
+#endif
 	gcov_static_init();
 
 	LOG_CORE_INIT();
@@ -433,6 +437,10 @@ FUNC_NORETURN void z_cstart(void)
 #ifdef CONFIG_TIMING_FUNCTIONS_NEED_AT_BOOT
 	timing_init();
 	timing_start();
+#endif
+
+#ifdef CONFIG_ZVM
+	_current->vcpu_struct = NULL;
 #endif
 
 #ifdef CONFIG_MULTITHREADING

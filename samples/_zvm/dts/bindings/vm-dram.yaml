@@ -1,0 +1,33 @@
+description: virtual machine DRAM
+
+compatible: "vm-dram"
+
+properties:
+    reg:
+      type: array
+      required: true
+
+    label:
+      type: string
+
+    label:
+      type: string
+      required: true
+
+    memmap_type:
+      type: string
+      description: |
+        vm domain memory type.
+      required: true
+
+    vm_reg:
+      type: int
+      description: |
+        vm virtual base address.
+      required: true
+
+    address_type:
+      type: string
+      description: |
+        vm virtual address type.
+      required: true

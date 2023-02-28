@@ -73,6 +73,22 @@ SECTION_FUNC(TEXT, z_arm64_context_switch)
 	msr	tpidr_el0, x2
 #endif
 
+	/* vcpu thread? */
+#ifdef CONFIG_ZVM
+	sub sp, sp, #0x10
+	stp x0, x1, [sp]
+
+	ldr x2, [x0, #___thread_t_vcpu_struct_OFFSET]
+	mov x3, #0
+	cmp x2, x3
+	beq no_vcpu_thread
+	/*TODO: store host context here */
+
+no_vcpu_thread:
+	ldp x0, x1, [sp]
+	add sp, sp, #0x10
+#endif
+
 	ldp	x19, x20, [x0, #_thread_offset_to_callee_saved_x19_x20]
 	ldp	x21, x22, [x0, #_thread_offset_to_callee_saved_x21_x22]
 	ldp	x23, x24, [x0, #_thread_offset_to_callee_saved_x23_x24]
@@ -125,7 +141,13 @@ SECTION_FUNC(TEXT, z_arm64_sync_exc)
 1:
 #endif
 
+
+#if defined(CONFIG_HAS_ARM_VHE_EXTN) && defined(CONFIG_ZVM)
+	cmp x1, #0x16 /* 0x16 = HVC */
+#else
 	cmp	x1, #0x15 /* 0x15 = SVC */
+#endif
+
 	bne	inv
 
 	/* Demux the SVC call */
@@ -174,8 +196,17 @@ context_switch:
 	/* Get old thread from x1 */
 	sub	x1, x1, ___thread_t_switch_handle_OFFSET
 
+	stp x0, x1, [sp, ___esf_t_x0_x1_OFFSET]
+
+#ifdef CONFIG_ZVM
+	bl do_asm_vcpu_swap
+#endif
+
+	ldp	x0, x1, [sp, ___esf_t_x0_x1_OFFSET]
+
 	/* Switch thread */
 	bl	z_arm64_context_switch
+
 	b	z_arm64_exit_exc
 
 inv:
@@ -189,6 +220,12 @@ inv:
 GTEXT(z_arm64_call_svc)
 SECTION_FUNC(TEXT, z_arm64_call_svc)
 	svc	#_SVC_CALL_CONTEXT_SWITCH
+	ret
+
+GTEXT(z_arm64_call_hvc)
+SECTION_FUNC(TEXT, z_arm64_call_hvc)
+
+	hvc	#0
 	ret
 
 #ifdef CONFIG_IRQ_OFFLOAD

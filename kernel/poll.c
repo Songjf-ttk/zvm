@@ -32,7 +32,11 @@
  * "inside" a given critical section).  Do the synchronization port
  * later as an optimization.
  */
+#ifdef CONFIG_ZVM
 static struct k_spinlock lock;
+#else
+volatile static struct k_spinlock lock;
+#endif
 
 enum POLL_MODE { MODE_NONE, MODE_POLL, MODE_TRIGGERED };
 
@@ -502,6 +506,10 @@ void z_vrfy_k_poll_signal_check(struct k_poll_signal *sig,
 
 int z_impl_k_poll_signal_raise(struct k_poll_signal *sig, int result)
 {
+	struct k_spinlock tmp_lock = lock;
+	ARG_UNUSED(tmp_lock);
+
+	isb();
 	k_spinlock_key_t key = k_spin_lock(&lock);
 	struct k_poll_event *poll_event;
 

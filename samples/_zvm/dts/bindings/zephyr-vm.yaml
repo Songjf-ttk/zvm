@@ -1,0 +1,16 @@
+description: zephyr virtual machine space
+
+compatible: "zephyr-vm"
+
+properties:
+    dtb_address:
+      type: int
+      description: |
+        vm dt file base address.
+      required: true
+
+    dtb_size:
+      type: int
+      description: |
+        vm dt file size.
+      required: true

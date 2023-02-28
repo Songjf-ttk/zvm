@@ -104,6 +104,13 @@ SECTIONS
 #endif
 
         _vector_start = .;
+
+#ifdef CONFIG_ZVM
+        KEEP(*(.hyp_vector_table))
+        KEEP(*(".hyp_vector_table.*"))
+#endif
+        MMU_ALIGN;
+
         KEEP(*(.exc_vector_table))
         KEEP(*(".exc_vector_table.*"))
 
@@ -114,6 +121,11 @@ SECTIONS
         *(.text)
         *(".text.*")
         *(.gnu.linkonce.t.*)
+
+#ifdef CONFIG_ZVM
+        KEEP(*(.hyp_code))
+        KEEP(*(".hyp_code.*"))
+#endif
 
         /*
          * These are here according to 'arm-zephyr-elf-ld --verbose',

@@ -66,6 +66,8 @@
 #define GICR_TYPER_PROCESSOR_NUMBER_MASK	0xFFFFUL
 #define GICR_TYPER_PROCESSOR_NUMBER_GET(_val)	MASK_GET(_val, GICR_TYPER_PROCESSOR_NUMBER)
 
+#define GICR_TYPER_LAST_FLAG            BIT(4)
+
 /* GICR_WAKER */
 #define GICR_WAKER_PS			1
 #define GICR_WAKER_CA			2
@@ -95,6 +97,17 @@
 /* GITCD_IROUTER */
 #define GIC_DIST_IROUTER		0x6000
 #define IROUTER(base, n)		(base + GIC_DIST_IROUTER + (n) * 8)
+
+#ifdef CONFIG_ZVM
+
+#define GICR_SGI_CTLR           (0x0000)
+#define GICR_SGI_ISENABLER      (0x0100)
+#define GICR_SGI_ICENABLER      (0x0180)
+#define GICR_SGI_PENDING        (0x0200)
+#define GICR_SGI_ICPENDING      (0x0280)
+#define GICR_SGI_PIDR2          (0xFFE8)
+
+#endif
 
 /*
  * ITS registers, offsets from ITS_base

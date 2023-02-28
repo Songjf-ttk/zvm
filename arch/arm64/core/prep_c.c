@@ -16,6 +16,7 @@
 
 #include <kernel_internal.h>
 #include <linker/linker-defs.h>
+#include <arch/arm64/debug_uart.h>
 
 __weak void z_arm64_mm_init(bool is_primary_core) { }
 
@@ -43,9 +44,18 @@ static inline void z_arm64_bss_zero(void)
  */
 void z_arm64_prep_c(void)
 {
+	/* init uart for output, for rk3568 */
+#ifdef CONFIG_SOC_RK3568
+	uint32_t el;
+	tpl_main();
+	debug_printf("current_el: 0x%08x-%08x \r\n", (el>>32), el);
+#endif
+
 	/* Initialize tpidrro_el0 with our struct _cpu instance address */
 	write_tpidrro_el0((uintptr_t)&_kernel.cpus[0]);
-
+#if defined(CONFIG_HAS_ARM_VHE_EXTN) && defined(CONFIG_ZVM)
+	arch_set_cpu_id_elx();
+#endif
 	z_arm64_bss_zero();
 #ifdef CONFIG_XIP
 	z_data_copy();

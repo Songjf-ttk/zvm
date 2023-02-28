@@ -224,6 +224,15 @@ extern void k_thread_foreach_unlocked(
 #endif
 #endif
 
+#ifdef CONFIG_ZVM
+/**
+ * @brief This flag means that this thread run on a vcpu
+ * This option just used on zvm module
+ */
+#define K_VCPU	(BIT(6))
+
+#endif
+
 /* end - thread options */
 
 #if !defined(_ASMLANGUAGE)

@@ -19,6 +19,11 @@
 #include <sys/math_extras.h>
 #include <timing/timing.h>
 
+#ifdef CONFIG_ZVM
+#include <_zvm/zvm.h>
+#include <_zvm/vm_cpu.h>
+#endif
+
 LOG_MODULE_DECLARE(os, CONFIG_KERNEL_LOG_LEVEL);
 
 #if defined(CONFIG_SCHED_DUMB)
@@ -667,6 +672,29 @@ static void add_to_waitq_locked(struct k_thread *thread, _wait_q_t *wait_q)
 	}
 }
 
+#ifdef CONFIG_ZVM
+void dequeue_ready_thread(struct k_thread *thread)
+{
+	unready_thread(thread);
+#if defined(CONFIG_SMP) &&  defined(CONFIG_SCHED_IPI_SUPPORTED)
+	arch_sched_ipi();
+#endif
+}
+
+void yield_thread(struct k_thread *thread)
+{
+	if (z_is_thread_queued(thread)) {
+		dequeue_thread(thread);
+	}
+	update_cache(thread == _current);
+	queue_thread(thread);
+	update_cache(0);
+#if defined(CONFIG_SMP) &&  defined(CONFIG_SCHED_IPI_SUPPORTED)
+	arch_sched_ipi();
+#endif
+}
+#endif
+
 static void add_thread_timeout(struct k_thread *thread, k_timeout_t timeout)
 {
 	if (!K_TIMEOUT_EQ(timeout, K_FOREVER)) {
@@ -943,8 +971,17 @@ void *z_get_next_switch_handle(void *interrupted)
 		if (IS_ENABLED(CONFIG_SMP)) {
 			old_thread->switch_handle = NULL;
 		}
-		new_thread = next_up();
 
+#ifdef CONFIG_ZVM
+		if(old_thread->base.thread_state & _THREAD_VCPU_NO_SWITCH){
+			old_thread->base.thread_state &= ~_THREAD_VCPU_NO_SWITCH;
+			new_thread = old_thread;
+		}else{
+			new_thread = next_up();
+		}
+#else
+		new_thread = next_up();
+#endif
 		z_sched_usage_switch(new_thread);
 
 		if (old_thread != new_thread) {
@@ -976,6 +1013,11 @@ void *z_get_next_switch_handle(void *interrupted)
 			if (z_is_thread_queued(old_thread)) {
 				runq_add(old_thread);
 			}
+#ifdef CONFIG_ZVM
+			if(vcpu_need_switch(new_thread, old_thread)){
+				do_vcpu_swap(new_thread, old_thread);
+			}
+#endif /* CONFIG_ZVM */ 
 		}
 		old_thread->switch_handle = interrupted;
 		ret = new_thread->switch_handle;
@@ -986,9 +1028,19 @@ void *z_get_next_switch_handle(void *interrupted)
 	}
 	return ret;
 #else
+#ifdef CONFIG_ZVM
+	if(vcpu_need_switch(new_thread, old_thread)){
+		do_vcpu_swap(new_thread, old_thread);
+	}
+#endif /* CONFIG_ZVM */
 	z_sched_usage_switch(_kernel.ready_q.cache);
 	_current->switch_handle = interrupted;
 	set_current(_kernel.ready_q.cache);
+#ifdef CONFIG_ZVM
+	if(vcpu_need_switch(new_thread, old_thread)){
+		do_vcpu_swap(new_thread, old_thread);
+	}
+#endif /* CONFIG_ZVM */
 	return _current->switch_handle;
 #endif
 }
@@ -1402,6 +1454,10 @@ void z_impl_k_wakeup(k_tid_t thread)
 extern void z_trace_sched_ipi(void);
 #endif
 
+#ifdef CONFIG_ZVM
+extern void	zvm_ipi_handler(void);
+#endif
+
 #ifdef CONFIG_SMP
 void z_sched_ipi(void)
 {
@@ -1411,6 +1467,11 @@ void z_sched_ipi(void)
 #ifdef CONFIG_TRACE_SCHED_IPI
 	z_trace_sched_ipi();
 #endif
+
+#ifdef CONFIG_ZVM
+	zvm_ipi_handler();
+#endif
+
 }
 #endif
 
@@ -1826,3 +1887,12 @@ uint64_t z_sched_thread_usage(struct k_thread *thread)
 }
 
 #endif /* CONFIG_SCHED_THREAD_USAGE */
+
+#ifdef CONFIG_ZVM
+
+void z_vm_runq_add(struct k_thread *thread)
+{
+	runq_add(thread);
+}
+
+#endif /* CONFIG_ZVM */

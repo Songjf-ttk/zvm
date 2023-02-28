@@ -19,6 +19,8 @@
 #include <arch/arm64/lib_helpers.h>
 #include <zephyr/types.h>
 
+#include <arch/arm64/debug_uart.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

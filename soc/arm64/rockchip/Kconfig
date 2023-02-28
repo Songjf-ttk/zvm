@@ -1,0 +1,16 @@
+# Copyright (c) 2017-2022, HNU
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_FAMILY_RK3500
+	bool
+	select HAS_SEGGER_RTT
+
+if SOC_FAMILY_RK3500
+
+config SOC_FAMILY
+	string
+	default "rockchip"
+
+source "soc/arm64/rockchip/*/Kconfig.soc"
+
+endif # SOC_FAMILY_RK3500

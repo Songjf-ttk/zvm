@@ -65,6 +65,11 @@ void z_requeue_current(struct k_thread *curr);
 struct k_thread *z_swap_next_thread(void);
 void z_thread_abort(struct k_thread *thread);
 
+#ifdef CONFIG_ZVM
+void dequeue_ready_thread(struct k_thread *thread);
+void yield_thread(struct k_thread *thread);
+#endif
+
 static inline void z_pend_curr_unlocked(_wait_q_t *wait_q, k_timeout_t timeout)
 {
 	(void) z_pend_curr_irqlock(arch_irq_lock(), wait_q, timeout);

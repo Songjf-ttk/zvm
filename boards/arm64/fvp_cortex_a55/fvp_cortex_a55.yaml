@@ -1,0 +1,12 @@
+# Copyright (c) 2021 Carlo Caione <ccaione@baylibre.com>
+# SPDX-License-Identifier: Apache-2.0
+
+identifier: fvp_cortex_a55
+name: FVP Emulation FVP_Cortex_A55
+arch: arm64
+type: sim
+toolchain:
+  - zephyr
+  - cross-compile
+ram: 2048
+flash: 64

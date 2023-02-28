@@ -70,6 +70,7 @@ void arch_new_thread(struct k_thread *thread, k_thread_stack_t *stack,
 		     char *stack_ptr, k_thread_entry_t entry,
 		     void *p1, void *p2, void *p3)
 {
+	extern void z_arm64_exit_exc(void);
 	z_arch_esf_t *pInitCtx;
 
 	/*
@@ -105,8 +106,18 @@ void arch_new_thread(struct k_thread *thread, k_thread_stack_t *stack,
 #else
 	pInitCtx->elr = (uint64_t)z_thread_entry;
 #endif
+
+#if defined(CONFIG_HAS_ARM_VHE_EXTN) && defined(CONFIG_ZVM)
+	pInitCtx->spsr = SPSR_MODE_EL2H | DAIF_FIQ_BIT;
+#else
 	/* Keep using SP_EL1 */
 	pInitCtx->spsr = SPSR_MODE_EL1H | DAIF_FIQ_BIT;
+#endif
+
+#ifdef CONFIG_ZVM
+	/* init thread's vcpu_struct */
+	thread->vcpu_struct = NULL;
+#endif
 
 	/* thread birth happens through the exception return path */
 	thread->arch.exception_depth = 1;

@@ -30,5 +30,6 @@ config ARM_CUSTOM_INTERRUPT_CONTROLLER
 	  implemented at the SoC level.
 
 rsource "core/Kconfig"
+rsource "_zvm/Kconfig"
 
 endmenu

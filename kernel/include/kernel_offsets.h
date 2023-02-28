@@ -88,6 +88,10 @@ GEN_OFFSET_SYM(_thread_t, custom_data);
 GEN_OFFSET_SYM(_thread_t, tls);
 #endif
 
+#ifdef CONFIG_ZVM
+GEN_OFFSET_SYM(_thread_t, vcpu_struct);
+#endif
+
 GEN_ABSOLUTE_SYM(K_THREAD_SIZEOF, sizeof(struct k_thread));
 
 /* size of the device structure. Used by linker scripts */

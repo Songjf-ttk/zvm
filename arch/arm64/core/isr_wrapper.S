@@ -70,6 +70,12 @@ oob:
 
 	stp	x0, xzr, [sp, #-16]!
 
+#ifdef	CONFIG_ZVM
+	bl z_vm_switch_handle_pre
+#endif
+
+	ldr x0,  [sp]
+
 	/* Retrieve the interrupt service routine */
 	ldr	x1, =_sw_isr_table
 	add	x1, x1, x0, lsl #4	/* table is 16-byte wide */

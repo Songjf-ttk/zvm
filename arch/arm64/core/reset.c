@@ -5,9 +5,13 @@
  */
 
 #include <kernel_internal.h>
+#include <arch/arm64/lib_helpers.h>
+#include <arch/arm64/debug_uart.h>
 #include "boot.h"
 
-void z_arm64_el2_init(void);
+#ifdef CONFIG_ZVM
+#include <_zvm/arm/cpu.h>
+#endif
 
 void __weak z_arm64_el_highest_plat_init(void)
 {
@@ -62,6 +66,10 @@ static inline enum el3_next_el el3_get_next_el(void)
 	}
 }
 
+/* announce here */
+void z_arm64_el2_init(void);
+void z_arm64_el2_vhe_init(void);
+
 void z_arm64_el3_init(void)
 {
 	uint64_t reg;
@@ -103,7 +111,12 @@ void z_arm64_el3_init(void)
 		 * handle EL2 init in EL3, as it still needs to be done,
 		 * but we are going to be skipping EL2.
 		 */
+#if	defined(CONFIG_ZVM) && defined(CONFIG_HAS_ARM_VHE_EXTN)
+		/*TODO: May be delete here. */
+		z_arm64_el2_vhe_init();
+#else
 		z_arm64_el2_init();
+#endif
 	}
 }
 
@@ -112,13 +125,13 @@ void z_arm64_el2_init(void)
 	uint64_t reg;
 
 	reg = read_sctlr_el2();
-	reg |= (SCTLR_EL2_RES1 |	/* RES1 */
+	reg = (SCTLR_EL2_RES1 |	/* RES1 */
 		SCTLR_I_BIT |		/* Enable i-cache */
 		SCTLR_SA_BIT);		/* Enable SP alignment check */
 	write_sctlr_el2(reg);
 
 	reg = read_hcr_el2();
-	reg |= HCR_RW_BIT;		/* EL1 Execution state is AArch64 */
+	reg = HCR_RW_BIT;		/* EL1 Execution state is AArch64 */
 	write_hcr_el2(reg);
 
 	reg = 0U;			/* RES0 */
@@ -129,7 +142,11 @@ void z_arm64_el2_init(void)
 
 	zero_cntvoff_el2();		/* Set 64-bit virtual timer offset to 0 */
 	zero_cnthctl_el2();
+#ifdef CONFIG_CPU_AARCH64_CORTEX_R
+	zero_cnthps_ctl_el2();
+#else
 	zero_cnthp_ctl_el2();
+#endif
 	/*
 	 * Enable this if/when we use the hypervisor timer.
 	 * write_cnthp_cval_el2(~(uint64_t)0);
@@ -139,6 +156,105 @@ void z_arm64_el2_init(void)
 
 	isb();
 }
+
+#ifdef CONFIG_ZVM
+
+/* Configure EL2/virtualization related registers.
+ * TODO: system register info must be standarded later.
+ */
+void z_arm64_el2_vhe_init(void)
+{
+	bool vhe_flag = false;
+	uint64_t reg;			/* 64bit register */
+
+	/* Set EL2 mmu off */
+	reg = SCTLR_EL2_RES1;
+	write_sctlr_el2(reg);
+	isb();
+
+	/* hvc trap to hypervisor*/
+	reg = 1UL << 31;
+	write_hcr_el2(reg);
+	isb();
+
+#ifdef CONFIG_HAS_ARM_VHE_EXTN
+	reg = read_id_aa64mmfr1_el1();
+	reg = ASM_UBFX(8, 4, reg);
+
+	if(reg)
+		vhe_flag = true;
+#endif
+	if(vhe_flag){
+		reg = HCR_VHE_FLAGS;
+	}else{
+		reg = HCR_NVHE_FLAGS;
+	}
+	//debug_print_pre(reg, 0xabcd);
+	write_hcr_el2(reg);
+
+	if(vhe_flag){
+		zero_sysreg(cntvoff_el2);
+	}else{
+		/* Enable EL1 physical timer and clear vitrtual offset */
+		reg = 0x03;
+		write_cnthctl_el2(reg);
+		zero_sysreg(cntvoff_el2);
+	}
+
+	/* gicv3 supporte */
+#if defined(CONFIG_GIC_V3)
+	reg = read_id_aa64pfr0_el1();
+	reg = ASM_UBFX(24, 4, reg);
+	if(reg){
+		__asm__ volatile(
+			"mrs x0, s3_4_c12_c9_5 \n"
+			"orr x0, x0, #0x01 \n"
+			"orr x0, x0, #0x08 \n"
+			"msr s3_4_c12_c9_5, x0 \n"
+			"isb \n"
+			"mrs x0, s3_4_c12_c9_5 \n"
+			"tbz x0, #0, 99f \n"
+			"msr s3_4_c12_c11_0, xzr \n "
+			"99: 	\n"
+		);
+	}
+#endif
+
+	/* Get identification information for the PE from midr_el1,
+		Set it to vpidr_el2 to info virtualization process id*/
+	reg = read_midr_el1();
+	write_vpidr_el2(reg);
+
+	/* Get an additional PE identification mechanism in multiprocessor system
+		and	info virtualization process id  */
+	reg = read_mpidr_el1();
+	write_vmpidr_el2(reg);
+
+	/* Controls trapping to EL2 of accesses to CPACR, CPACR_EL1, trace */
+	reg = 0x33ff;
+	write_cptr_el2(reg);		// Disable copro. traps to EL2
+
+	/* Disable CP15 trapping to EL2 of EL1 accesses to the System register  */
+	zero_sysreg(hstr_el2);
+
+	/* Debug related init  */
+	zero_sysreg(mdcr_el2);
+
+	/*init memory  implemention information */
+//	zero_sysreg(lorc_el1);
+
+	/* Stage-2 translation base register init*/
+	zero_sysreg(vttbr_el2);
+
+	/* Set Exception type to EL1h, spsr_el2 hold the process state when exception happen */
+	reg = INIT_PSTATE_EL1 | SPSR_DAIF_MASK;
+	write_spsr_el2(reg);
+	isb();
+
+	z_arm64_el2_plat_init();
+}
+
+#endif  /* CONFIG_ZVM */
 
 void z_arm64_el1_init(void)
 {
@@ -158,8 +274,9 @@ void z_arm64_el1_init(void)
 		SCTLR_I_BIT |		/* Enable i-cache */
 		SCTLR_SA_BIT);		/* Enable SP alignment check */
 	write_sctlr_el1(reg);
-
+	/* We use cntp register here. */
 	write_cntv_cval_el0(~(uint64_t)0);
+	write_cntp_cval_el0(~(uint64_t)0);
 	/*
 	 * Enable these if/when we use the corresponding timers.
 	 * write_cntp_cval_el0(~(uint64_t)0);
@@ -171,8 +288,7 @@ void z_arm64_el1_init(void)
 	isb();
 }
 
-void z_arm64_el3_get_next_el(uint64_t switch_addr)
-{
+void z_arm64_el3_get_next_el(uint64_t switch_addr){
 	uint64_t spsr;
 
 	write_elr_el3(switch_addr);
@@ -189,4 +305,71 @@ void z_arm64_el3_get_next_el(uint64_t switch_addr)
 	}
 
 	write_spsr_el3(spsr);
+}
+
+
+/*
+ * operation for all data cache
+ * ops:  K_CACHE_INVD: invalidate
+ *	 K_CACHE_WB: clean
+ *	 K_CACHE_WB_INVD: clean and invalidate
+ */
+void arch_flush_dcache_all()
+{
+	uint32_t clidr_el1, csselr_el1, ccsidr_el1;
+	uint8_t loc, ctype, cache_level, line_size, way_pos;
+	uint32_t max_ways, max_sets, dc_val, set, way;
+
+	/* Data barrier before start */
+	dsb();
+
+	clidr_el1 = read_clidr_el1();
+
+	loc = (clidr_el1 >> 24) & BIT_MASK(3);
+	if (!loc)
+		return;
+
+	for (cache_level = 0; cache_level < loc; cache_level++) {
+		ctype = (clidr_el1 >> (cache_level*3))
+				& BIT_MASK(3);
+		/* No data cache, continue */
+		if (ctype < 2)
+			continue;
+
+		/* select cache level */
+		csselr_el1 = cache_level << 1;
+		write_csselr_el1(csselr_el1);
+		isb();
+
+		ccsidr_el1 = read_ccsidr_el1();
+		line_size = (ccsidr_el1 >> 0
+				& BIT_MASK(3)) + 4;
+		max_ways = (ccsidr_el1 >> 3)
+				& BIT_MASK(10);
+		max_sets = (ccsidr_el1 >> 13)
+				& BIT_MASK(15);
+		/* 32-log2(ways), bit position of way in DC operand */
+		way_pos = __builtin_clz(max_ways);
+
+		for (set = 0; set <= max_sets; set++) {
+			for (way = 0; way <= max_ways; way++) {
+				/* way number, aligned to pos in DC operand */
+				dc_val = way << way_pos;
+				/* cache level, aligned to pos in DC operand */
+				dc_val |= csselr_el1;
+				/* set number, aligned to pos in DC operand */
+				dc_val |= set << line_size;
+
+				__asm__ volatile ("dc cisw, %0" :: "r" (dc_val) : "memory");
+
+			}
+		}
+	}
+
+	/* Restore csselr_el1 to level 0 */
+	write_csselr_el1(0);
+	dsb();
+	isb();
+
+	return;
 }

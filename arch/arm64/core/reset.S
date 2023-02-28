@@ -10,6 +10,9 @@
 #include "boot.h"
 #include "macro_priv.inc"
 
+
+#define ASM_HCR_E2H		BIT(34)
+
 _ASM_FILE_PROLOGUE
 
 /*
@@ -29,6 +32,28 @@ SECTION_FUNC(TEXT,z_arm64_el2_plat_prep_c)
 
 WTEXT(z_arm64_el1_plat_prep_c)
 SECTION_FUNC(TEXT,z_arm64_el1_plat_prep_c)
+	ret
+
+/* clear dcache here */
+GTEXT(rk3568_dcache_init)
+SECTION_FUNC(TEXT,rk3568_dcache_init)
+	add	x1, x1, x0
+	__dcache_line_size x2, x3
+	sub	x3, x2, #1
+	tst	x1, x3
+	bic	x1, x1, x3
+	b.eq	1f
+	dc	civac, x1
+1:	tst	x0, x3
+	bic	x0, x0, x3
+	b.eq	2f
+	dc	civac, x0
+	b	3f
+2:	dc	ivac, x0
+3:	add	x0, x0, x2
+	cmp	x0, x1
+	b.lo	2b
+	dsb	sy
 	ret
 
 /*
@@ -51,19 +76,31 @@ SECTION_SUBSEC_FUNC(TEXT,_reset_section,__reset_prep_c)
 
 	/* Set SP_EL1 */
 	msr     sp_el1, x24
+#ifdef CONFIG_HAS_ARM_VHE_EXTN
+	/* set SP_EL1 */
+	msr		sp_el2, x24
+#endif
 
 	b	out
 2:
+
+#ifdef CONFIG_SOC_RK3568
+	bl rk3568_dcache_init
+#endif
+
 	/* Disable alignment fault checking */
 	mrs	x0, sctlr_el2
 	bic	x0, x0, SCTLR_A_BIT
 	msr	sctlr_el2, x0
 
-	/* Custom plat prep_c init */
+	/* Custom plat prep_c init, Default do nothing. */
 	bl	z_arm64_el2_plat_prep_c
 
-	/* Set SP_EL1 */
-	msr     sp_el1, x24
+	/* Set SP_EL1, make the kernel stack bind to sp_el1 */
+	msr		sp_el1, x24
+
+	msr		SPsel, #1
+	mov     sp, x24
 
 	b	out
 1:
@@ -81,12 +118,13 @@ SECTION_SUBSEC_FUNC(TEXT,_reset_section,__reset_prep_c)
 out:
 	isb
 
-	/* Select SP_EL0 */
+	/* Select SP_EL0 , make all execption level use sp_el0*/
 	msr	SPSel, #0
 
 	/* Initialize stack */
 	mov	sp, x24
 
+	/* init uart here*/
 	ret	x23
 
 /*
@@ -110,6 +148,11 @@ SECTION_SUBSEC_FUNC(TEXT,_reset_section,__start)
 	ldr	x0, =arm64_cpu_boot_params
 	get_cpu_id x1
 	ldr	x2, [x0, #BOOT_PARAM_MPID_OFFSET]
+#ifdef CONFIG_BOARD_FVP_CORTEX_A55
+	mov x1, x1, lsr #0x08
+	cmp x1, #0
+	bne 1f
+#endif
 	cmp	x2, #-1
 	beq	primary_core
 
@@ -150,13 +193,32 @@ switch_el:
 	eret
 
 2:
-	/* EL2 init */
-	bl	z_arm64_el2_init
+/* TODO: The init order may be change */
+#if	defined(CONFIG_ZVM) && defined(CONFIG_HAS_ARM_VHE_EXTN)
+	/* EL2 VHE mode init */
+	bl	z_arm64_el2_vhe_init
+#else
+	bl  z_arm64_el2_init
+#endif
 
-	/* Move to EL1 with all exceptions masked */
 	mov_imm	x0, (SPSR_DAIF_MASK | SPSR_MODE_EL1T)
 	msr	spsr_el2, x0
 
+#ifdef CONFIG_SOC_RK3568
+	/* clean all cache here, JUST DO it on rk3568 */
+	bl arch_flush_dcache_all
+#endif
+
+	/* Judge whether the cpu is support VHE */
+	mrs x0,	hcr_el2
+	and x0, x0,	#ASM_HCR_E2H
+	/*If nvhe, jump! */
+	cbz	x0,	21f
+
+	b 1f
+
+/* if vhe is not implemention */
+21:
 	adr	x0, 1f
 	msr	elr_el2, x0
 	eret
@@ -164,6 +226,9 @@ switch_el:
 1:
 	/* EL1 init */
 	bl	z_arm64_el1_init
+
+	/* We want to use SP_ELx from now on */
+	msr	SPSel, #1
 
 	/* Enable SError interrupts */
 	msr	DAIFClr, #(DAIFCLR_ABT_BIT)

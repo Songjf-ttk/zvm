@@ -278,6 +278,12 @@ struct k_thread {
 
 	/** arch-specifics: must always be at the end */
 	struct _thread_arch arch;
+
+/* The point for vcpu struct here */
+#ifdef CONFIG_ZVM
+	void *vcpu_struct;
+#endif
+
 };
 
 typedef struct k_thread _thread_t;

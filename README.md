@@ -1,37 +1,41 @@
-# zvm
+## Zephyr-based Virtual Machine Manager
 
-#### 介绍
-zvm is an embedded hypervisor based on Zephyr RTOS
+### 什么是ZVM
 
-#### 软件架构
-软件架构说明
+------
 
+ZVM是基于实时操作系统Zephyr设计的虚拟机管理器（Hypervisor），旨在成为一个以Zephyr为基础的，高度可配置的嵌入式虚拟化平台。
 
-#### 安装教程
+### 主机相关环境
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
-
-#### 使用说明
-
-1.  xxxx
-2.  xxxx
-3.  xxxx
-
-#### 参与贡献
-
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
+  - zephyr os version: 2.7.99
+  - zephyr sdk version: zephyr-sdk-0.13.2+
 
 
-#### 特技
+### 支持的平台：
 
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+  - FVP Platform: Arm FVP(Installed with Arm DS)
+  - QEMU Platform: qemu-6.2.0(Modified)
+
+
+### 支持的操作系统：
+
+  - Linux
+  - Zephyr
+
+
+
+### 手册目录
+------
+
+本手册包含ZVM如何构建、使用、开发的相关内容。具体内容存放在<u>（目录地址）</u>地址下。
+
+[1--Overview.md](https://gitee.com/cocoeoli/zvm/blob/master/doc/1--Overview.md)
+
+[2--Building.md](https://gitee.com/cocoeoli/zvm/blob/master/doc/2--Building.md)
+
+[3--Running.md](https://gitee.com/cocoeoli/zvm/blob/master/doc/3--Running.md)
+
+[4--Test command.md](https://gitee.com/cocoeoli/zvm/blob/master/doc/4--Test%20system.md)
+
+[5--Developing Help.md](https://gitee.com/cocoeoli/zvm/blob/master/doc/master/doc/5--Developing%20Help.md)

@@ -21,8 +21,9 @@
 #include <linker/linker-defs.h>
 #include <spinlock.h>
 #include <sys/util.h>
-
+#include <arch/arm64/debug_uart.h>
 #include "mmu.h"
+
 
 LOG_MODULE_DECLARE(os, CONFIG_KERNEL_LOG_LEVEL);
 
@@ -30,6 +31,8 @@ static uint64_t xlat_tables[CONFIG_MAX_XLAT_TABLES * Ln_XLAT_NUM_ENTRIES]
 		__aligned(Ln_XLAT_NUM_ENTRIES * sizeof(uint64_t));
 static uint16_t xlat_use_count[CONFIG_MAX_XLAT_TABLES];
 static struct k_spinlock xlat_lock;
+
+void ivalidate_table_cache(uint64_t start_addr, uint64_t end_addr);
 
 /* Returns a reference to a free table */
 static uint64_t *new_table(void)
@@ -43,7 +46,7 @@ static uint64_t *new_table(void)
 			return &xlat_tables[i * Ln_XLAT_NUM_ENTRIES];
 		}
 	}
-
+	__ASSERT(i < CONFIG_MAX_XLAT_TABLES, "xlat table: %d, it too small ", i);
 	LOG_ERR("CONFIG_MAX_XLAT_TABLES, too small");
 	return NULL;
 }
@@ -187,6 +190,7 @@ static uint64_t *expand_to_table(uint64_t *pte, unsigned int level)
 	__ASSERT(level < XLAT_LAST_LEVEL, "can't expand last level");
 
 	table = new_table();
+
 	if (!table) {
 		return NULL;
 	}
@@ -599,6 +603,7 @@ static int __add_map(struct arm_mmu_ptables *ptables, const char *name,
 	__ASSERT(((virt | phys | size) & (CONFIG_MMU_PAGE_SIZE - 1)) == 0,
 		 "address/size are not page aligned\n");
 	desc |= phys;
+
 	return set_mapping(ptables, virt, size, desc, may_overwrite);
 }
 
@@ -772,24 +777,46 @@ static uint64_t get_tcr(int el)
 	return tcr;
 }
 
+extern void rk3568_dcache_init();
+#include "macro_priv.inc"
+
+
 static void enable_mmu_el1(struct arm_mmu_ptables *ptables, unsigned int flags)
 {
 	ARG_UNUSED(flags);
-	uint64_t val;
+	uint64_t val=0xffff;
+	uint64_t tmp_val;
 
 	/* Set MAIR, TCR and TBBR registers */
 	write_mair_el1(MEMORY_ATTRIBUTES);
 	write_tcr_el1(get_tcr(1));
 	write_ttbr0_el1((uint64_t)ptables->base_xlat_table);
+	write_ttbr1_el1((uint64_t)ptables->base_xlat_table);
 
 	/* Ensure these changes are seen before MMU is enabled */
 	isb();
 
-	/* Invalidate all data caches before enable them */
+	val = read_tcr_el1();
+	tmp_val = read_spsr_el1();
+
+/*
+	val = read_id_aa64mmfr1_el1();
+	tmp_val = read_id_aa64mmfr0_el1();
+	//debug_printf("id_aa64mmfr1_el1: 0x%08x-%08x , id_aa64mmfr0_el1: 0x%08x-%08x  \r\n", val>>32, val, tmp_val>>32, tmp_val);
+	val = read_id_aa64pfr1_el1();
+	tmp_val = read_id_aa64pfr0_el1();
+	//debug_printf("id_aa64pfr1_el1: 0x%08x-%08x , ID_AA64PFR0_EL1: 0x%08x-%08x  \r\n", val>>32, val, tmp_val>>32, tmp_val);
+	val = read_far_el1();
+	tmp_val = read_hcr_el2();
+	//debug_printf("far_el1: 0x%08x-%08x , hcr_el2: 0x%08x-%08x  \r\n", val>>32, val, tmp_val>>32, tmp_val);
+*/
+
+	/* some thing need to do before enable mmu */
 	sys_cache_data_all(K_CACHE_INVD);
 
-	/* Enable the MMU and data cache */
+
 	val = read_sctlr_el1();
+	/* Enable the MMU and data cache */
 	write_sctlr_el1(val | SCTLR_M_BIT | SCTLR_C_BIT);
 
 	/* Ensure the MMU enable takes effect immediately */
@@ -805,6 +832,8 @@ static struct arm_mmu_ptables kernel_ptables;
 static sys_slist_t domain_list;
 #endif
 
+
+void ivalidate_table_cache(uint64_t start_addr, uint64_t end_addr);
 /*
  * @brief MMU default configuration
  *
@@ -818,20 +847,24 @@ void z_arm64_mm_init(bool is_primary_core)
 	__ASSERT(CONFIG_MMU_PAGE_SIZE == KB(4),
 		 "Only 4K page size is supported\n");
 
+#ifndef CONFIG_HAS_ARM_VHE_EXTN
 	__ASSERT(GET_EL(read_currentel()) == MODE_EL1,
 		 "Exception level not EL1, MMU not enabled!\n");
+#endif
 
 	/* Ensure that MMU is already not enabled */
 	__ASSERT((read_sctlr_el1() & SCTLR_M_BIT) == 0, "MMU is already enabled\n");
 
 	/*
 	 * Only booting core setup up the page tables.
-	 */
+	*/
 	if (is_primary_core) {
+		struct arm_mmu_ptables *ptables;
+		ptables = &kernel_ptables;
+
 		kernel_ptables.base_xlat_table = new_table();
 		setup_page_tables(&kernel_ptables);
 	}
-
 	/* currently only EL1 is supported */
 	enable_mmu_el1(&kernel_ptables, flags);
 }

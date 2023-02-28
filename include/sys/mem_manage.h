@@ -659,6 +659,9 @@ void k_mem_paging_backing_store_page_finalize(struct z_page_frame *pf,
  */
 void k_mem_paging_backing_store_init(void);
 
+/* For arm_mmu_ptable struct */
+#include <arch/arm64/arm_mmu.h>
+
 /** @} */
 
 #ifdef __cplusplus

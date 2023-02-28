@@ -11,6 +11,8 @@
 #include <stdbool.h>
 #include <arch/cpu.h>
 
+#include <arch/arm64/debug_uart.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -21,6 +21,7 @@
 #define ZEPHYR_ARCH_ARM64_INCLUDE_KERNEL_ARCH_FUNC_H_
 
 #include <kernel_arch_data.h>
+#include <kernel_internal.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,9 +35,13 @@ static ALWAYS_INLINE void arch_kernel_init(void)
 
 static inline void arch_switch(void *switch_to, void **switched_from)
 {
-	z_arm64_call_svc(switch_to, switched_from);
 
-	return;
+#if defined(CONFIG_HAS_ARM_VHE_EXTN) && defined(CONFIG_ZVM)
+	z_arm64_call_hvc(switch_to, switched_from);
+#else
+	z_arm64_call_svc(switch_to, switched_from);
+#endif
+
 }
 
 extern void z_arm64_fatal_error(z_arch_esf_t *esf, unsigned int reason);

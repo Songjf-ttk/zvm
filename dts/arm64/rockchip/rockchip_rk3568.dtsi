@@ -1,0 +1,129 @@
+/*
+ * Copyright 2020 NXP
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <mem.h>
+#include <freq.h>
+#include <arm64/armv8-a.dtsi>
+#include <dt-bindings/clock/rk3568_clock.h>
+#include <dt-bindings/interrupt-controller/arm-gic.h>
+
+
+/ {
+	#address-cells = <2>;
+	#size-cells = <2>;
+
+	compatible = "rockchip,rk3568";
+
+	interrupt-parent = <&gic>;
+
+	chosen {
+		zephyr,console = &uart2;
+		zephyr,shell-uart = &uart2;
+		zephyr,sram = &sram;
+	};
+
+	cpus {
+		#address-cells = <2>;
+		#size-cells = <0>;
+
+		cpu0: cpu@0 {
+			device_type = "cpu";
+			compatible = "arm,cortex-a55";
+			reg = <0x0 0x0>;
+			//enable-method = "psci";
+			//clocks = <&scmi_clk 0>;
+			//#cooling-cells = <2>;
+			//dynamic-power-coefficient = <187>;
+		};
+
+		cpu1: cpu@100 {
+			device_type = "cpu";
+			compatible = "arm,cortex-a55";
+			reg = <0x0 0x100>;
+			//enable-method = "psci";
+			//clocks = <&scmi_clk 0>;
+		};
+
+		cpu2: cpu@200 {
+			device_type = "cpu";
+			compatible = "arm,cortex-a55";
+			reg = <0x0 0x200>;
+			//enable-method = "psci";
+			//clocks = <&scmi_clk 0>;
+		};
+
+		cpu3: cpu@300 {
+			device_type = "cpu";
+			compatible = "arm,cortex-a55";
+			reg = <0x0 0x300>;
+			//enable-method = "psci";
+			//clocks = <&scmi_clk 0>;
+		};
+	};
+
+	arch_timer: timer {
+		compatible = "arm,armv8-timer";
+		interrupts = <GIC_PPI 13 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_EDGE) 0>,
+			     <GIC_PPI 14 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_EDGE) 0>,
+			     <GIC_PPI 11 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_EDGE) 0>,
+			     <GIC_PPI 10 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_EDGE) 0>;
+		label = "arch_timer";
+		interrupt-parent = <&gic>;
+	};
+
+	gic: interrupt-controller@fd400000 {
+		compatible = "arm,gic";
+		#interrupt-cells = <4>;
+		interrupt-controller;
+
+		reg = <0x0 0xfd400000 0 0x10000>, /* GICD */
+		      <0x0 0xfd460000 0 0xc0000>; /* GICR */
+		label = "GIC";
+		status = "okay";
+	};
+
+	pmucru: clock-controller@fdd00000 {
+      compatible = "rockchip,rk3568-pmucru";
+      reg = <0x0 0xfdd00000 0x0 0x10000>;
+      #clock-cells = <1>;
+      #reset-cells = <1>;
+	  label = "PMU_CRU";
+    };
+
+	cru: clock-controller@fdd20000 {
+		compatible = "rockchip,rk3568-cru";
+		reg = <0x0 0xfdd20000 0x0 0x10000>;
+		#clock-cells = <1>;
+		#reset-cells = <1>;
+		label = "CRU";
+	};
+
+	uart2: serial@fe660000 {
+		compatible = "rockchip,rk3568-uart", "ns16550";
+		reg = <0x0 0xfe660000 0x0 0x10000>;
+		interrupts = <GIC_SPI 118 IRQ_TYPE_EDGE 0>;
+		//clocks = <&cru SCLK_UART2>, <&cru PCLK_UART2>;
+		clock-frequency = <1200000000>;
+		//clock-names = "baudclk", "apb_pclk";
+		reg-shift = <2>;
+		reg-io-width = <4>;
+		label = "UART2";
+		status = "disabled";
+	};
+/*
+	per_device: per_device@f0000000{
+		compatible = "per_device";
+		reg = <0x0 0xf0000000 0x0 DT_SIZE_M(256)>;
+		label = "PER_DEVICE";
+	};
+
+	pcie_device: pcie_device@30000000{
+		compatible = "pcie_device";
+		reg = <0x0 0x30000000 0x0 DT_SIZE_M(1024)>;
+		label = "PCIE_DEVICE";
+	};
+*/
+};

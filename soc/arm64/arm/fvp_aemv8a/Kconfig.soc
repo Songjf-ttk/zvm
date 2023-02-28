@@ -10,4 +10,9 @@ config SOC_FVP_BASE_REVC_2XAEMV8A
 	select CPU_CORTEX_A53
 	select GIC_V3
 
+config SOC_FVP_CORTEX_A55
+	bool "ARM FVP Cortex a55x4 AArch64 simulation"
+	select CPU_CORTEX_A55
+	select GIC_V3
+
 endchoice

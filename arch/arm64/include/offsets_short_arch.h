@@ -26,5 +26,7 @@
 	(___thread_t_callee_saved_OFFSET + ___callee_saved_t_x29_sp_el0_OFFSET)
 #define _thread_offset_to_callee_saved_sp_elx \
 	(___thread_t_callee_saved_OFFSET + ___callee_saved_t_sp_elx_OFFSET)
+#define _thread_offset_to_callee_saved_sp_elx_lr \
+	(___thread_t_callee_saved_OFFSET + ___callee_saved_t_sp_elx_lr_OFFSET)
 
 #endif /* ZEPHYR_ARCH_ARM64_INCLUDE_OFFSETS_SHORT_ARCH_H_ */

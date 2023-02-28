@@ -13,6 +13,10 @@ properties:
       required: false
       description: quantity to shift the register offsets by
 
+    reg-io-width:
+      type: int
+      required: false
+
     pcp:
       type: int
       required: false

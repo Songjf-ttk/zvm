@@ -10,8 +10,13 @@
 #include <drivers/interrupt_controller/gic.h>
 #include "intc_gic_common_priv.h"
 #include "intc_gicv3_priv.h"
+#include <arch/arm64/debug_uart.h>
 
 #include <string.h>
+
+#ifdef CONFIG_ZVM
+#include <_zvm/arm/vgic_v3.h>
+#endif
 
 /* Redistributor base addresses for each core */
 mem_addr_t gic_rdists[CONFIG_MP_NUM_CPUS];
@@ -157,9 +162,33 @@ void arm_gic_irq_enable(unsigned int intid)
 	 * is set to '1' when GIC distributor is initialized) ,so need to set
 	 * SPI's affinity, now set it to be the PE on which it is enabled.
 	 */
-	if (GIC_IS_SPI(intid))
+	/* Default irq is route to cpu0, so we need to enable on cpu1 */
+	if (GIC_IS_SPI(intid)){
+#ifdef CONFIG_SOC_SERIES_FVP_AEMV8A
 		sys_write64(MPIDR_TO_CORE(GET_MPIDR()),
 				IROUTER(GET_DIST_BASE(intid), intid));
+		if(intid == 0x26){
+//			sys_write64(0x80000000, IROUTER(GET_DIST_BASE(intid), intid));
+			sys_write64(0x01 << 8, IROUTER(GET_DIST_BASE(intid), intid));
+		}else if(intid == 0x27){
+//			sys_write64(0x80000000, IROUTER(GET_DIST_BASE(intid), intid));
+			sys_write64(0x02 << 8,
+				IROUTER(GET_DIST_BASE(intid), intid));
+		}
+#elif	CONFIG_SOC_QEMU_CORTEX_MAX
+//		sys_write64(MPIDR_TO_CORE(GET_MPIDR()),
+//				IROUTER(GET_DIST_BASE(intid), intid));
+		if(intid == 0x2a){
+//			sys_write64(0x80000000, IROUTER(GET_DIST_BASE(intid), intid));
+			sys_write64(0x01, IROUTER(GET_DIST_BASE(intid), intid));
+		}else if(intid == 0x2b){
+//			sys_write64(0x80000000, IROUTER(GET_DIST_BASE(intid), intid));
+			sys_write64(0x02, IROUTER(GET_DIST_BASE(intid), intid));
+		}
+#else
+		sys_write64(0x80000000, IROUTER(GET_DIST_BASE(intid), intid));
+#endif
+	}
 #endif
 }
 
@@ -222,6 +251,13 @@ void arm_gic_eoi(unsigned int intid)
 
 	/* (AP -> Pending) Or (Active -> Inactive) or (AP to AP) nested case */
 	write_sysreg(intid, ICC_EOIR1_EL1);
+
+#ifdef CONFIG_ZVM
+	/* For processing el2 hw timer schduler */
+	if(intid == 0x1A || intid == 0x0)
+		write_sysreg(intid, ICC_DIR_EL1);
+#endif
+
 }
 
 void gic_raise_sgi(unsigned int sgi_id, uint64_t target_aff,
@@ -241,6 +277,10 @@ void gic_raise_sgi(unsigned int sgi_id, uint64_t target_aff,
 				   SGIR_IRM_TO_AFF, target_list);
 
 	__DSB();
+	/* In this stage, we call all the cpu except itself
+	@TODO try to figure out why the affx cannot work well , I guess it
+	may need to find the differece affx mechanism between qemu and fvp*/
+	sgi_val |= BIT(40);
 	write_sysreg(sgi_val, ICC_SGI1R);
 	__ISB();
 }
@@ -435,7 +475,7 @@ static void gicv3_dist_init(void)
 
 #ifdef CONFIG_ARMV8_A_NS
 	/* Enable distributor with ARE */
-	sys_write32(BIT(GICD_CTRL_ARE_NS) | BIT(GICD_CTLR_ENABLE_G1NS),
+	sys_write32(BIT(GICD_CTRL_ARE_NS) | BIT(GICD_CTLR_ENABLE_G1NS) | BIT(GICD_CTRL_NS),
 		    GICD_CTLR);
 #elif defined(CONFIG_GIC_SINGLE_SECURITY_STATE)
 	/*
@@ -488,6 +528,11 @@ SYS_INIT(arm_gic_init, PRE_KERNEL_1, CONFIG_KERNEL_INIT_PRIORITY_DEFAULT);
 #ifdef CONFIG_SMP
 void arm_gic_secondary_init(void)
 {
+#ifdef CONFIG_ARMV8_A_NS
+	/* Enable distributor with ARE */
+	sys_write32(BIT(GICD_CTRL_ARE_NS) | BIT(GICD_CTLR_ENABLE_G1NS) | BIT(GICD_CTRL_NS),
+		    GICD_CTLR);
+#endif
 	__arm_gic_init();
 
 #ifdef CONFIG_GIC_V3_ITS

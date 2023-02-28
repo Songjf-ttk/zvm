@@ -23,3 +23,6 @@ CONFIG_UART_PL011_PORT0=y
 # Enable console
 CONFIG_CONSOLE=y
 CONFIG_UART_CONSOLE=y
+
+# make more table for vm pgd
+CONFIG_MAX_XLAT_TABLES=16

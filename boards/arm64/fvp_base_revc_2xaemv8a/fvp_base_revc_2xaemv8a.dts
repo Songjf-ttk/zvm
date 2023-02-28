@@ -59,8 +59,8 @@
 
 		gic: interrupt-controller@2f000000 {
 			compatible = "arm,gic";
-			reg = <0x2f000000 0x10000>, // GICD
-			      <0x2f100000 0x200000>; // GICR
+			reg = <0x0 0x2f000000 0x0 0x10000>, // GICD
+			      <0x0 0x2f100000 0x0 0x200000>; // GICR
 			interrupt-controller;
 			#interrupt-cells = <4>;
 			label = "GIC";
@@ -70,7 +70,7 @@
 
 			its: msi-controller@2f020000 {
 				compatible = "arm,gic-v3-its";
-				reg = <0x2f020000 0x20000>;
+				reg = <0x0 0x2f020000 0x0 0x20000>;
 				label = "ITS";
 				status = "okay";
 			};
@@ -78,9 +78,9 @@
 
 		uart0: uart@1c090000 {
 			compatible = "arm,pl011";
-			reg = <0x1c090000 0x1000>;
+			reg = <0x0 0x1c090000 0x0 0x1000>;
 			status = "disabled";
-			interrupts = <GIC_SPI 1 0 IRQ_TYPE_LEVEL>;
+			interrupts = <GIC_SPI 5 0 IRQ_TYPE_LEVEL>; //<SECOND PARA IS OFFSET>
 			interrupt-names = "irq_0";
 			label = "UART_0";
 			clocks = <&uartclk>;
@@ -88,12 +88,12 @@
 
 		flash0: flash@0 {
 			compatible = "soc-nv-flash";
-			reg = <0x0 DT_SIZE_K(64)>;
+			reg = <0x0 0x0 0x0 DT_SIZE_K(64)>;
 		};
 
 		dram0: memory@88000000 {
 			compatible = "mmio-dram";
-			reg = <0x88000000 DT_SIZE_K(2048)>;
+			reg = <0x0 0x88000000 0x0 DT_SIZE_M(4)>;
 		};
 	};
 };

@@ -1,0 +1,81 @@
+/*
+ * Copyright (c) 2022 xcl <xiongcl@hnu.edu.cn>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/{
+    soc {
+
+        uart1: uart@9001000 {
+			compatible = "arm,pl011";
+			reg = <0x00 0x09001000 0x00 0x1000>;
+			status = "disabled";
+			interrupts = <GIC_SPI 10 IRQ_TYPE_EDGE 0>;
+			interrupt-names = "irq_0";
+			clocks = <&uartclk>;
+			label = "UART_1";
+		};
+
+		uart2: uart@9002000 {
+			compatible = "arm,pl011";
+			reg = <0x00 0x09002000 0x00 0x1000>;
+			status = "disabled";
+			interrupts = <GIC_SPI 11 IRQ_TYPE_EDGE 0>;
+			interrupt-names = "irq_0";
+			clocks = <&uartclk>;
+			label = "UART_2";
+		};
+
+    };
+
+    /*TODO: The device that used by vm will be added below. */
+    vm_zephyr_space {
+        #address-cells = <2>;
+        #size-cells = <2>;
+        compatible = "zephyr-vm";
+        dtb_address = <0x49000000>;
+        dtb_size = <DT_SIZE_M(2)>;
+
+        memory@48000000 {
+            compatible = "vm-dram";
+
+            memmap_type = "dirct";
+            address_type = "normal_memory";
+            vm_reg = <0x40000000>;
+            reg = <0x0 0x48000000 0x0 DT_SIZE_M(2)>;
+            label = "VM0_MEM";
+        };
+
+    };
+
+    vm_linux_space {
+        #address-cells = <2>;
+        #size-cells = <2>;
+        compatible = "linux-vm";
+        /* dtb_address must locate at some unused place */
+        dtb_address = <0x88000000>;
+        dtb_size = <DT_SIZE_M(2)>;
+
+        memory@80000000 {
+            compatible = "vm-dram";
+
+            memmap_type = "dirct";
+            address_type = "normal_memory";
+            vm_reg = <0x40000000>;
+            reg = <0x0 0x80000000 0x0 DT_SIZE_M(1024)>;
+            label = "VM1_MEM";
+        };
+    }; 
+ 
+};
+
+&uart1 {
+	status = "okay";
+	current-speed = <115200>;
+};
+
+&uart2 {
+	status = "okay";
+	current-speed = <115200>;
+};

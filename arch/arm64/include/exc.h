@@ -39,6 +39,7 @@ static ALWAYS_INLINE bool arch_is_in_isr(void)
 
 
 extern void z_arm64_call_svc(void *switch_to, void **switched_from);
+extern void z_arm64_call_hvc(void *switch_to, void **switched_from);
 
 #ifdef __cplusplus
 }

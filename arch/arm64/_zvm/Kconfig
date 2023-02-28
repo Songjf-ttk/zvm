@@ -1,0 +1,11 @@
+# ARM64 _zvm configuration options
+
+
+# SPDX-License-Identifier: Apache-2.0
+
+
+config ZVM_SYNC_DESC_INIT_PRIORITY
+	int "ZVM sync desc init priority"
+	default	70
+	help
+		ZVM sync desc module initialization priority.

@@ -323,3 +323,48 @@ int arch_float_enable(struct k_thread *thread, unsigned int options)
 	/* floats always gets enabled automatically at the moment */
 	return 0;
 }
+
+/*
+ * Perform lazy FPU context switching by simply granting or denying
+ * access to FP regs based on FPU ownership before leaving the last
+ * exception level in case of exceptions, or during a thread context
+ * switch with the exception level of the new thread being 0.
+ * If current thread doesn't own the FP regs then it will trap on its
+ * first access and then the actual FPU context switching will occur.
+ */
+static void fpu_access_update(unsigned int exc_update_level)
+{
+	__ASSERT(read_daif() & DAIF_IRQ_BIT, "must be called with IRQs disabled");
+
+	uint64_t cpacr = read_cpacr_el1();
+
+	if (arch_exception_depth() == exc_update_level) {
+		/* We're about to execute non-exception code */
+		if (_current_cpu->arch.fpu_owner == _current) {
+			/* turn on FPU access */
+			write_cpacr_el1(cpacr | CPACR_EL1_FPEN_NOTRAP);
+		} else {
+			/* deny FPU access */
+			write_cpacr_el1(cpacr & ~CPACR_EL1_FPEN_NOTRAP);
+		}
+	} else {
+		/*
+		 * Any new exception level should always trap on FPU
+		 * access as we want to make sure IRQs are disabled before
+		 * granting it access (see z_arm64_fpu_trap() documentation).
+		 */
+		write_cpacr_el1(cpacr & ~CPACR_EL1_FPEN_NOTRAP);
+	}
+}
+
+/*
+ * This is called from z_arm64_context_switch(). FPU access may be granted
+ * only if exception level is 0. If we switch to a thread that is still in
+ * some exception context then FPU access would be re-evaluated at exception
+ * exit time via z_arm64_fpu_exit_exc().
+ */
+void z_arm64_fpu_thread_context_switch(void)
+{
+	fpu_access_update(0);
+}
+

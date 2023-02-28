@@ -22,6 +22,7 @@
 
 #define GIC_DIST_BASE	DT_REG_ADDR_BY_IDX(DT_INST(0, arm_gic), 0)
 #define GIC_CPU_BASE	DT_REG_ADDR_BY_IDX(DT_INST(0, arm_gic), 1)
+#define GIC_VCPU_BASE	DT_REG_ADDR_BY_IDX(DT_INST(0, arm_gic), 3)
 
 /*
  * GIC Distributor Interface
@@ -47,6 +48,13 @@
  * v2/v3	GICD_IIDR
  */
 #define	GICD_IIDR		(GIC_DIST_BASE +   0x8)
+
+/*
+ * 0x010   Distributor Status Register
+ * v1		ICDSTATUSR
+ * v2/v3	GICD_STATUSR
+ */
+#define	GICD_STATUSR		(GIC_DIST_BASE +   0x10)
 
 /*
  * 0x080  Interrupt Group Registers

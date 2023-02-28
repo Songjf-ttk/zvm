@@ -7,7 +7,7 @@ config CPU_CORTEX_A
 	bool
 	select CPU_CORTEX
 	select HAS_FLASH_LOAD_OFFSET
-	select SCHED_IPI_SUPPORTED if SMP
+#	select SCHED_IPI_SUPPORTED if SMP
 	select CPU_HAS_FPU
 	imply FPU
 	imply FPU_SHARING
@@ -28,12 +28,28 @@ config CPU_CORTEX_A53
 	help
 	  This option signifies the use of a Cortex-A53 CPU
 
+config CPU_CORTEX_A55
+	bool
+	select CPU_CORTEX_A
+	select ARMV8_A
+	select HAS_ARM_VHE_EXTN
+	help
+	  This option signifies the use of a Cortex-A55 CPU
+
 config CPU_CORTEX_A72
 	bool
 	select CPU_CORTEX_A
 	select ARMV8_A
 	help
 	  This option signifies the use of a Cortex-A72 CPU
+
+config CPU_CORTEX_MAX
+	bool
+	select CPU_CORTEX_A
+	select ARMV8_A
+	select HAS_ARM_VHE_EXTN
+	help
+	  This option signifies the use of a Cortex-MAX CPU
 
 config CPU_CORTEX_R82
 	bool
@@ -42,11 +58,18 @@ config CPU_CORTEX_R82
 	help
 	  This option signifies the use of a Cortex-R82 CPU
 
+
 config HAS_ARM_SMCCC
 	bool
 	help
 	  Include support for the Secure Monitor Call (SMC) and Hypervisor
 	  Call (HVC) instructions on Armv7 and above architectures.
+
+config HAS_ARM_VHE_EXTN
+	bool
+	help
+		This option signifies the enable of Virtualization Host Extention
+		on Armv8.1+ platform.
 
 config NUM_IRQS
 	int
@@ -105,6 +128,7 @@ config ARMV8_A
 	select CPU_HAS_MMU
 	select ARCH_HAS_USERSPACE if ARM_MMU
 	select ARCH_HAS_NOCACHE_MEMORY_SUPPORT if ARM_MMU
+	select SCHED_IPI_SUPPORTED if SMP
 	help
 	  This option signifies the use of an ARMv8-A processor
 	  implementation.
@@ -257,6 +281,12 @@ config MAX_XLAT_TABLES
 	  memory regions (both normal and device memory) are present on given
 	  platform and how much granularity is required while assigning
 	  attributes to these memory regions.
+
+config ZVM_MAX_XLAT_TABLES
+	int "Maximum numbers of zvm translation tables"
+	default 16
+	help
+	  This option specifies the maximum numbers of zvm translation tables.
 
 endif # ARM_MMU
 

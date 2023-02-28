@@ -1,0 +1,23 @@
+164a165,167
+>     [VIRT_RESERVED] =           { 0xc0000000, 0x00a00000 },
+>     [VIRT_UART2] =              { 0x09001000, 0x00001000 },
+>     [VIRT_RESERVED2] =          { 0xd0000000, 0x00100000 },
+186a190
+>     [VIRT_UART2] = 0,
+843a848
+>     if(uart == VIRT_UART2){} else 
+1894a1900,1901
+>     MemoryRegion *reserved_ram = g_new(MemoryRegion, 1);
+>     MemoryRegion *reserved_ram2 = g_new(MemoryRegion, 1);
+2116a2124,2127
+>     if (serial_hd(1)) {
+>         create_uart(vms, VIRT_UART2, sysmem, serial_hd(1));
+>     }
+> 
+2120a2132,2137
+> 
+>     memory_region_init_ram(reserved_ram, NULL, "mach-virt.reserved_ram", vms->memmap[VIRT_RESERVED].size, NULL);
+>     memory_region_add_subregion(sysmem, vms->memmap[VIRT_RESERVED].base, reserved_ram);
+>     memory_region_init_ram(reserved_ram2, NULL, "mach-virt.reserved_ram2", vms->memmap[VIRT_RESERVED2].size, NULL);
+>     memory_region_add_subregion(sysmem, vms->memmap[VIRT_RESERVED2].base, reserved_ram2);
+> 

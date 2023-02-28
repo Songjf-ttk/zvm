@@ -137,6 +137,13 @@ static ALWAYS_INLINE unsigned int do_swap(unsigned int key,
 		 */
 		z_requeue_current(old_thread);
 #endif
+
+#ifdef CONFIG_ZVM
+		if(vcpu_need_switch(new_thread, old_thread)){
+			do_vcpu_swap(new_thread, old_thread);
+		}
+#endif
+
 		void *newsh = new_thread->switch_handle;
 
 		if (IS_ENABLED(CONFIG_SMP)) {
@@ -224,6 +231,10 @@ static inline void z_dummy_thread_init(struct k_thread *dummy_thread)
 #endif
 #ifdef CONFIG_USERSPACE
 	dummy_thread->mem_domain_info.mem_domain = &k_mem_domain_default;
+#endif
+
+#ifdef CONFIG_ZVM
+	dummy_thread->vcpu_struct = NULL;
 #endif
 
 	_current_cpu->current = dummy_thread;
