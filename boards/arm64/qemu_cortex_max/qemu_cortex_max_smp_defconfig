@@ -1,4 +1,4 @@
-# Copyright (c) 2022 xcl <xiongcl@hnu.cn>
+# Copyright 2021-2022 HNU
 # SPDX-License-Identifier: Apache-2.0
 
 CONFIG_SOC_QEMU_CORTEX_MAX=y

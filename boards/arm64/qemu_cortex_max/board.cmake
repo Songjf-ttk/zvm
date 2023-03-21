@@ -1,5 +1,5 @@
 # Copyright (c) 2019 Carlo Caione <ccaione@baylibre.com>
-# Copyright (c) 2022 xcl <xiongcl@hnu.cn>
+# Copyright 2021-2022 HNU
 # SPDX-License-Identifier: Apache-2.0
 
 set(SUPPORTED_EMU_PLATFORMS qemu)

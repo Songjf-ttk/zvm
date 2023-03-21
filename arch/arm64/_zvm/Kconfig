@@ -1,9 +1,8 @@
-# ARM64 _zvm configuration options
-
+# Copyright 2021-2022 HNU
 
 # SPDX-License-Identifier: Apache-2.0
 
-
+# ARM64 _zvm configuration options
 config ZVM_SYNC_DESC_INIT_PRIORITY
 	int "ZVM sync desc init priority"
 	default	70
