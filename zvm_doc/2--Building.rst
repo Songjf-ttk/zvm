@@ -3,21 +3,21 @@
 ## For Arm FVP platform
 ### Build host system.
 
-On path-to/zvm/zephyr/ dir：
+1. 在ZVM的工作目录构建ZVM镜像：
 
-For auto build the zvm, using z_auto.sh to build it.
+1） 使用脚本文件构建ZVM镜像：
 
 ```shell
 ./z_auto.sh build fvp
 ```
 
-Or input below command:
+2）使用命令行构建镜像:
 
 ```shell
-west build -b fvp_cortex_a55 samples/_zvm -DARMFVP_BL1_FILE=/home/xiong/trusted-firmware-a/build/fvp/release/bl1.bin -DARMFVP_FIP_FILE=/home/xiong/trusted-firmware-a/build/fvp/release/fip.bin
+west build -b fvp_cortex_a55 samples/_zvm -DARMFVP_BL1_FILE=path-to/trusted-firmware-a/build/fvp/release/bl1.bin -DARMFVP_FIP_FILE=path-to/trusted-firmware-a/build/fvp/release/fip.bin
 ```
 
-Eventually generate output files below:
+2. 生成ZVM镜像文件如下:
 > build/zephyr/zvm_host.elf
 
 > build/zephyr/zvm_host.bin
@@ -25,7 +25,7 @@ Eventually generate output files below:
 
 ### Building
 #### Building Zephyr OS
-On path-to/zephyr/ dir：
+1. 构建zephyr vm镜像：
 
 Supported board: fvp_base_revc_2xaemv8a
 

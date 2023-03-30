@@ -1,88 +1,41 @@
-.. raw:: html
+## Zephyr-based Virtual Machine Manager
 
-   <a href="https://www.zephyrproject.org">
-     <p align="center">
-       <img src="doc/_static/images/logo-readme.png">
-     </p>
-   </a>
+### 什么是ZVM
 
-   <a href="https://bestpractices.coreinfrastructure.org/projects/74"><img
-   src="https://bestpractices.coreinfrastructure.org/projects/74/badge"></a>
-   <a
-   href="https://github.com/zephyrproject-rtos/zephyr/actions/workflows/twister.yaml?query=branch%3Amain">
-   <img
-   src="https://github.com/zephyrproject-rtos/zephyr/actions/workflows/twister.yaml/badge.svg?event=push"></a>
+------
+
+ZVM是基于实时操作系统Zephyr设计的虚拟机管理器（Hypervisor），旨在成为一个以Zephyr为基础的，高度可配置的嵌入式虚拟化平台。
+
+### 主机相关环境
+
+  - zephyr os version: 2.7.3
+  - zephyr sdk version: zephyr-sdk-0.13.2+
 
 
-The Zephyr Project is a scalable real-time operating system (RTOS) supporting
-multiple hardware architectures, optimized for resource constrained devices,
-and built with security in mind.
+### 支持的平台：
 
-The Zephyr OS is based on a small-footprint kernel designed for use on
-resource-constrained systems: from simple embedded environmental sensors and
-LED wearables to sophisticated smart watches and IoT wireless gateways.
-
-The Zephyr kernel supports multiple architectures, including ARM Cortex-M,
-Intel x86, ARC, Nios II, Tensilica Xtensa, and RISC-V, and a large number of
-`supported boards`_.
-
-.. below included in doc/introduction/introduction.rst
+  - FVP Platform: Arm FVP(Installed with Arm DS)
+  - QEMU Platform: qemu-6.2.0(Modified)
 
 
-Getting Started
-***************
+### 支持的操作系统：
 
-Welcome to Zephyr! See the `Introduction to Zephyr`_ for a high-level overview,
-and the documentation's `Getting Started Guide`_ to start developing.
+  - Linux
+  - Zephyr
 
-.. start_include_here
 
-Community Support
-*****************
 
-Community support is provided via mailing lists and Discord; see the Resources
-below for details.
+### 手册目录
+------
 
-.. _project-resources:
+本手册包含ZVM如何构建、使用、开发的相关内容。具体内容存放在<u>（目录地址）</u>地址下。
 
-Resources
-*********
+[1--Overview.rst](https://gitee.com/cocoeoli/zvm/blob/master/doc/1--Overview.rst)
 
-Here's a quick summary of resources to help you find your way around:
+[2--Building.rst](https://gitee.com/cocoeoli/zvm/blob/master/doc/2--Building.rst)
 
-* **Help**: `Asking for Help Tips`_
-* **Documentation**: http://docs.zephyrproject.org (`Getting Started Guide`_)
-* **Source Code**: https://github.com/zephyrproject-rtos/zephyr is the main
-  repository; https://elixir.bootlin.com/zephyr/latest/source contains a
-  searchable index
-* **Releases**: https://github.com/zephyrproject-rtos/zephyr/releases
-* **Samples and example code**: see `Sample and Demo Code Examples`_
-* **Mailing Lists**: users@lists.zephyrproject.org and
-  devel@lists.zephyrproject.org are the main user and developer mailing lists,
-  respectively. You can join the developer's list and search its archives at
-  `Zephyr Development mailing list`_. The other `Zephyr mailing list
-  subgroups`_ have their own archives and sign-up pages.
-* **Nightly CI Build Status**: https://lists.zephyrproject.org/g/builds
-  The builds@lists.zephyrproject.org mailing list archives the CI nightly build results.
-* **Chat**: Real-time chat happens in Zephyr's Discord Server. Use
-  this `Discord Invite`_ to register.
-* **Contributing**: see the `Contribution Guide`_
-* **Wiki**: `Zephyr GitHub wiki`_
-* **Issues**: https://github.com/zephyrproject-rtos/zephyr/issues
-* **Security Issues**: Email vulnerabilities@zephyrproject.org to report
-  security issues; also see our `Security`_ documentation. Security issues are
-  tracked separately at https://zephyrprojectsec.atlassian.net.
-* **Zephyr Project Website**: https://zephyrproject.org
+[3--Running.rst](https://gitee.com/cocoeoli/zvm/blob/master/doc/3--Running.rst)
 
-.. _Discord Invite: https://chat.zephyrproject.org
-.. _supported boards: http://docs.zephyrproject.org/latest/boards/index.html
-.. _Zephyr Documentation: http://docs.zephyrproject.org
-.. _Introduction to Zephyr: http://docs.zephyrproject.org/latest/introduction/index.html
-.. _Getting Started Guide: http://docs.zephyrproject.org/latest/getting_started/index.html
-.. _Contribution Guide: http://docs.zephyrproject.org/latest/contribute/index.html
-.. _Zephyr GitHub wiki: https://github.com/zephyrproject-rtos/zephyr/wiki
-.. _Zephyr Development mailing list: https://lists.zephyrproject.org/g/devel
-.. _Zephyr mailing list subgroups: https://lists.zephyrproject.org/g/main/subgroups
-.. _Sample and Demo Code Examples: http://docs.zephyrproject.org/latest/samples/index.html
-.. _Security: http://docs.zephyrproject.org/latest/security/index.html
-.. _Asking for Help Tips: https://docs.zephyrproject.org/latest/getting_started/index.html#asking-for-help
+[4--Test command.rst](https://gitee.com/cocoeoli/zvm/blob/master/doc/4--Test%20system.rst)
+
+[5--Developing Help.rst](https://gitee.com/cocoeoli/zvm/blob/master/doc/master/doc/5--Developing%20Help.rst)
