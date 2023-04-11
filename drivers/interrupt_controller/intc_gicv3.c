@@ -168,21 +168,15 @@ void arm_gic_irq_enable(unsigned int intid)
 		sys_write64(MPIDR_TO_CORE(GET_MPIDR()),
 				IROUTER(GET_DIST_BASE(intid), intid));
 		if(intid == 0x26){
-//			sys_write64(0x80000000, IROUTER(GET_DIST_BASE(intid), intid));
 			sys_write64(0x01 << 8, IROUTER(GET_DIST_BASE(intid), intid));
 		}else if(intid == 0x27){
-//			sys_write64(0x80000000, IROUTER(GET_DIST_BASE(intid), intid));
 			sys_write64(0x02 << 8,
 				IROUTER(GET_DIST_BASE(intid), intid));
 		}
 #elif	CONFIG_SOC_QEMU_CORTEX_MAX
-//		sys_write64(MPIDR_TO_CORE(GET_MPIDR()),
-//				IROUTER(GET_DIST_BASE(intid), intid));
 		if(intid == 0x2a){
-//			sys_write64(0x80000000, IROUTER(GET_DIST_BASE(intid), intid));
 			sys_write64(0x01, IROUTER(GET_DIST_BASE(intid), intid));
 		}else if(intid == 0x2b){
-//			sys_write64(0x80000000, IROUTER(GET_DIST_BASE(intid), intid));
 			sys_write64(0x02, IROUTER(GET_DIST_BASE(intid), intid));
 		}
 #else
@@ -277,9 +271,9 @@ void gic_raise_sgi(unsigned int sgi_id, uint64_t target_aff,
 				   SGIR_IRM_TO_AFF, target_list);
 
 	__DSB();
-	/* In this stage, we call all the cpu except itself
-	@TODO try to figure out why the affx cannot work well , I guess it
-	may need to find the differece affx mechanism between qemu and fvp*/
+	/* In this stage, we call all the cpu except itself @TODO try to figure out why the 
+	affx cannot work well , I guess it may need to find the differece affx mechanism 
+	between qemu and fvp*/
 	sgi_val |= BIT(40);
 	write_sysreg(sgi_val, ICC_SGI1R);
 	__ISB();

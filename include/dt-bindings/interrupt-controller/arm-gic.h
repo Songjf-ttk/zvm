@@ -26,13 +26,11 @@
 
 #define IRQ_DEFAULT_PRIORITY	0xa0
 
-
 /* below code may have copyright risk
  * Interrupt specifier cell 2.
  * The flags in irq.h are valid, plus those below.
  */
 #define GIC_CPU_MASK_RAW(x) ((x) << 8)
 #define GIC_CPU_MASK_SIMPLE(num) GIC_CPU_MASK_RAW((1 << (num)) - 1)
-
 
 #endif
