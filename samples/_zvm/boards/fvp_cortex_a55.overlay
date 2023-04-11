@@ -56,7 +56,7 @@
         #address-cells = <2>;
         #size-cells = <2>;
         compatible = "linux-vm";
-        dtb_address = <0x7f000000>;
+        dtb_address = <0xc0000000>;
         dtb_size = <DT_SIZE_M(2)>;
 
         memory@b0000000 {

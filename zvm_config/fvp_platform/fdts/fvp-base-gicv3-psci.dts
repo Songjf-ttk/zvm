@@ -6,9 +6,5 @@
 
 /dts-v1/;
 
-/*
-/include/ "fvp-base-gicv3-psci-common.dtsi"
-*/
-
-
 /include/ "fvp-base-gicv3-psci-simple.dtsi"
+

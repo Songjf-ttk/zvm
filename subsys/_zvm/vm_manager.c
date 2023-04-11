@@ -200,6 +200,7 @@ int zvm_delete_guest(size_t argc, char **argv)
 		break;
 	case VM_STATE_NEVER_RUN:
 		ZVM_LOG_INFO("This vm is created but not run!\n Just delete it!\n");
+		vm_delete(vm);
 		break;
 	default:
 		ZVM_LOG_WARN("This vm status is invalid!\n");

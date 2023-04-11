@@ -137,7 +137,7 @@ static int cmd_zvm_info(const struct shell *shell, size_t argc, char **argv)
     ret = zvm_info_guest(argc, argv);
     if (ret) {
         shell_fprintf(shell, SHELL_NORMAL,
-            "List vm failured, There may no vm in the system! \n");
+            "List vm failured. \n There may no vm in the system! \n");
         k_spin_unlock(&shell_vmops_lock, key);
         return ret;
     }

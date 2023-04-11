@@ -236,7 +236,7 @@ static int cpu_data_abort_low_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_e
     case DFSC_FT_PERM_L1:
     case DFSC_FT_PERM_L0:
     default:
-        ZVM_LOG_WARN("Stage-2 error without translation fault!  VM stop! \n");
+        ZVM_LOG_WARN("Stage-2 error without translation fault: %016llx !  VM stop! \n", ipa_ddr);
         ret = -ENOVDEV;
         break;
     }

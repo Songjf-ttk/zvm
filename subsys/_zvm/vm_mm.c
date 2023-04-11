@@ -148,8 +148,9 @@ static int vm_dtb_mem_create(struct vm_mem_domain *vmem_domain)
     uint32_t vm_dtb_size = LINUX_DTB_MEM_SIZE;
     uint64_t vm_dtb_base = LINUX_DTB_MEM_BASE;
 
+    /* Attribute 'MT_VM_DEVICE_MEM' was occer a address size trap, replace with normal memory */
     return create_vm_mem_vpart(vmem_domain, vm_dtb_base, vm_dtb_base,
-            vm_dtb_size, MT_VM_DEVICE_MEM);
+            vm_dtb_size, MT_VM_NORMAL_MEM);
 }
 
 /**

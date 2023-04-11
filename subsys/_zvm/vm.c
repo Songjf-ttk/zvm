@@ -471,6 +471,7 @@ int vm_delete(struct vm *vm)
     k_free(vm);
     k_spin_unlock(&vm->spinlock, key);
 
+    zvm_overall_info->vm_total_num--;
     return 0;
 }
 
