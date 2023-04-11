@@ -38,7 +38,12 @@ SECTION_FUNC(TEXT,z_arm64_el1_plat_prep_c)
 GTEXT(rk3568_dcache_init)
 SECTION_FUNC(TEXT,rk3568_dcache_init)
 	add	x1, x1, x0
-	__dcache_line_size x2, x3
+
+	mrs x3, ctr_el0
+	ubfm x3, x3, #16, #19 	// cache line size encoding
+	mov x2, #4
+	lsl x2, x2, x3 
+
 	sub	x3, x2, #1
 	tst	x1, x3
 	bic	x1, x1, x3
@@ -83,7 +88,10 @@ SECTION_SUBSEC_FUNC(TEXT,_reset_section,__reset_prep_c)
 
 	b	out
 2:
+<<<<<<< HEAD
 
+=======
+>>>>>>> 602ac10b (Arm64 core code: Add Arm64 core code for init zvm system)
 #ifdef CONFIG_SOC_RK3568
 	bl rk3568_dcache_init
 #endif
@@ -98,7 +106,10 @@ SECTION_SUBSEC_FUNC(TEXT,_reset_section,__reset_prep_c)
 
 	/* Set SP_EL1, make the kernel stack bind to sp_el1 */
 	msr		sp_el1, x24
+<<<<<<< HEAD
 
+=======
+>>>>>>> 602ac10b (Arm64 core code: Add Arm64 core code for init zvm system)
 	msr		SPsel, #1
 	mov     sp, x24
 
@@ -200,7 +211,10 @@ switch_el:
 #else
 	bl  z_arm64_el2_init
 #endif
+<<<<<<< HEAD
 
+=======
+>>>>>>> 602ac10b (Arm64 core code: Add Arm64 core code for init zvm system)
 	mov_imm	x0, (SPSR_DAIF_MASK | SPSR_MODE_EL1T)
 	msr	spsr_el2, x0
 
@@ -214,7 +228,10 @@ switch_el:
 	and x0, x0,	#ASM_HCR_E2H
 	/*If nvhe, jump! */
 	cbz	x0,	21f
+<<<<<<< HEAD
 
+=======
+>>>>>>> 602ac10b (Arm64 core code: Add Arm64 core code for init zvm system)
 	b 1f
 
 /* if vhe is not implemention */
@@ -229,7 +246,10 @@ switch_el:
 
 	/* We want to use SP_ELx from now on */
 	msr	SPSel, #1
+<<<<<<< HEAD
 
+=======
+>>>>>>> 602ac10b (Arm64 core code: Add Arm64 core code for init zvm system)
 	/* Enable SError interrupts */
 	msr	DAIFClr, #(DAIFCLR_ABT_BIT)
 	isb

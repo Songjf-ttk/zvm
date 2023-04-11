@@ -106,14 +106,12 @@ void arch_new_thread(struct k_thread *thread, k_thread_stack_t *stack,
 #else
 	pInitCtx->elr = (uint64_t)z_thread_entry;
 #endif
-
 #if defined(CONFIG_HAS_ARM_VHE_EXTN) && defined(CONFIG_ZVM)
 	pInitCtx->spsr = SPSR_MODE_EL2H | DAIF_FIQ_BIT;
 #else
 	/* Keep using SP_EL1 */
 	pInitCtx->spsr = SPSR_MODE_EL1H | DAIF_FIQ_BIT;
 #endif
-
 #ifdef CONFIG_ZVM
 	/* init thread's vcpu_struct */
 	thread->vcpu_struct = NULL;

@@ -157,8 +157,7 @@ void z_arm64_el2_init(void)
 	isb();
 }
 
-#ifdef CONFIG_ZVM
-
+#if defined(CONFIG_ZVM) && defined(CONFIG_HAS_ARM_VHE_EXTN)
 /* Configure EL2/virtualization related registers.
  * TODO: system register info must be standarded later.
  */
@@ -177,13 +176,13 @@ void z_arm64_el2_vhe_init(void)
 	write_hcr_el2(reg);
 	isb();
 
-#ifdef CONFIG_HAS_ARM_VHE_EXTN
 	reg = read_id_aa64mmfr1_el1();
 	reg = ASM_UBFX(8, 4, reg);
 
-	if(reg)
+	if(reg){
 		vhe_flag = true;
-#endif
+	}
+
 	if(vhe_flag){
 		reg = HCR_VHE_FLAGS;
 	}else{
@@ -253,7 +252,6 @@ void z_arm64_el2_vhe_init(void)
 
 	z_arm64_el2_plat_init();
 }
-
 #endif  /* CONFIG_ZVM */
 
 void z_arm64_el1_init(void)
@@ -307,22 +305,20 @@ void z_arm64_el3_get_next_el(uint64_t switch_addr){
 	write_spsr_el3(spsr);
 }
 
-
 /*
  * operation for all data cache
  * ops:  K_CACHE_INVD: invalidate
  *	 K_CACHE_WB: clean
  *	 K_CACHE_WB_INVD: clean and invalidate
  */
-void arch_flush_dcache_all()
+void arch_flush_dcache_all(void)
 {
-	uint32_t clidr_el1, csselr_el1, ccsidr_el1;
 	uint8_t loc, ctype, cache_level, line_size, way_pos;
+	uint32_t clidr_el1, csselr_el1, ccsidr_el1;
 	uint32_t max_ways, max_sets, dc_val, set, way;
 
 	/* Data barrier before start */
 	dsb();
-
 	clidr_el1 = read_clidr_el1();
 
 	loc = (clidr_el1 >> 24) & BIT_MASK(3);
@@ -359,17 +355,14 @@ void arch_flush_dcache_all()
 				dc_val |= csselr_el1;
 				/* set number, aligned to pos in DC operand */
 				dc_val |= set << line_size;
-
 				__asm__ volatile ("dc cisw, %0" :: "r" (dc_val) : "memory");
 
 			}
 		}
 	}
-
 	/* Restore csselr_el1 to level 0 */
 	write_csselr_el1(0);
 	dsb();
 	isb();
-
 	return;
 }

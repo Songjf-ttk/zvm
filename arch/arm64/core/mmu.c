@@ -23,6 +23,7 @@
 #include <sys/util.h>
 #include <arch/arm64/debug_uart.h>
 #include "mmu.h"
+#include <arch/arm64/debug_uart.h>
 
 
 LOG_MODULE_DECLARE(os, CONFIG_KERNEL_LOG_LEVEL);
@@ -778,8 +779,6 @@ static uint64_t get_tcr(int el)
 }
 
 extern void rk3568_dcache_init();
-#include "macro_priv.inc"
-
 
 static void enable_mmu_el1(struct arm_mmu_ptables *ptables, unsigned int flags)
 {
@@ -796,20 +795,22 @@ static void enable_mmu_el1(struct arm_mmu_ptables *ptables, unsigned int flags)
 	/* Ensure these changes are seen before MMU is enabled */
 	isb();
 
+#ifdef CONFIG_ZVM_EARLYPRINT_MSG
+	uint64_t tmp_val;
 	val = read_tcr_el1();
 	tmp_val = read_spsr_el1();
 
-/*
 	val = read_id_aa64mmfr1_el1();
 	tmp_val = read_id_aa64mmfr0_el1();
 	//debug_printf("id_aa64mmfr1_el1: 0x%08x-%08x , id_aa64mmfr0_el1: 0x%08x-%08x  \r\n", val>>32, val, tmp_val>>32, tmp_val);
 	val = read_id_aa64pfr1_el1();
 	tmp_val = read_id_aa64pfr0_el1();
-	//debug_printf("id_aa64pfr1_el1: 0x%08x-%08x , ID_AA64PFR0_EL1: 0x%08x-%08x  \r\n", val>>32, val, tmp_val>>32, tmp_val);
+	debug_printf("id_aa64pfr1_el1: 0x%08x-%08x , ID_AA64PFR0_EL1: 0x%08x-%08x  \r\n", val>>32, val, tmp_val>>32, tmp_val);
 	val = read_far_el1();
 	tmp_val = read_hcr_el2();
-	//debug_printf("far_el1: 0x%08x-%08x , hcr_el2: 0x%08x-%08x  \r\n", val>>32, val, tmp_val>>32, tmp_val);
-*/
+	debug_printf("far_el1: 0x%08x-%08x , hcr_el2: 0x%08x-%08x  \r\n", val>>32, val, tmp_val>>32, tmp_val);
+
+#endif /* CONFIG_ZVM_EARLYPRINT_MSG */
 
 	/* some thing need to do before enable mmu */
 	sys_cache_data_all(K_CACHE_INVD);
@@ -850,10 +851,16 @@ void z_arm64_mm_init(bool is_primary_core)
 #ifndef CONFIG_HAS_ARM_VHE_EXTN
 	__ASSERT(GET_EL(read_currentel()) == MODE_EL1,
 		 "Exception level not EL1, MMU not enabled!\n");
-#endif
-
+	
 	/* Ensure that MMU is already not enabled */
 	__ASSERT((read_sctlr_el1() & SCTLR_M_BIT) == 0, "MMU is already enabled\n");
+#else 
+	__ASSERT(GET_EL(read_currentel()) == MODE_EL2,
+		 "Exception level not EL2, MMU not enabled!\n");
+
+	/* Ensure that MMU is already not enabled */
+	__ASSERT((read_sctlr_el2() & SCTLR_M_BIT) == 0, "MMU is already enabled\n");
+#endif
 
 	/*
 	 * Only booting core setup up the page tables.

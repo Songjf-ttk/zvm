@@ -197,13 +197,10 @@ context_switch:
 	sub	x1, x1, ___thread_t_switch_handle_OFFSET
 
 	stp x0, x1, [sp, ___esf_t_x0_x1_OFFSET]
-
 #ifdef CONFIG_ZVM
 	bl do_asm_vcpu_swap
 #endif
-
 	ldp	x0, x1, [sp, ___esf_t_x0_x1_OFFSET]
-
 	/* Switch thread */
 	bl	z_arm64_context_switch
 
@@ -224,7 +221,6 @@ SECTION_FUNC(TEXT, z_arm64_call_svc)
 
 GTEXT(z_arm64_call_hvc)
 SECTION_FUNC(TEXT, z_arm64_call_hvc)
-
 	hvc	#0
 	ret
 

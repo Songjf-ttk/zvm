@@ -56,26 +56,19 @@ GEN_NAMED_OFFSET_SYM(_esf_t, x0, x0_x1);
 
 GEN_ABSOLUTE_SYM(___esf_t_SIZEOF, sizeof(_esf_t));
 
-
 #ifdef CONFIG_ZVM
-
 /* offset for zvm_vcpu_context */
 GEN_OFFSET_SYM(zvm_vcpu_context_t, regs);
-
-
 /* offset for zvm_arch_reg */
 GEN_OFFSET_SYM(arch_commom_regs_t, callee_saved_regs);
 GEN_OFFSET_SYM(arch_commom_regs_t, esf_handle_regs);
 GEN_OFFSET_SYM(arch_commom_regs_t, pc);
 GEN_OFFSET_SYM(arch_commom_regs_t, pstate);
 GEN_OFFSET_SYM(arch_commom_regs_t, lr);
-
 /* offset for vcpu */
 GEN_OFFSET_SYM(vcpu_t, arch);
-
 /* offset for vcpu_arch */
 GEN_OFFSET_SYM(vcpu_arch_t, ctxt);
-
 #endif
 
 #ifdef CONFIG_HAS_ARM_SMCCC
