@@ -44,14 +44,12 @@ extern "C" {
 typedef struct __esf _esf_t;
 typedef struct __basic_sf _basic_sf_t;
 
-
 #ifdef CONFIG_ZVM
 typedef struct zvm_vcpu_context zvm_vcpu_context_t;
 typedef struct arch_commom_regs arch_commom_regs_t;
 typedef struct vcpu vcpu_t;
 typedef struct vcpu_arch vcpu_arch_t;
 #endif
-
 
 #ifdef __cplusplus
 }
