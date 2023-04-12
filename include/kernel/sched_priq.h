@@ -58,9 +58,7 @@ struct _priq_mq {
 struct k_thread *z_priq_mq_best(struct _priq_mq *pq);
 
 #ifdef CONFIG_ZVM
-
 void z_vm_runq_add(struct k_thread *thread);
-
 #endif /* CONFIG_ZVM */
 
 #endif /* ZEPHYR_INCLUDE_SCHED_PRIQ_H_ */

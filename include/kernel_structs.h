@@ -68,7 +68,6 @@ extern "C" {
 /* Thread that for judging that whether vcpu need
     to switch context */
 #define _THREAD_VCPU_NO_SWITCH	(BIT(6))
-
 #endif
 
 /* end - states */
