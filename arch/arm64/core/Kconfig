@@ -43,6 +43,14 @@ config CPU_CORTEX_A72
 	help
 	  This option signifies the use of a Cortex-A72 CPU
 
+config CPU_CORTEX_A75
+	bool
+	select CPU_CORTEX_A
+	select ARMV8_A
+	select HAS_ARM_VHE_EXTN
+	help
+	  This option signifies the use of a Cortex-A75 CPU
+
 config CPU_CORTEX_MAX
 	bool
 	select CPU_CORTEX_A
