@@ -1,0 +1,13 @@
+# Copyright (c) 2021 Carlo Caione <ccaione@baylibre.com>
+# SPDX-License-Identifier: Apache-2.0
+
+choice
+	prompt "ARM FVP Base_A55x4_A75x2 SoCs"
+	depends on SOC_SERIES_FVP_BASE_AARCH64
+
+config SOC_FVP_BASE_A55X4_A75X2
+	bool "ARM FVP Base A55x4 A75x2 AArch64 simulation"
+	select CPU_CORTEX_A55
+	select GIC_V3
+
+endchoice
