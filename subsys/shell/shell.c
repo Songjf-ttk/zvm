@@ -1349,7 +1349,10 @@ void shell_thread(void *shell_handle, void *arg_log_backend,
 	}
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> e4a8dcff (Sample code: Add zvm shell system code.)
 struct k_thread *z_shell_thread_force;
 
 int shell_init(const struct shell *shell, const void *transport_config,
@@ -1382,9 +1385,7 @@ int shell_init(const struct shell *shell, const void *transport_config,
 	//try unable shell run on cpu1
 	k_thread_cpu_mask_disable(tid, 0x1);
 #endif
-
 	z_shell_thread_force = shell->thread;
-
 	return 0;
 }
 
