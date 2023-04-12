@@ -159,7 +159,7 @@ SECTION_SUBSEC_FUNC(TEXT,_reset_section,__start)
 	ldr	x0, =arm64_cpu_boot_params
 	get_cpu_id x1
 	ldr	x2, [x0, #BOOT_PARAM_MPID_OFFSET]
-#ifdef CONFIG_BOARD_FVP_CORTEX_A55
+#ifdef CONFIG_BOARD_FVP_CORTEX_A55x4_A75x2_SMP
 	mov x1, x1, lsr #0x08
 	cmp x1, #0
 	bne 1f

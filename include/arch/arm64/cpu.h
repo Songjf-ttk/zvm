@@ -84,7 +84,7 @@
 
 #define GET_MPIDR()		read_sysreg(mpidr_el1)
 
-#ifdef CONFIG_SOC_FVP_CORTEX_A55
+#ifdef CONFIG_SOC_FVP_BASE_A55X4_A75X2
 #define MPIDR_TO_CORE(mpidr)	MPIDR_AFFLVL(mpidr, 1)
 #else
 #define MPIDR_TO_CORE(mpidr)	MPIDR_AFFLVL(mpidr, 0)

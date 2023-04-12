@@ -164,7 +164,7 @@ void arm_gic_irq_enable(unsigned int intid)
 	 */
 	/* Default irq is route to cpu0, so we need to enable on cpu1 */
 	if (GIC_IS_SPI(intid)){
-#ifdef CONFIG_SOC_SERIES_FVP_AEMV8A
+#ifdef CONFIG_SOC_SERIES_FVP_BASE_AARCH64
 		sys_write64(MPIDR_TO_CORE(GET_MPIDR()),
 				IROUTER(GET_DIST_BASE(intid), intid));
 		if(intid == 0x26){
