@@ -21,7 +21,11 @@ struct getopt_state;
 #define VM_DEFAULT_VCPU_NUM     (1)
 
 
+<<<<<<< HEAD
 #ifdef CONFIG_SOC_FVP_CORTEX_A55
+=======
+#ifdef CONFIG_SOC_FVP_BASE_A55X4_A75X2
+>>>>>>> 47cf0079 (Virtual module: Add no archticture related module.)
 
 #define ZEPHYR_VMMM_STRING  memory_a0000000
 #define LINUX_VMMM_STRING   memory_b0000000
@@ -31,7 +35,11 @@ struct getopt_state;
 #define ZEPHYR_VMMM_STRING  memory_48000000
 #define LINUX_VMMM_STRING   memory_80000000
 
+<<<<<<< HEAD
 #endif /* CONFIG_SOC_FVP_CORTEX_A55 */
+=======
+#endif /* CONFIG_SOC_FVP_BASE_A55X4_A75X2 */
+>>>>>>> 47cf0079 (Virtual module: Add no archticture related module.)
 
 
 /* For clear warning for unknow reason */
