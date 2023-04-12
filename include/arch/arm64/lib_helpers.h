@@ -94,29 +94,6 @@ MAKE_REG_HELPER(vpidr_el2);
 MAKE_REG_HELPER(vttbr_el2);
 MAKE_REG_HELPER(vtcr_el2);
 
-/* Add some VHE related registers */
-/*
-	#define CONFIG_VHE
-	#if defined(CONFIG_VHE)
-	MAKE_REG_HELPER(afsr0_el12);
-	MAKE_REG_HELPER(afsr1_el12);
-	MAKE_REG_HELPER(amair_el12);
-	MAKE_REG_HELPER(cpacr_el12);
-	MAKE_REG_HELPER(contextidr_el12);
-	MAKE_REG_HELPER(cntkctl_el12);
-	MAKE_REG_HELPER(esr_el12);
-	MAKE_REG_HELPER(elr_el12);
-	MAKE_REG_HELPER(far_el12);
-	MAKE_REG_HELPER(mair_el12);
-	MAKE_REG_HELPER(spsr_el12);
-	//MAKE_REG_HELPER(sctlr_el12);
-	MAKE_REG_HELPER(tcr_el12);
-	MAKE_REG_HELPER(ttbr0_el12);
-	MAKE_REG_HELPER(ttbr1_el12);
-	MAKE_REG_HELPER(vbar_el12);
-	#endif
-*/
-
 MAKE_REG_HELPER_EL123(actlr)
 MAKE_REG_HELPER_EL123(cpacr)
 MAKE_REG_HELPER_EL123(cptr)
@@ -200,7 +177,10 @@ MAKE_REG_HELPER(cntp_cval_el02);
 MAKE_REG_HELPER(cntv_tval_el02);
 MAKE_REG_HELPER(cntv_ctl_el02);
 MAKE_REG_HELPER(cntv_cval_el02);
+<<<<<<< HEAD
 
+=======
+>>>>>>> c30e2f24 (Arm64 macro: Add arm64 header file.)
 #endif
 
 static ALWAYS_INLINE void enable_debug_exceptions(void)

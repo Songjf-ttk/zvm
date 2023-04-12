@@ -18,6 +18,8 @@ extern "C" {
 
 #ifndef _ASMLANGUAGE
 
+#ifdef CONFIG_ZVM_EARLYPRINT_MSG
+
 int save_boot_params(void);
 
 int tpl_main(void);
@@ -28,7 +30,9 @@ void asm_print_debug(unsigned long long reg, unsigned long long reg2);
 
 int debug_printf(const char *fmt, ...);
 
-#endif
+#endif 
+
+#endif  /* _ASMLANGUAGE */
 
 #ifdef __cplusplus
 }

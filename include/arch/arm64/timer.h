@@ -17,10 +17,20 @@ extern "C" {
 #endif
 
 #ifndef CONFIG_ZVM
-
 #define ARM_ARCH_TIMER_IRQ	ARM_TIMER_VIRTUAL_IRQ
 #define ARM_ARCH_TIMER_PRIO	ARM_TIMER_VIRTUAL_PRIO
 #define ARM_ARCH_TIMER_FLAGS	ARM_TIMER_VIRTUAL_FLAGS
+#else
+#ifdef	CONFIG_HAS_ARM_VHE_EXTN
+#define ARM_ARCH_TIMER_IRQ	ARM_TIMER_HYP_IRQ
+#define ARM_ARCH_TIMER_PRIO	ARM_TIMER_HYP_PRIO
+#define ARM_ARCH_TIMER_FLAGS	ARM_TIMER_HYP_FLAGS
+#else	// !CONFIG_HAS_ARM_VHE_EXTN
+#define ARM_ARCH_TIMER_IRQ	ARM_TIMER_NON_SECURE_IRQ
+#define ARM_ARCH_TIMER_PRIO	ARM_TIMER_NON_SECURE_PRIO
+#define ARM_ARCH_TIMER_FLAGS	ARM_TIMER_NON_SECURE_FLAGS
+#endif
+#endif // !CONFIG_ZVM
 
 #else
 
@@ -41,9 +51,7 @@ static ALWAYS_INLINE void arm_arch_timer_init(void)
 {
 }
 
-
 #ifndef CONFIG_ZVM
-
 static ALWAYS_INLINE void arm_arch_timer_set_compare(uint64_t val)
 {
 	write_cntv_cval_el0(val);
@@ -85,7 +93,6 @@ static ALWAYS_INLINE uint64_t arm_arch_timer_count(void)
 }
 
 #else
-
 static ALWAYS_INLINE void arm_arch_timer_set_compare(uint64_t val)
 {
 	write_cntp_cval_el0(val);

@@ -126,7 +126,6 @@ SECTIONS
         KEEP(*(.hyp_code))
         KEEP(*(".hyp_code.*"))
 #endif
-
         /*
          * These are here according to 'arm-zephyr-elf-ld --verbose',
          * after .gnu.linkonce.t.*
