@@ -137,13 +137,11 @@ static ALWAYS_INLINE unsigned int do_swap(unsigned int key,
 		 */
 		z_requeue_current(old_thread);
 #endif
-
 #ifdef CONFIG_ZVM
 		if(vcpu_need_switch(new_thread, old_thread)){
 			do_vcpu_swap(new_thread, old_thread);
 		}
 #endif
-
 		void *newsh = new_thread->switch_handle;
 
 		if (IS_ENABLED(CONFIG_SMP)) {

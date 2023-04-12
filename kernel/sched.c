@@ -1467,11 +1467,9 @@ void z_sched_ipi(void)
 #ifdef CONFIG_TRACE_SCHED_IPI
 	z_trace_sched_ipi();
 #endif
-
 #ifdef CONFIG_ZVM
 	zvm_ipi_handler();
 #endif
-
 }
 #endif
 

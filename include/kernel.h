@@ -230,9 +230,7 @@ extern void k_thread_foreach_unlocked(
  * This option just used on zvm module
  */
 #define K_VCPU	(BIT(6))
-
 #endif
-
 /* end - thread options */
 
 #if !defined(_ASMLANGUAGE)
