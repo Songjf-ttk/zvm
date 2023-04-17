@@ -41,12 +41,19 @@ config ZVM_INIT_PRIORITY
 config ZVM_TIME_MEASURE
 	bool "ZVM measure system latency"
 	help
-	  ZVM's latency measure tools.
+	  ZVM latency measure tools.
 
 config ZVM_ELF_LOADER
 	bool "ZVM load elf image for vm"
 	help
 	  For pharse elf header, and load elf vm image
+
+config ZVM_EARLYPRINT_MSG
+	bool "ZVM's early consolo for printing system boot message."
+	default n
+	help
+	  For debug hardware system, there must be a early printk mechanism to 
+	  output the system info, which is usefull for development.  
 
 config DTB_FILE_INPUT
 	bool "ZVM system pharse dtb file for os like linux"
@@ -59,6 +66,5 @@ config VM_DYNAMIC_MEMORY
 	help
 	  ZVM uses dynamic memory allocate mechanism to reduce the memory allocate, 
 	  but it will add some time cost.
-
 
 endif   # ZVM

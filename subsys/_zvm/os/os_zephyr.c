@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <os/os.h>
+#include <_zvm/os/os.h>
 #include <sys/mem_manage.h>
 #include <_zvm/zvm.h>
 #include <_zvm/arm/mm.h>
