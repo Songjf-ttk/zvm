@@ -177,10 +177,6 @@ MAKE_REG_HELPER(cntp_cval_el02);
 MAKE_REG_HELPER(cntv_tval_el02);
 MAKE_REG_HELPER(cntv_ctl_el02);
 MAKE_REG_HELPER(cntv_cval_el02);
-<<<<<<< HEAD
-
-=======
->>>>>>> c30e2f24 (Arm64 macro: Add arm64 header file.)
 #endif
 
 static ALWAYS_INLINE void enable_debug_exceptions(void)
