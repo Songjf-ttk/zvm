@@ -1,123 +1,152 @@
-# Building system
+Building system
+===============
 
-## For Arm FVP platform
-### Build host system.
+For Arm FVP platform
+--------------------
+
+Build host system.
+~~~~~~~~~~~~~~~~~~
 
 1. 在ZVM的工作目录构建ZVM镜像：
 
 1） 使用脚本文件构建ZVM镜像：
 
-```shell
-./z_auto.sh build fvp
-```
+.. code:: shell
+
+   ./z_auto.sh build fvp
 
 2）使用命令行构建镜像:
 
-```shell
-west build -b fvp_cortex_a55 samples/_zvm -DARMFVP_BL1_FILE=path-to/trusted-firmware-a/build/fvp/release/bl1.bin -DARMFVP_FIP_FILE=path-to/trusted-firmware-a/build/fvp/release/fip.bin
-```
+.. code:: shell
 
-2. 生成ZVM镜像文件如下:
-> build/zephyr/zvm_host.elf
+   west build -b fvp_cortex_a55 samples/_zvm -DARMFVP_BL1_FILE=path-to/trusted-firmware-a/build/fvp/release/bl1.bin -DARMFVP_FIP_FILE=path-to/trusted-firmware-a/build/fvp/release/fip.bin
 
-> build/zephyr/zvm_host.bin
+2. 生成ZVM镜像文件如下: > build/zephyr/zvm_host.elf
 
+..
 
-### Building
-#### Building Zephyr OS
+   build/zephyr/zvm_host.bin
+
+Building
+~~~~~~~~
+
+Building Zephyr OS
+^^^^^^^^^^^^^^^^^^
+
 1. 构建zephyr vm镜像：
 
 Supported board: fvp_base_revc_2xaemv8a
 
-```shell
-west build -b fvp_base_revc_2xaemv8a samples/subsys/shell/shell_module/ -DARMFVP_BL1_FILE=/home/xiong/trusted-firmware-a/build/fvp/release/bl1.bin -DARMFVP_FIP_FILE=/home/xiong/trusted-firmware-a/build/fvp/release/fip.bin 
-```
+.. code:: shell
 
-Eventually generate image files below:
-> build/zephyr/zephyr.elf
+   west build -b fvp_base_revc_2xaemv8a samples/subsys/shell/shell_module/ -DARMFVP_BL1_FILE=/home/xiong/trusted-firmware-a/build/fvp/release/bl1.bin -DARMFVP_FIP_FILE=/home/xiong/trusted-firmware-a/build/fvp/release/fip.bin 
 
-> build/zephyr/zephyr.bin
+Eventually generate image files below: > build/zephyr/zephyr.elf
 
+   build/zephyr/zephyr.bin
 
-#### Building Linux OS
-1. Download Linux-5.16.12 or other version's kernel.
+Building Linux OS
+^^^^^^^^^^^^^^^^^
+
+1. Download Linux-5.16.12 or other version’s kernel.
 2. Build kernel.
-```shell
-# chose the debug info, the .config file that is show on path-to/zvm_configs/fvp_platform/.config_fvp
-$ make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- menuconfig
-# build kernel, generate image in: ./zvm_configs/fvp_platform/Image
-$ make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- Image
-```
+
+.. code:: shell
+
+   # chose the debug info, the .config file that is show on path-to/zvm_configs/fvp_platform/.config_fvp
+   $ make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- menuconfig
+   # build kernel, generate image in: ./zvm_configs/fvp_platform/Image
+   $ make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- Image
+
 3. Build dtb.
-```shell
-# build dtb file for linux os, the dts file is locate at path-to/zvm_configs/fdts/* and dtb file is on path-to/zvm_configs/fvp-base-gicv3-psci.dtb
-$ dtc fdts/fvp-base-gicv3-psci.dts -I dts -O dtb > fvp-base-gicv3-psci.dtb
-```
+
+.. code:: shell
+
+   # build dtb file for linux os, the dts file is locate at path-to/zvm_configs/fdts/* and dtb file is on path-to/zvm_configs/fvp-base-gicv3-psci.dtb
+   $ dtc fdts/fvp-base-gicv3-psci.dts -I dts -O dtb > fvp-base-gicv3-psci.dtb
+
 4. Build filesystem.
-```shell
-# build the filesystem and generate the filesystem image
-# Using busybox to build it, ref: https://consen.github.io/2018/01/17/debug-linux-kernel-with-qemu-and-gdb/. Finally generate path-to/zvm_config/fvp_platform/initramfs.cpio.gz
-```
+
+.. code:: shell
+
+   # build the filesystem and generate the filesystem image
+   # Using busybox to build it, ref: https://consen.github.io/2018/01/17/debug-linux-kernel-with-qemu-and-gdb/. Finally generate path-to/zvm_config/fvp_platform/initramfs.cpio.gz
+
 5. Build linux image.
-```shell
-# using boot-wrapper to build linux image.
-$ wget https://git.kernel.org/pub/scm/linux/kernel/git/mark/boot-wrapper-aarch64.git/snapshot/boot-wrapper-aarch64-ed60963595855e66ffc06a8a543cbb429c7ede03.tar.gz
-$ tar -xf boot-wrapper-aarch64-ed60963595855e66ffc06a8a543cbb429c7ede03.tar.gz
-$ cd boot-wrapper-aarch64-ed60963595855e66ffc06a8a543cbb429c7ede03/
-$ autoreconf -i
-$ ./configure --enable-psci --enable-gicv3 --with-kernel-dir=path-to/linux-5.16.12/ --with-dtb=path-to/fvp-base-gicv3-psci.dtb --with-initrd=path-to/initramfs.cpio.gz --host=aarch64-linux-gnu
-$ make
 
-# And the final generated image file: linux-system.axf
-```
+.. code:: shell
 
-## For QEMU platform
-### Host Compile
+   # using boot-wrapper to build linux image.
+   $ wget https://git.kernel.org/pub/scm/linux/kernel/git/mark/boot-wrapper-aarch64.git/snapshot/boot-wrapper-aarch64-ed60963595855e66ffc06a8a543cbb429c7ede03.tar.gz
+   $ tar -xf boot-wrapper-aarch64-ed60963595855e66ffc06a8a543cbb429c7ede03.tar.gz
+   $ cd boot-wrapper-aarch64-ed60963595855e66ffc06a8a543cbb429c7ede03/
+   $ autoreconf -i
+   $ ./configure --enable-psci --enable-gicv3 --with-kernel-dir=path-to/linux-5.16.12/ --with-dtb=path-to/fvp-base-gicv3-psci.dtb --with-initrd=path-to/initramfs.cpio.gz --host=aarch64-linux-gnu
+   $ make
+
+   # And the final generated image file: linux-system.axf
+
+For QEMU platform
+-----------------
+
+Host Compile
+~~~~~~~~~~~~
 
 For auto build the zvm, using z_auto.sh to build it.
-```shell
-./z_auto.sh build qemu
-```
+
+.. code:: shell
+
+   ./z_auto.sh build qemu
 
 On path-to/zvm/zephyr/ dir
-```shell
-west build -b qemu_cortex_max_smp samples/_zvm/
-```
-Generated image files below:
-> build/zephyr/zvm_host.elf
 
-> build/zephyr/zvm_host.bin
+.. code:: shell
 
+   west build -b qemu_cortex_max_smp samples/_zvm/
 
-### Guest Compile
-#### zephyr os:
+Generated image files below: > build/zephyr/zvm_host.elf
+
+   build/zephyr/zvm_host.bin
+
+Guest Compile
+~~~~~~~~~~~~~
+
+zephyr os:
+^^^^^^^^^^
+
 on path-to/zephyr dir：
-```shell
-west build -b qemu_cortex_a53 samples/subsys/shell/shell_module/
-```
 
-Generate image files below:
-> build/zephyr/zephyr.elf
+.. code:: shell
 
-> build/zephyr/zephyr.bin
+   west build -b qemu_cortex_a53 samples/subsys/shell/shell_module/
 
+Generate image files below: > build/zephyr/zephyr.elf
 
-#### Linux os:
+   build/zephyr/zephyr.bin
+
+Linux os:
+^^^^^^^^^
+
 1. Build dtb.
-```shell
-# build dtb file for linux os, the dts file is locate at ./zvm_configs/qemu_platform/virt.dts and dtb file is on ./z_configs/qemu_platform/virt.dtb
-$ dtc virt.dts -I dts -O dtb > virt.dtb
-```
+
+.. code:: shell
+
+   # build dtb file for linux os, the dts file is locate at ./zvm_configs/qemu_platform/virt.dts and dtb file is on ./z_configs/qemu_platform/virt.dtb
+   $ dtc virt.dts -I dts -O dtb > virt.dtb
+
 2. Build filesystem.
-```shell
-# build the filesystem and generate the filesystem image
-# Using busybox to build it, ref: https://consen.github.io/2018/01/17/debug-linux-kernel-with-qemu-and-gdb/. Finally generate ./zvm_config/qemu_platform/initramfs.cpio.gz
-```
+
+.. code:: shell
+
+   # build the filesystem and generate the filesystem image
+   # Using busybox to build it, ref: https://consen.github.io/2018/01/17/debug-linux-kernel-with-qemu-and-gdb/. Finally generate ./zvm_config/qemu_platform/initramfs.cpio.gz
+
 3. Build kernel.
-```shell
-# chose the debug info, the .config file that is show on ./zvm_configs/qemu_platform/.config_qemu
-# add filesystem's *.cpio.gz file to kernel image by chosing it in menuconfig.
-$ make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- menuconfig
-# build kernel
-$ make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- Image
-```
+
+.. code:: shell
+
+   # chose the debug info, the .config file that is show on ./zvm_configs/qemu_platform/.config_qemu
+   # add filesystem's *.cpio.gz file to kernel image by chosing it in menuconfig.
+   $ make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- menuconfig
+   # build kernel
+   $ make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- Image

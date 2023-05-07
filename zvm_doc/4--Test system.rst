@@ -1,67 +1,60 @@
-# ZVM Command
-  
-#### new vm command
+ZVM Command
+===========
 
-```shell
+new vm command
+--------------
 
-------------------------------
-zvm new -t linux    /* new a linux vm with vmid that allocated by system. */
-
-zvm new -t zephyr   /* new a zephyr vm with vmid that allocated by system. */
-------------------------------
-
-```
-
-  
-
-#### run vm command
-
-```shell
-
-------------------------------
-zvm run -n 0        /* run the vm with vm\'s vmid equal to 0 */
-
-zvm run -n 1        /* run the vm with vm\'s vmid equal to 1 */
-------------------------------
-
-```
+.. code:: shell
 
 
+   ------------------------------
+   zvm new -t linux    /* new a linux vm with vmid that allocated by system. */
 
-#### pause vm command
+   zvm new -t zephyr   /* new a zephyr vm with vmid that allocated by system. */
+   ------------------------------
 
-```shell
+run vm command
+--------------
 
-------------------------------
-zvm pause -n 0      /* pause the vm with vm\'s vmid equal to 0 */
-
-zvm pause -n 1      /* pause the vm with vm\'s vmid equal to 1 */
-------------------------------
-
-```
+.. code:: shell
 
 
+   ------------------------------
+   zvm run -n 0        /* run the vm with vm\'s vmid equal to 0 */
 
-#### list vm command
+   zvm run -n 1        /* run the vm with vm\'s vmid equal to 1 */
+   ------------------------------
 
-```shell
+pause vm command
+----------------
 
-------------------------------
-zvm info            /* list vms. */
-------------------------------
-
-```
+.. code:: shell
 
 
+   ------------------------------
+   zvm pause -n 0      /* pause the vm with vm\'s vmid equal to 0 */
 
-#### delete vm command
+   zvm pause -n 1      /* pause the vm with vm\'s vmid equal to 1 */
+   ------------------------------
 
-```shell
+list vm command
+---------------
 
-------------------------------
-zvm delete -n 0     /* delete the vm with vm\'s vmid equal to 0 */
+.. code:: shell
 
-zvm delete -n 1     /* delete the vm with vm\'s vmid equal to 1 */
-------------------------------
 
-```
+   ------------------------------
+   zvm info            /* list vms. */
+   ------------------------------
+
+delete vm command
+-----------------
+
+.. code:: shell
+
+
+   ------------------------------
+   zvm delete -n 0     /* delete the vm with vm\'s vmid equal to 0 */
+
+   zvm delete -n 1     /* delete the vm with vm\'s vmid equal to 1 */
+   ------------------------------
