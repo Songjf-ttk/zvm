@@ -9,6 +9,7 @@ ops_debug="debugserver"
 
 plat_qemu="qemu"
 plat_fvp="fvp"
+plat_rk3568="rk3568"
 
 # Build system
 if [ "$OPS" = "$ops_build" ]; then
@@ -20,8 +21,10 @@ if [ "$OPS" = "$ops_build" ]; then
         west build -b fvp_cortex_a55 samples/_zvm \
         -DARMFVP_BL1_FILE=/path-to/bl1.bin \
         -DARMFVP_FIP_FILE=/path-to/fip.bin
+    elif [ "$PLAT" = "$plat_rk3568" ]; then
+        west build -b roc_rk3568_pc samples/_zvm 
     else
-        echo "Error arguments for this auto.sh! \n Please input command like: ./z_auto.sh build qemu. "
+        echo "Error arguments for this auto.sh! \n Please input command like: ./auto_build.sh build qemu. "
     fi
 
 elif [ "$OPS" = "$ops_debug" ]; then
@@ -31,10 +34,10 @@ elif [ "$OPS" = "$ops_debug" ]; then
         /path-to/qemu-system-aarch64 \
         -cpu max -m 4G -nographic -machine virt,virtualization=on,gic-version=3 \
         -net none -pidfile qemu.pid -chardev stdio,id=con,mux=on \
-        -serial chardev:con -mon chardev=con,mode=readline  -serial pty -serial pty -smp cpus=4 \
+        -serial chardev:con -mon chardev=con,mode=readline -serial pty -serial pty -smp cpus=4 \
         -device loader,file=/path-to/zephyr.bin,addr=0x48000000,force-raw=on \
         -device loader,file=/path-to/Image,addr=0x80000000,force-raw=on \
-        -device loader,file=/path-to/linux-qemu-virt.dtb,addr=0x88000000,force-raw=on \
+        -device loader,file=/path-to/linux-qemu-virt.dtb,addr=0x88000000 \
         -kernel /path-to/zvm_host.elf -s -S
 
     elif [ "$PLAT" = "$plat_fvp" ]; then
