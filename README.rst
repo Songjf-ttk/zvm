@@ -33,12 +33,12 @@ ZVM是基于实时操作系统Zephyr设计的虚拟机管理器（Hypervisor）�
 
 `1–Overview.rst <https://gitee.com/cocoeoli/zvm/blob/refactor/zvm_doc/1--Overview.rst>`__
 
-`2–Building.rst <https://gitee.com/cocoeoli/zvm/blob/master/doc/2--Building.rst>`__
+`2–Building.rst <https://gitee.com/cocoeoli/zvm/blob/refactor/zvm_doc/2--Building.rst>`__
 
-`3–Running.rst <https://gitee.com/cocoeoli/zvm/blob/master/doc/3--Running.rst>`__
+`3–Running.rst <https://gitee.com/cocoeoli/zvm/blob/refactor/zvm_doc/3--Running.rst>`__
 
 `4–Test
-command.rst <https://gitee.com/cocoeoli/zvm/blob/master/doc/4--Test%20system.rst>`__
+command.rst <https://gitee.com/cocoeoli/zvm/blob/refactor/zvm_doc/4--Test%20system.rst>`__
 
 `5–Developing
-Help.rst <https://gitee.com/cocoeoli/zvm/blob/master/doc/master/doc/5--Developing%20Help.rst>`__
+Help.rst <https://gitee.com/cocoeoli/zvm/blob/refactor/zvm_doc/5--Developing%20Help.rst>`__
