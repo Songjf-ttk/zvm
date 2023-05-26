@@ -31,7 +31,7 @@ ZVM是基于实时操作系统Zephyr设计的虚拟机管理器（Hypervisor）�
 
 本手册包含ZVM如何构建、使用、开发的相关内容。具体内容存放在（目录地址）地址下。
 
-`1–Overview.rst <https://gitee.com/cocoeoli/zvm/blob/master/doc/1--Overview.rst>`__
+`1–Overview.rst <https://gitee.com/cocoeoli/zvm/blob/refactor/zvm_doc/1--Overview.rst>`__
 
 `2–Building.rst <https://gitee.com/cocoeoli/zvm/blob/master/doc/2--Building.rst>`__
 
