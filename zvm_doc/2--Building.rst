@@ -13,15 +13,16 @@ Build host system.
 
 .. code:: shell
 
-   ./z_auto.sh build fvp
+   ./auto_build.sh build fvp
 
 2）使用命令行构建镜像:
 
 .. code:: shell
 
-   west build -b fvp_cortex_a55 samples/_zvm -DARMFVP_BL1_FILE=path-to/trusted-firmware-a/build/fvp/release/bl1.bin -DARMFVP_FIP_FILE=path-to/trusted-firmware-a/build/fvp/release/fip.bin
+   west build -b fvp_cortex_a55x4_a75x2_smp samples/_zvm \
+   -DARMFVP_BL1_FILE=/path-to/bl1.bin -DARMFVP_FIP_FILE=/path-to/fip.bin
 
-2. 生成ZVM镜像文件如下: > build/zephyr/zvm_host.elf
+2. 生成ZVM镜像文件如下: 
 
 ..
 
@@ -35,13 +36,16 @@ Building Zephyr OS
 
 1. 构建zephyr vm镜像：
 
-Supported board: fvp_base_revc_2xaemv8a
+支持板卡: fvp_base_revc_2xaemv8a
 
 .. code:: shell
 
-   west build -b fvp_base_revc_2xaemv8a samples/subsys/shell/shell_module/ -DARMFVP_BL1_FILE=/home/xiong/trusted-firmware-a/build/fvp/release/bl1.bin -DARMFVP_FIP_FILE=/home/xiong/trusted-firmware-a/build/fvp/release/fip.bin 
+   west build -b fvp_base_revc_2xaemv8a samples/subsys/shell/shell_module/ \
+   -DARMFVP_BL1_FILE=/path-to/bl1.bin -DARMFVP_FIP_FILE=/path-to/fip.bin 
 
-Eventually generate image files below: > build/zephyr/zephyr.elf
+生成ZVM镜像文件如下: 
+
+..
 
    build/zephyr/zephyr.bin
 
@@ -96,15 +100,16 @@ For auto build the zvm, using z_auto.sh to build it.
 
 .. code:: shell
 
-   ./z_auto.sh build qemu
+   ./auto_build.sh build qemu
 
-On path-to/zvm/zephyr/ dir
+On path-to/zvm/ dir
 
 .. code:: shell
 
    west build -b qemu_cortex_max_smp samples/_zvm/
 
-Generated image files below: > build/zephyr/zvm_host.elf
+Generated image files below: 
+..
 
    build/zephyr/zvm_host.bin
 
@@ -120,8 +125,9 @@ on path-to/zephyr dir：
 
    west build -b qemu_cortex_a53 samples/subsys/shell/shell_module/
 
-Generate image files below: > build/zephyr/zephyr.elf
+Generate image files below:
 
+..
    build/zephyr/zephyr.bin
 
 Linux os:

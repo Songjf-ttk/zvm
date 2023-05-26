@@ -60,4 +60,4 @@ tags
 .idea
 
 # script
-z\_auto*
+_auto_build.sh
