@@ -117,6 +117,10 @@ static int virt_irq_set_type(struct vcpu *vcpu, uint32_t virt_irq, int value)
 	return 0;
 }
 
+/**
+ * @brief Set priority for specific virtual interrupt requests
+ */
+
 static int virt_irq_set_priority(struct vcpu *vcpu, uint32_t virt_irq, int prio)
 {
 	struct virt_irq_desc *desc;

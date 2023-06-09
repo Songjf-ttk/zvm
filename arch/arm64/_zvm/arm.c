@@ -230,6 +230,12 @@ void arch_vcpu_context_load(struct vcpu *vcpu)
 #endif
 }
 
+/**
+ * @brief init vcpu arch related struct here. call by vm_cpu_init
+ * @param vcpu : vcpu struct
+ * @return int : error code.
+ */
+
 int arch_vcpu_init(struct vcpu *vcpu)
 {
     int ret = 0;

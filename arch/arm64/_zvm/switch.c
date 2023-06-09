@@ -161,6 +161,10 @@ static void arch_vm_serror_trap(struct vcpu *vcpu, int exit_code)
     }
 }
 
+/**
+ * @brief Get the zvm host context object for context switch
+ */
+
 void get_zvm_host_context(void)
 {
     uint64_t hostctxt_addr ;
@@ -173,6 +177,10 @@ void get_zvm_host_context(void)
         : : "r" (hostctxt_addr) :
     );
 }
+
+/**
+ * @brief run the virtual machine on the specified vcpu.
+ */
 
 int arch_vcpu_run(struct vcpu *vcpu)
 {
@@ -229,6 +237,10 @@ int arch_vcpu_run(struct vcpu *vcpu)
     }
     return ret;
 }
+
+/**
+ * @brief Check before irq interrupt
+ */
 
 void z_vm_switch_handle_pre(uint32_t irq)
 {

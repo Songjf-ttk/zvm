@@ -29,6 +29,10 @@ static int get_vm_mem_info(uint32_t *base, uint32_t *size, uint64_t virt_base)
 }
 
 
+/**
+ * @brief Initialize OS basic information of a virtual machine
+ */
+
 int vm_os_create(struct vm* vm, struct z_vm_info *vm_info)
 {
     struct os* os = vm->os;
