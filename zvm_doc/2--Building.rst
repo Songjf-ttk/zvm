@@ -52,15 +52,15 @@ west 工具，本项目已经将west.yml文件进行了配置，只需要使用w
 
    cd ~
    mkdir zvm_workspace && cd zvm_workspace
-   git clone https://gitlab.eduxiji.net/202310532111672/project1466467-177494.git
+   git clone https://gitee.com/cocoeoli/zvm.git 
 
 
 2. 初始化工作仓
 
 .. code:: shell
 
-   cd project1466467-177494
-   west init -l /path-to/project1466467-177494
+   cd zvm
+   west init -l /path-to/zvm
 
 上面的'path-to'修改为自己的目录路径，执行完上面命令后，在'zvm_workspace'目录下将会生成.west文件夹，
 其中'config'文件中存放了west的相关配置。此时可以通过执行如下命令查看'west'配置是否成功：
