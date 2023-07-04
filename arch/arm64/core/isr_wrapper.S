@@ -74,11 +74,7 @@ oob:
 	bl z_vm_switch_handle_pre
 #endif
 
-<<<<<<< HEAD
-	ldr x0,  [sp]
-=======
 	ldp x0, x1,  [sp]
->>>>>>> 602ac10b (Arm64 core code: Add Arm64 core code for init zvm system)
 
 	/* Retrieve the interrupt service routine */
 	ldr	x1, =_sw_isr_table

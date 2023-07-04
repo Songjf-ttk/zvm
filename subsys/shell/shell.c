@@ -1349,10 +1349,6 @@ void shell_thread(void *shell_handle, void *arg_log_backend,
 	}
 }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> e4a8dcff (Sample code: Add zvm shell system code.)
 struct k_thread *z_shell_thread_force;
 
 int shell_init(const struct shell *shell, const void *transport_config,
