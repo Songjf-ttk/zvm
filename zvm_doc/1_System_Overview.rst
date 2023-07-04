@@ -5,7 +5,7 @@ ZVM是基于实时操作系统Zephyr设计的虚拟机管理器（Hypervisor）�
 内存虚拟化、中断虚拟化、时钟虚拟化及I/O虚拟化等功能。
 同时，现阶段Hypervisor支持两个VM，分别是Linux VM和Zephyr VM。
 
-.. figure:: https://gitee.com/cocoeoli/zvm/raw/refactor/zvm_doc/figure/overview.jpg
+.. figure:: https://gitee.com/cocoeoli/zvm/raw/refactor/zvm_doc/figure/overview.png
    :alt: Overview
 
 

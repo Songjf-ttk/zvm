@@ -19,7 +19,7 @@ ZVM使用
 是一种参考Kernel-based Virtual Machine（KVM）实现的虚拟机，其面向高性能嵌入式计算环境，
 提供嵌入式平台上操作系统级别的资源隔离和共享服务。
 
-.. figure:: https://gitee.com/cocoeoli/zvm/raw/refactor/zvm_doc/figure/zvm_demo.jpg
+.. figure:: https://gitee.com/cocoeoli/zvm/raw/refactor/zvm_doc/figure/zvm_demo.png
    :alt: zvm_demo
 
    zvm_demo
@@ -74,4 +74,22 @@ ZVM主机的构建、Linux和zephyr虚拟机的构建以及其他ZVM运行所需
 `加入我们： <https://gitee.com/cocoeoli/zvm/blob/refactor/zvm_doc/8_Join_us.rst>`__
 ************************************************************************************************
 最后，我们介绍了我们团队的一些成员、如何加入ZVM进行开发以及开发过程中需要遵循的一些基本编码规则。
+
+
+视频介绍
+----------
+以往关于一些ZVM的分享视频。
+
+EOSS分享视频：
+^^^^^^^^^^^^^^^^^^^^^^
+
+`ZVM: An Embedded Real-time Virtual Machine Based on Zephyr RTOS <https://mp.weixin.qq.com/s/igDKghI7CptV01wu9JrwRA>`__
+*************************************************************************************************************************************
+
+Sig-Zephyr分享视频：
+^^^^^^^^^^^^^^^^^^^^^^
+
+`ZVM:基于Zephyr RTOSI的嵌入式实时虚拟机 <https://www.bilibili.com/video/BV1pe4y1A7o4/?spm_id_from=333.788.recommend_more_video.14&vd_source=64410f78d160e2b1870852fdc8e2e43a>`__
+******************************************************************************************************************************************************************************************
+
 
