@@ -1,97 +1,24 @@
-Building system
-===============
-
-开发环境配置
----------------
-Zephyr-Based Virtual Machine 基于 ZephyrProject 代码库进行开发，构建和运行工具与沿用ZephyrProject原先的
-west 工具，本项目已经将west.yml文件进行了配置，只需要使用west对系统进行初始化即可。但是由于系统编译过程中将要使用到许多依赖项目，
-这里参考zephyrproject的说明文档[1]下载相应的依赖。
-
-安装相关依赖
-~~~~~~~~~~~~~~~~~~
-
-1. 升级软件仓
-
-.. code:: shell
-
-   sudo apt update
-   sudo apt upgrade
-
-2. 升级Kitware archive
-
-.. code:: shell
-
-   wget https://apt.kitware.com/kitware-archive.sh
-   sudo bash kitware-archive.sh
-
-3. 升级相关依赖仓库
-
-.. code:: shell
-
-   sudo apt install --no-install-recommends git cmake ninja-build gperf \
-      ccache dfu-util device-tree-compiler wget \
-      python3-dev python3-pip python3-setuptools python3-tk python3-wheel xz-utils file \
-      make gcc gcc-multilib g++-multilib libsdl2-dev libmagic1
+ZVM系统构建
+================
 
 
-4. 安装west工具(这里选择全局安装，若是想要在python-env中安装，参考[1]中资料)
-
-.. code:: shell
-
-   pip3 install --user -U west
-   echo 'export PATH=~/.local/bin:"$PATH"' >> ~/.bashrc
-   source ~/.bashrc
-
-
-创建并初始化工作区
-~~~~~~~~~~~~~~~~~~
-
-1. 创建工作区并拉取zvm仓库镜像
-
-.. code:: shell
-
-   cd ~
-   mkdir zvm_workspace && cd zvm_workspace
-   git clone https://gitee.com/cocoeoli/zvm.git 
-
-
-2. 初始化工作仓
-
-.. code:: shell
-
-   cd zvm
-   west init -l /path-to/zvm
-
-上面的'path-to'修改为自己的目录路径，执行完上面命令后，在'zvm_workspace'目录下将会生成.west文件夹，
-其中'config'文件中存放了west的相关配置。此时可以通过执行如下命令查看'west'配置是否成功：
-
-.. code:: shell
-
-   west -h
-
-显示有west信息后，即说明工作仓初始化成功，可以进行主机操作系统和客户机操作系统的开发。
-
-
-
-构建主机ZVM镜像
----------------
-
-
-QEMU platform
-~~~~~~~~~~~~~~~~~~
+QEMU 平台构建host步骤
+---------------------
 
 1. 在ZVM的工作目录构建ZVM镜像：
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 进入zvm工作目录：
 
-.. code:: shell
+    .. code:: shell
 
-   cd ~/zvm_workspace/zvm
+        cd ~/zvm_workspace/zvm
 
 1） 使用脚本文件构建ZVM镜像：
 
-.. code:: shell
+    .. code:: shell
 
-   ./auto_build.sh build qemu
+        ./auto_build.sh build qemu
 
 2）或者使用命令行构建镜像:
 
@@ -101,16 +28,18 @@ QEMU platform
 
 
 2. 生成ZVM镜像文件如下: 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    .. code:: shell
 
-..
-
-    build/zephyr/zvm_host.elf
+        build/zephyr/zvm_host.elf
 
 
-Arm FVP platform
-~~~~~~~~~~~~~~~~~~
+Arm FVP 平台构建host步骤
+-------------------------
 
 1. 在ZVM的工作目录构建ZVM镜像：
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 进入zvm工作目录：
 
 .. code:: shell
@@ -134,27 +63,27 @@ Arm FVP platform
 后面的'arm-trusted-fireware-a'为arm 平台的安全启动工具，
 
 2. 生成ZVM镜像文件如下: 
-
-..
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. code:: shell
 
     build/zephyr/zvm_host.elf
 
 
 
-构建虚拟机镜像
+构建Guest虚拟机镜像
 ---------------
 
 因为本项目的zvm系统搭建的是同构虚拟化平台，现阶段实现的虚拟机和主机运行的平台是一致的，因此下面分别介绍针对qemu以及
 fvp平台的os镜像构建过程。
 
 Building Zephyr OS
-~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 在构建Zephyr os的镜像过程中，需要使用zephyrproject的工程，分别生成适用于qemu和fvp版本的虚拟机镜像，镜像构建具体过程如下。
 需要注意的是，本项目中在zephyr vm生成过程中，如果是fvp平台，需要考虑arm trusted-firmware-a的启动配置，arm trusted-firmware-a
 相关仓库和配置参考资料[2]，直接将代码拉取下来，再编译构建即可。
 
 构建zephyr vm镜像(qemu)：
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Supported board: fvp_base_revc_2xaemv8a
 
@@ -166,7 +95,7 @@ Supported board: fvp_base_revc_2xaemv8a
 
 
 构建zephyr vm镜像(fvp)：
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Supported board: qemu_cortex_a53
 
@@ -185,11 +114,11 @@ Supported board: qemu_cortex_a53
 
 
 Building linux OS
-~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 构建linux OS过程中，需要先拉取linux kernel源码，并构建设备树及文件系统，最终
 
 构建linux vm镜像(qemu)：
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 1. Build dtb.
 
 .. code:: shell
@@ -198,11 +127,42 @@ Building linux OS
    dtc linux-qemu-virt.dts -I dts -O dtb > linux-qemu-virt.dtb
 
 2. Build filesystem.
+   构建initramfs根文件系统，这此处借助了BusyBox构建极简initramfs，提供基本的用户态可执行程序编译
+   BusyBox，配置CONFIG_STATIC参数，
+   
+1）拉取BusyBox包
+   
+   .. code:: shell
 
-.. code:: shell
+      $ git clone https://git.busybox.net/busybox/tree/?h=1_28_stable
 
-   # build the filesystem and generate the filesystem image
-   # Using busybox to build it, ref: https://consen.github.io/2018/01/17/debug-linux-kernel-with-qemu-and-gdb/. 
+2） 编译静态版BusyBox，编译好的可执行文件busybox不依赖动态链接库，可以独立运行，方便构建initramfs
+   
+   .. code:: shell
+
+      $ cd busybox-1.28.0
+      $ make menuconfig
+      #勾选Settings下的Build static binary (no shared libs)选项
+      $ make -j 20
+      $ make install
+      #此时
+      $ mkdir initramfs
+      $ cd initramfs
+      $ cp ../_install/* -rf ./
+      $ mkdir dev proc sys
+      $ sudo cp -a /dev/{null, console, tty, tty1, tty2, tty3, tty4} dev/
+      $ rm linuxrc
+      $ vim init
+      $ chmod a+x init
+      $ ls
+      $ bin   dev  init  proc  sbin  sys   usr
+      # init文件内容：
+      #!/bin/busybox sh
+      # mount -t proc none /proc
+      # mount -t sysfs none /sys
+      # exec /sbin/init
+      #最后打包initramfs
+      $ find . -print0 | cpio --null -ov --format=newc | gzip -9 > ../initramfs.cpio.gz
 
 3. Build kernel.
 
@@ -218,7 +178,7 @@ Building linux OS
 
 
 构建linux vm镜像(fvp)：
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 1. Download Linux-5.16.12 or other version’s kernel.
 
@@ -239,6 +199,7 @@ Building linux OS
    dtc fdts/fvp-base-gicv3-psci.dts -I dts -O dtb > fvp-base-gicv3-psci.dtb
 
 4. Build filesystem.
+   
 
 .. code:: shell
 
@@ -261,20 +222,29 @@ Building linux OS
 
 
 最终生成文件
-~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 在qemu平台，成功生成如下文件：
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
    zvm_host.elf, zephyr.bin, linux-qemu-virt.dtb, Image, initramfs.cpio.gz
 
 在fvp平台，成功生成如下文件：
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
    zvm_host.elf, zephyr.bin, linux-system.axf(包含内核镜像，文件系统及设备树等文件)
 
 
 
 参考资料：
--------
+---------------------------
 [1] https://docs.zephyrproject.org/latest/index.html 
 
 [2] https://gitee.com/cocoeoli/arm-trusted-firmware-a 
+
+
+
+
+
+`Prev>> 核心模块介绍 <https://gitee.com/cocoeoli/zvm/blob/refactor/zvm_doc/3_Key_Modules.rst>`__
+
+`Next>> ZVM运行与调试 <https://gitee.com/cocoeoli/zvm/blob/refactor/zvm_doc/5_Running_and_Debugging.rst>`__
+
