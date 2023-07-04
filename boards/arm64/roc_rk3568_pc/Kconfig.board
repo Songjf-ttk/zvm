@@ -1,0 +1,8 @@
+# Copyright 2021 HNU
+# SPDX-License-Identifier: Apache-2.0
+
+config BOARD_ROC_RK3568_PC
+	bool "Rockchip ROC-RK3568-PC"
+	depends on SOC_SERIES_RK356X
+	select SOC_PART_NUMBER_ROCRK3568PC
+	select ARM64

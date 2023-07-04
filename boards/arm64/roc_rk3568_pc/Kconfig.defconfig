@@ -1,0 +1,9 @@
+# Copyright 2020 HNU
+# SPDX-License-Identifier: Apache-2.0
+
+if BOARD_ROC_RK3568_PC
+
+config BOARD
+	default "roc_rk3568_pc"
+
+endif # BOARD_ROC_RK3568_PC

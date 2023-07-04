@@ -1,0 +1,9 @@
+# Copyright 2022 HNU
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_SERIES_RK356X
+	bool "Rockchip RK356X Series"
+	select ARM64
+	select SOC_FAMILY_RK3500
+	help
+	  Enable support for RK356X Series.

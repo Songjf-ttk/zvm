@@ -1,0 +1,14 @@
+identifier: qemu_cortex_max_smp
+name: QEMU Emulation for Cortex-MAX SMP
+type: qemu
+simulation: qemu
+arch: arm64
+toolchain:
+  - zephyr
+  - cross-compile
+ram: 128
+testing:
+  default: true
+  ignore_tags:
+    - net
+    - bluetooth

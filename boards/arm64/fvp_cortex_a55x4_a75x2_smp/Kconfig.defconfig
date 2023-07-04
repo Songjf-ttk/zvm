@@ -1,0 +1,12 @@
+# Copyright (c) 2021 Carlo Caione <ccaione@baylibre.com>
+# SPDX-License-Identifier: Apache-2.0
+
+if BOARD_FVP_CORTEX_A55x4_A75x2_SMP
+
+config BUILD_OUTPUT_BIN
+	default y
+
+config BOARD
+	default "fvp_cortex_a55x4_a75x2_smp"
+
+endif # BOARD_FVP_CORTEX_A55x4_A75x2_SMP

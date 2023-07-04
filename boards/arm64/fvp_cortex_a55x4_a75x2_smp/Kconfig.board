@@ -1,0 +1,6 @@
+# Copyright (c) 2021 Carlo Caione <ccaione@baylibre.com>
+# SPDX-License-Identifier: Apache-2.0
+
+config BOARD_FVP_CORTEX_A55x4_A75x2_SMP
+	bool "FVP Cortex A55x4_A75x2_smp simulation board"
+	depends on SOC_FVP_BASE_A55X4_A75X2
