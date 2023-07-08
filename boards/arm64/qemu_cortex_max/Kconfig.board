@@ -1,0 +1,9 @@
+# Copyright (c) 2019 Carlo Caione <ccaione@baylibre.com>
+# Copyright 2021-2022 HNU
+# SPDX-License-Identifier: Apache-2.0
+
+config BOARD_QEMU_CORTEX_MAX
+	bool "Cortex-Max Emulation (QEMU)"
+	depends on SOC_QEMU_CORTEX_MAX
+	select ARM64
+	select QEMU_TARGET

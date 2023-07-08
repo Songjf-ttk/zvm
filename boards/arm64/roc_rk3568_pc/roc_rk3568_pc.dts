@@ -1,0 +1,42 @@
+/*
+ * Copyright 2022 HNU
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+
+#include <rockchip/rockchip_rk3568.dtsi>
+#include <common/mem.h>
+
+/ {
+	model = "Rockchip ROCRK3568PC";
+	compatible = "rockchip,rk3568";
+
+	aliases {
+		serial2 = &uart2;
+	};
+
+	psci {
+		/* **zeohyr are not surport psci-1.0
+		 * compatible = "arm,psci-1.0";
+		*/
+		compatible = "arm,psci-0.2";
+		method = "smc";
+		label = "PSCI";
+	};
+	/* For dram 0x40000000 */
+	sram: sram@fdcc0000 {
+		compatible = "mmio-sram";
+		//reg = <0x0 0xfdcc0000 0x0 DT_SIZE_M(1)>;
+		//64 bits description, big endian
+		reg = <0x0 0x40000000 0x0 DT_SIZE_M(128)>;
+	};
+
+};
+
+/* debug */
+&uart2 {
+    status = "okay";
+	current-speed = <1500000>;
+};

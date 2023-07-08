@@ -1,0 +1,70 @@
+# Copyright 2021-2022 HNU
+# SPDX-License-Identifier: Apache-2.0
+
+menuconfig ZVM
+	bool "Zephyr Based Virtualization menu"
+	default n
+	# Need USERSPACE memory manager
+	select USERSPACE
+	help
+	  Zephyr virtualization support.
+
+if ZVM
+
+config MAX_VM_NUM
+	int "Maximum number of simultaneous VMs"
+	range 0 32
+	default 2
+	help
+	  Maximum number of simultaneous VMs
+
+config MAX_VCPU_PER_VM
+	int "Maximum number of vcpu a vm possese"
+	range 1 4
+	default 1
+	help
+	  Maximum number of vcpu a vm possese
+
+#config ZVM_HW_SYSTEM_INFO_INIT_PRIORITY
+#	int "ZVM hardware system info init priority"
+#	default	75
+#	help
+#		ZVM hardware system init initialization priority.
+#		System hardware info must init before ZVM init.
+
+config ZVM_INIT_PRIORITY
+	int "ZVM init priority"
+	default	80
+	help
+	  ZVM module initialization priority.
+
+config ZVM_TIME_MEASURE
+	bool "ZVM measure system latency"
+	help
+	  ZVM latency measure tools.
+
+config ZVM_ELF_LOADER
+	bool "ZVM load elf image for vm"
+	help
+	  For pharse elf header, and load elf vm image
+
+config ZVM_EARLYPRINT_MSG
+	bool "ZVM's early consolo for printing system boot message."
+	default n
+	help
+	  For debug hardware system, there must be a early printk mechanism to 
+	  output the system info, which is usefull for development.  
+
+config DTB_FILE_INPUT
+	bool "ZVM system pharse dtb file for os like linux"
+	help
+	  ZVM pharse dtb file, and get mem partition for vm_mem domain.
+
+config VM_DYNAMIC_MEMORY
+	bool "ZVM's allocate dynamic memory space for vm."
+	default n
+	help
+	  ZVM uses dynamic memory allocate mechanism to reduce the memory allocate, 
+	  but it will add some time cost.
+
+endif   # ZVM

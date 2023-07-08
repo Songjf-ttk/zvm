@@ -1,0 +1,11 @@
+# Copyright 2022 HNU
+# SPDX-License-Identifier: Apache-2.0
+
+if SOC_SERIES_RK356X
+
+config SOC_SERIES
+	default "rk356x"
+
+source "soc/arm64/rockchip/rk356x/Kconfig.defconfig.rk356*"
+
+endif # SOC_SERIES_RK356X
