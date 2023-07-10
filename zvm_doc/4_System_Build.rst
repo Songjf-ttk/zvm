@@ -100,10 +100,10 @@ Supported board: fvp_base_revc_2xaemv8a
 Supported board: qemu_cortex_a53
 
 .. code:: shell
+
    west build -b fvp_base_revc_2xaemv8a samples/subsys/shell/shell_module/  \
    -DARMFVP_BL1_FILE=/home/xiong/trusted-firmware-a/build/fvp/release/bl1.bin \ 
    -DARMFVP_FIP_FILE=/home/xiong/trusted-firmware-a/build/fvp/release/fip.bin 
-
 
 
 最终生成如下镜像文件：
