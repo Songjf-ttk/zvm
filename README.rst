@@ -43,35 +43,35 @@ Zephyr系统整体结构和Linux类似，本项目参考基于内核的虚拟机
 具体内容及简介：
 ^^^^^^^^^^^
 
-`系统简介： <https://gitee.com/cocoeoli/zvm/blob/refactor/zvm_doc/1_System_Overview.rst>`__
+`系统简介： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/1_System_Overview.rst>`__
 *****************************************************************************************************
 ZVM的整个系统各个模块的整体架构介绍，以及一些其他的功能介绍。
 
-`主机开发环境搭建： <https://gitee.com/cocoeoli/zvm/blob/refactor/zvm_doc/2_Environment_Configuration.rst>`__
+`主机开发环境搭建： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/2_Environment_Configuration.rst>`__
 ****************************************************************************************************************************
 Linux主机开发环境的配置，zephyrproject SDK的配置及zvm仓库的初始化和简单sample的构建与测试等。
 
-`核心模块介绍： <https://gitee.com/cocoeoli/zvm/blob/refactor/zvm_doc/3_Key_Modules.rst>`__
+`核心模块介绍： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/3_Key_Modules.rst>`__
 ********************************************************************************************************
 各个模块的详细实现介绍，包括虚拟处理器、虚拟内存、虚拟设备等各个模块的技术实现。
 
-`ZVM系统构建： <https://gitee.com/cocoeoli/zvm/blob/refactor/zvm_doc/4_System_Build.rst>`__
+`ZVM系统构建： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/4_System_Build.rst>`__
 ********************************************************************************************************
 ZVM主机的构建、Linux和zephyr虚拟机的构建以及其他ZVM运行所需要环境的配置流程。
 
-`ZVM运行与调试： <https://gitee.com/cocoeoli/zvm/blob/refactor/zvm_doc/5_Running_and_Debugging.rst>`__
+`ZVM运行与调试： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/5_Running_and_Debugging.rst>`__
 ********************************************************************************************************
 说明如何在主机中运行及调试相应的模块，包括基础指令的测试，以及如何对系统进行调试的步骤。
 
-`拓展技术介绍： <https://gitee.com/cocoeoli/zvm/blob/refactor/zvm_doc/6_Expansion_Technology.rst>`__
+`拓展技术介绍： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/6_Expansion_Technology.rst>`__
 *******************************************************************************************************
 为了优化ZVM在嵌入式系统中的运行支持，我们拟支持一些额外的技术，保证ZVM系统能更好的支持各类应用场景。
 
-`ZVM后续规划： <https://gitee.com/cocoeoli/zvm/blob/refactor/zvm_doc/7_Todo_List.rst>`__
+`ZVM后续规划： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/7_Todo_List.rst>`__
 **************************************************************************************************
 我们对ZVM的后续发展制定了一些计划安排，你可以在这里找到。
 
-`加入我们： <https://gitee.com/cocoeoli/zvm/blob/refactor/zvm_doc/8_Join_us.rst>`__
+`加入我们： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/8_Join_us.rst>`__
 ************************************************************************************************
 最后，我们介绍了我们团队的一些成员、如何加入ZVM进行开发以及开发过程中需要遵循的一些基本编码规则。
 
