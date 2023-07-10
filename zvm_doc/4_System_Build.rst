@@ -257,7 +257,6 @@ BusyBox，配置CONFIG_STATIC参数，编译静态版BusyBox，编译好的可�
    autoreconf -i
    ./configure --enable-psci --enable-gicv3 --with-kernel-dir=path-to/linux-5.16.12/ --with-dtb=path-to/fvp-base-gicv3-psci.dtb --with-initrd=path-to/initramfs.cpio.gz --host=aarch64-linux-gnu
    make
-
    # And the final generated image file: linux-system.axf
 
 
