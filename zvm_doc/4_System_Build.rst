@@ -1,5 +1,5 @@
-ZVM系统构建
-================
+构建主机ZVM镜像
+---------------------
 
 
 QEMU platform
@@ -90,9 +90,8 @@ Supported board: fvp_base_revc_2xaemv8a
 
 .. code:: shell
 
-   west build -b fvp_base_revc_2xaemv8a samples/subsys/shell/shell_module/  \
-   -DARMFVP_BL1_FILE=/home/xiong/trusted-firmware-a/build/fvp/release/bl1.bin \ 
-   -DARMFVP_FIP_FILE=/home/xiong/trusted-firmware-a/build/fvp/release/fip.bin 
+   west build -b qemu_cortex_a53 samples/subsys/shell/shell_module/
+
 
 
 构建zephyr vm镜像(fvp)：
@@ -101,8 +100,10 @@ Supported board: fvp_base_revc_2xaemv8a
 Supported board: qemu_cortex_a53
 
 .. code:: shell
+   west build -b fvp_base_revc_2xaemv8a samples/subsys/shell/shell_module/  \
+   -DARMFVP_BL1_FILE=/home/xiong/trusted-firmware-a/build/fvp/release/bl1.bin \ 
+   -DARMFVP_FIP_FILE=/home/xiong/trusted-firmware-a/build/fvp/release/fip.bin 
 
-   west build -b qemu_cortex_a53 samples/subsys/shell/shell_module/
 
 
 最终生成如下镜像文件：
@@ -151,6 +152,7 @@ BusyBox，配置CONFIG_STATIC参数，编译静态版BusyBox，编译好的可�
       
 
 2） 拉取busybox包
+
    .. code:: shell
 
       # 在busybox官网拉取busybox包
@@ -197,10 +199,8 @@ BusyBox，配置CONFIG_STATIC参数，编译静态版BusyBox，编译好的可�
       $ find . -print0 | cpio --null -ov --format=newc | gzip -9 > ../initramfs.cpio.gz
 
 
-3. Build kernel
+3. Build kernel.
 +++++++++++++++++++++++++++++
-
-这里我们构建可以运行在虚拟机上的Linux内核。
 
    .. code:: shell
 
@@ -213,9 +213,8 @@ BusyBox，配置CONFIG_STATIC参数，编译静态版BusyBox，编译好的可�
       make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- Image
 
 
-
 构建linux vm镜像(fvp)：
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 1. Download Linux-5.16.12 or other version’s kernel.
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -284,8 +283,3 @@ BusyBox，配置CONFIG_STATIC参数，编译静态版BusyBox，编译好的可�
 [1] https://docs.zephyrproject.org/latest/index.html 
 
 [2] https://gitee.com/cocoeoli/arm-trusted-firmware-a 
-
-`Prev>> 核心模块介绍 <https://gitee.com/cocoeoli/zvm/blob/refactor/zvm_doc/3_Key_Modules.rst>`__
-
-`Next>> ZVM运行与调试 <https://gitee.com/cocoeoli/zvm/blob/refactor/zvm_doc/5_Running_and_Debugging.rst>`__
-
