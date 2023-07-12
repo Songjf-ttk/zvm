@@ -99,7 +99,7 @@ int load_os_image(struct vm *vm)
     case OS_TYPE_LINUX:
         ret = load_linux_image(vm->vmem_domain);
         if (ret) {
-            ZVM_LOG_WARN("Load zephyr error ");
+            ZVM_LOG_WARN("Load linux error ");
         }
         break;
     case OS_TYPE_ZEPHYR:

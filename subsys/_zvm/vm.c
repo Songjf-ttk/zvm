@@ -135,24 +135,21 @@ int vm_mem_init(struct vm *vm)
 {
     int ret = 0;
     struct vm_mem_domain *vmem_dm = vm->vmem_domain;
-
+    struct _dnode *d_node,*ds_node;
+    struct vm_mem_partition *vpart;
+    uint64_t hpa_base;
+    
     if (vmem_dm->is_init) {
         ZVM_LOG_WARN("Vm mem has been init before! \n");
         return -EMMAO;
     }
-#ifndef CONFIG_VM_DYNAMIC_MEMORY
+
     ret = vm_mem_apart_add(vmem_dm);
     if (ret) {
         ZVM_LOG_WARN("Add partition to domain failed!, Code: %d \n", ret);
         return ret;
     }
-#else
-    ret = vm_dynmem_apart_add(vmem_dm);
-    if (ret) {
-        return ret;
-    }
 
-#endif /* CONFIG_VM_DYNAMIC_MEMORY */
     return 0;
 }
 
