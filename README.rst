@@ -19,7 +19,7 @@ ZVM使用
 是一种参考Kernel-based Virtual Machine（KVM）实现的虚拟机，其面向高性能嵌入式计算环境，
 提供嵌入式平台上操作系统级别的资源隔离和共享服务。
 
-.. figure:: https://gitee.com/cocoeoli/zvm/raw/refactor/zvm_doc/figure/zvm_demo.png
+.. figure:: https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/figure/zvm_demo.png
    :alt: zvm_demo
 
    zvm_demo
