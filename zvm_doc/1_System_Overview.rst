@@ -5,8 +5,9 @@ ZVM是基于实时操作系统Zephyr设计的虚拟机管理器（Hypervisor）�
 内存虚拟化、中断虚拟化、时钟虚拟化及I/O虚拟化等功能。
 同时，现阶段Hypervisor支持两个VM，分别是Linux VM和Zephyr VM。
 
-.. figure:: https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/figure/overview.png
+.. figure:: https://gitee.com/cocoeoli/zvm/raw/master/zvm_doc/figure/overview.png
    :alt: Overview
+
 
 
 基础模块
@@ -51,4 +52,4 @@ ARM 专门为 stage-2 翻译提供单独的硬件，以提高地址翻译性能�
 实现I/O虚拟化。此外，对一些非独占设备，我们使用设备直通的方式实现设备的访问。
 
 
-`Next>> 主机开发环境搭建 <https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/2_Environment_Configuration.rst>`
+`Next>> 主机开发环境搭建 <https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/2_Environment_Configuration.rst>`__

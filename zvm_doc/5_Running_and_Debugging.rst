@@ -169,9 +169,9 @@ ZVM中虚拟机的状态有以下几种：
    zvm delete -n 1     # delete the vm with vm\'s vmid equal to 1 
 
 
-`Prev>> ZVM系统构建 <https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/4_System_Build.rst>`
+`Prev>> ZVM系统构建 <https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/4_System_Build.rst>`__
 
-`Next>> 拓展技术介绍 <https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/6_Expansion_Technology.rst>`
+`Next>> 拓展技术介绍 <https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/6_Expansion_Technology.rst>`__
 
 
 问题反馈
