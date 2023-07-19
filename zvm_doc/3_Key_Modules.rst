@@ -31,7 +31,7 @@ CPU虚拟化模块主要功能在于为每个虚拟机虚拟出单独隔离的�
 而在上下文切换过程中，通过错误码判断处理机制，sync处理过程和irq分开，加快处理速度，保证虚拟机的切换性能，
 整体vCPU模拟执行逻辑如下图所示。
 
-.. figure:: https://gitee.com/cocoeoli/zvm/raw/refactor/zvm_doc/figure/vcpu_logic.png
+.. figure:: https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/figure/vcpu_logic.png
 
 此外，为了更好的减少系统性能开销，我们利用arm VHE技术来减少主机操作系统与客户机操作系统之间的上下文切换次数。
 
@@ -41,7 +41,7 @@ CPU虚拟化模块主要功能在于为每个虚拟机虚拟出单独隔离的�
 以减少了虚拟机切换的性能开销，VHE上下文切换如下图所示。
 
 
-.. figure:: https://gitee.com/cocoeoli/zvm/raw/refactor/zvm_doc/figure/vhe_context_switch.png
+.. figure:: https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/figure/vhe_context_switch.png
 
 2.内存虚拟化模块
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -56,13 +56,13 @@ ARM提供了两阶段的地址查找策略，
 (2)到第2阶段从VM的客户机物理地址到主机物理地址的转换，具体内存地址虚拟化逻辑如下图所示，
   虚拟机的地址空间由相应的数据结构实现，并在VM初始化过程中初始化其地址空间，以支持VM的内存访问。
 
-.. figure:: https://gitee.com/cocoeoli/zvm/raw/refactor/zvm_doc/figure/vmem_logic.png
+.. figure:: https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/figure/vmem_logic.png
 
 为了实现这一功能，ARM专门为第2阶段的转换提供了单独的硬件，以提高地址转换的性能。同时，考虑实时系统的时间开销。
 ZVM先接单采用的线性映射的逻辑，即将虚拟机所需要的物理地址空间，一整块映射到设备的物理地址空间，
 如图下图所示，而不需要考虑Hypervisor级别的页错误，以达到接近物理机器的地址转换开销。
 
-.. figure:: https://gitee.com/cocoeoli/zvm/raw/refactor/zvm_doc/figure/vmem_mapping.png
+.. figure:: https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/figure/vmem_mapping.png
 
 3.中断虚拟化模块
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -73,13 +73,13 @@ ZVM先接单采用的线性映射的逻辑，即将虚拟机所需要的物理�
 首先，系统将初始化vGIC相关的数据结构，并注册相应的虚拟中断处理逻辑，并在内存空间分配一块地址来实现对中断控制器的模拟，
   以此为VM提供虚拟中断服务。
 
-.. figure:: https://gitee.com/cocoeoli/zvm/raw/refactor/zvm_doc/figure/virq_logic.png
+.. figure:: https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/figure/virq_logic.png
 
 此外，在ZVM系统中，在中断触发逻辑中，我们通过配置相关寄存器，统一将VM的中断路由到Hypervisor，
 并由其分配给不同的vCPU。而在虚拟中断触发方式上，我们具体是通过GIC中的Virtual CPU interface和List Register来实现虚拟中断的注入。
 如下图所示，这一逻辑部分可由硬件接管，以减少软件仿真的开销，进而提高虚拟中断的性能。
 
-.. figure:: https://gitee.com/cocoeoli/zvm/raw/refactor/zvm_doc/figure/virq_routing.png
+.. figure:: https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/figure/virq_routing.png
 
 
 4.时钟虚拟化模块
@@ -94,7 +94,7 @@ ZVM先接单采用的线性映射的逻辑，即将虚拟机所需要的物理�
   并补偿虚拟机退出的时间，进而校准vCPU时钟偏差，同时将时钟触发事件转移的主机物理时钟寄存器中，
   以支持为虚拟机提供定时器服务，具体如下图所示。
 
-.. figure:: https://gitee.com/cocoeoli/zvm/raw/refactor/zvm_doc/figure/vtimer_logic.png
+.. figure:: https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/figure/vtimer_logic.png
 
 
 5.设备虚拟化模块
@@ -104,12 +104,12 @@ ZVM先接单采用的线性映射的逻辑，即将虚拟机所需要的物理�
 具体实现上，我们通过构建Virtual MMIO Device设备及全虚拟化的方式，并在创建VM的过程中将设备分配给指定的VM，
 以实现I/O的虚拟化，如下图所示。
 
-.. figure:: https://gitee.com/cocoeoli/zvm/raw/refactor/zvm_doc/figure/vdev_logic.png
+.. figure:: https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/figure/vdev_logic.png
 
 ZVM系统现阶段具体支持了两类设备，如下图所示，对于主机独占设备，通过完全虚拟化的方式模拟，而其他设备，
 支持采用透传直通的方式，以减少开销。此外，我们还将支持virtIO半虚拟化方式，具体在后续章节介绍。
 
-.. figure:: https://gitee.com/cocoeoli/zvm/raw/refactor/zvm_doc/figure/vdev_mode.png
+.. figure:: https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/figure/vdev_mode.png
 
 (1)完全虚拟化的设备（如GIC设备）。
 
@@ -147,7 +147,7 @@ ZVM系统现阶段具体支持了两类设备，如下图所示，对于主机�
 来下达控制命令，而serial1通过分配给VM来打印VM的信息，
 同时serial1必须支持在虚拟机之间进行切换。直通串口支持shell的方式如下图所示。
 
-.. figure:: https://gitee.com/cocoeoli/zvm/raw/refactor/zvm_doc/figure/vuart_passthrough.png
+.. figure:: https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/figure/vuart_passthrough.png
 
 7.vCPU分配及调度策略
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -161,7 +161,7 @@ Zephyr采用的是基于可变优先级的可抢占式调度算法，并支持�
 一个任务所分配的时间片用完后，就进行任务切换，停止当前运行的任务，将它放入就绪列表最高优先级任务链表末尾，
 并开始执行就绪队列中的下一个任务。具体使用的轮转调度算法如下图所示。
 
-.. figure:: https://gitee.com/cocoeoli/zvm/raw/refactor/zvm_doc/figure/time_stamp.png
+.. figure:: https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/figure/time_stamp.png
 
 同时，为了减少系主机和从机的系统切换开销，ZVM在此阶段设计采用主从核设计模式，在设计过
 程中将vCPU线程和主机线程尽量绑定在不同的物理处理器上，并通过核间中断(Inter-Processor Interrupt, IPI)
@@ -171,12 +171,12 @@ Zephyr采用的是基于可变优先级的可抢占式调度算法，并支持�
 cpu0与cpuN间的IPI通信通过方式实现，cpu0通过IPI通知cpuN执行任务。vCPU线程在初始化过程中绑定一个物理CPU，
 并在启动时部署到指定cpu上执行，直到异常发生。
 
-.. figure:: https://gitee.com/cocoeoli/zvm/raw/refactor/zvm_doc/figure/vcpu_allocate.png
+.. figure:: https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/figure/vcpu_allocate.png
 
 
-`Prev>> 主机开发环境搭建 <https://gitee.com/cocoeoli/zvm/blob/refactor/zvm_doc/2_Environment_Configuration.rst>`__
+`Prev>> 主机开发环境搭建 <https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/2_Environment_Configuration.rst>`
 
-`Next>> ZVM系统构建 <https://gitee.com/cocoeoli/zvm/blob/refactor/zvm_doc/4_System_Build.rst>`__
+`Next>> ZVM系统构建 <https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/4_System_Build.rst>`
 
 
 
