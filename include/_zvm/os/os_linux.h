@@ -20,7 +20,7 @@
 #define LINUX_VM_MEM_BASE       DT_REG_ADDR(DT_PATH(vm_linux_space, LINUX_VMMM_STRING))
 #define LINUX_VM_MEM_SIZE       DT_REG_SIZE(DT_PATH(vm_linux_space, LINUX_VMMM_STRING))
 #define LINUX_VMSYS_ENTRY       DT_PROP(DT_PATH(vm_linux_space, LINUX_VMMM_STRING), vm_reg)
-
+#define LINUX_VM_IMG_SIZE       DT_PROP(DT_PATH(vm_linux_space, LINUX_VMMM_STRING), img_sz)
 
 #ifdef CONFIG_DTB_FILE_INPUT
 #define LINUX_DTB_MEM_BASE        DT_PROP(DT_INST(0, linux_vm), dtb_address)

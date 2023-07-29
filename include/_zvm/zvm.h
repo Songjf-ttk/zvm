@@ -154,6 +154,7 @@ struct z_vm_info {
     uint16_t    vcpu_num;
     uint64_t    vm_image_base;
     uint64_t    vm_image_size;
+    uint64_t    vm_image_imsz;
     uint64_t    vm_virt_base;
     uint64_t    entry_point;
 };

@@ -23,51 +23,10 @@ static uint8_t vm_max_partitions = CONFIG_MAX_DOMAIN_PARTITIONS;
 static struct k_spinlock z_vm_domain_lock;
 
 static atomic_t zvm_zephyr_image_map_init = ATOMIC_INIT(0);
-static atomic_t zvm_linux_image_map_init  = ATOMIC_INIT(0);
+static atomic_t zvm_linux_image_map_init = ATOMIC_INIT(0);
 static uint64_t zvm_zephyr_image_map_phys = 0;
-static uint64_t zvm_linux_image_map_phys  = 0;
+static uint64_t zvm_linux_image_map_phys = 0;
 
-/**
- * @brief map the zephyr image to kernel memory
- */
-static uint64_t zvm_mapped_zephyr_image()
-{
-    uint8_t *ptr;
-    uintptr_t phys;
-    size_t size;
-    uint32_t flags;
-    if(!atomic_cas(&zvm_zephyr_image_map_init,0,1)){
-        return zvm_zephyr_image_map_phys;
-    }
-    
-    phys  = ZEPHYR_VM_MEM_BASE;
-    size  = ZEPHYR_VM_MEM_SIZE;
-    flags = K_MEM_CACHE_NONE | K_MEM_PERM_RW | K_MEM_PERM_EXEC;
-    z_phys_map(&ptr,phys,size,flags);
-    zvm_zephyr_image_map_phys = (uint64_t)ptr;
-    return zvm_zephyr_image_map_phys;
-}
-
-/**
- * @brief map the linux image to kernel memory
- */
-static uint64_t zvm_mapped_linux_image()
-{
-    uint8_t *ptr;
-    uintptr_t phys;
-    size_t size;
-    uint32_t flags;
-    if(!atomic_cas(&zvm_linux_image_map_init,0,1)){
-        return zvm_linux_image_map_phys;
-    }
-    
-    phys  = LINUX_VM_MEM_BASE;
-    size  = LINUX_VM_MEM_SIZE;
-    flags = K_MEM_CACHE_NONE | K_MEM_PERM_RW | K_MEM_PERM_EXEC;
-    z_phys_map(&ptr,phys,size,flags);
-    zvm_linux_image_map_phys = (uint64_t)ptr;
-    return zvm_linux_image_map_phys;
-}
 /**
  * @brief add vpart_space to vm's unused list area.
  */
@@ -151,14 +110,57 @@ static int create_vm_mem_vpart(struct vm_mem_domain *vmem_domain, uint64_t hpbas
 }
 
 /**
+ * @brief Establish a mapping between the linux image addresses 
+ *      and virtual addresses 
+ */
+static uint64_t zvm_mapped_zephyr_image()
+{
+    uint8_t *ptr;
+    uintptr_t phys;
+    size_t size;
+    uint32_t flags;
+    if(likely(!atomic_cas(&zvm_zephyr_image_map_init,0,1))){
+        return zvm_zephyr_image_map_phys;
+    }
+
+    phys = ZEPHYR_VM_MEM_BASE;
+    size = ZEPHYR_VM_IMG_SIZE;
+    flags = K_MEM_CACHE_NONE | K_MEM_PERM_RW | K_MEM_PERM_EXEC;
+    z_phys_map(&ptr,phys,size,flags);
+    zvm_zephyr_image_map_phys = (uint64_t)ptr;
+    return zvm_zephyr_image_map_phys;
+}
+
+/**
+ * @brief Establish a mapping between the zephyr image addresses 
+ *      and virtual addresses
+ */
+static uint64_t zvm_mapped_linux_image()
+{
+    uint8_t *ptr;
+    uintptr_t phys;
+    size_t size;
+    uint32_t flags;
+    if(likely(!atomic_cas(&zvm_linux_image_map_init,0,1))){
+        return zvm_linux_image_map_phys;
+    }
+
+    phys = LINUX_VM_MEM_BASE;
+    size = LINUX_VM_IMG_SIZE;
+    flags = K_MEM_CACHE_NONE | K_MEM_PERM_RW | K_MEM_PERM_EXEC;
+    z_phys_map(&ptr,phys,size,flags);
+    zvm_linux_image_map_phys = (uint64_t)ptr;
+    return zvm_linux_image_map_phys;
+}
+
+/**
  * @brief Create the dram or sram memory partition.
  */
 static int vm_ram_mem_create(struct vm_mem_domain *vmem_domain)
 {
     int ret = 0;
-    ARG_UNUSED(ret);
     int type = OS_TYPE_MAX;
-    uint64_t va_base, pa_base, size, image_base;
+    uint64_t va_base, pa_base, size, image_base,image_size;
     struct vm *vm = vmem_domain->vm;
 
     type = vm->os->type;
@@ -168,17 +170,21 @@ static int vm_ram_mem_create(struct vm_mem_domain *vmem_domain)
         size = LINUX_VM_MEM_SIZE;
 #ifndef CONFIG_VM_DYNAMIC_MEMORY
         UNUSED(image_base);
+        UNUSED(image_size);
+        ARG_UNUSED(ret);
         pa_base = LINUX_VM_MEM_BASE;
 #else
         image_base = zvm_mapped_linux_image();
+        image_size = LINUX_VM_IMG_SIZE;
+       
         pa_base = k_malloc(size + CONFIG_MMU_PAGE_SIZE);
-        if(pa_base == NULL) {
+        if(pa_base == NULL){
             ZVM_LOG_ERR("The heap memory is not enough\n");
             return -EMMAO;
         }
-        pa_base = ROUND_UP(pa_base, CONFIG_MMU_PAGE_SIZE);
-        memcpy(pa_base, image_base, size);
+        pa_base = ROUND_UP(pa_base,CONFIG_MMU_PAGE_SIZE);
         pa_base = z_mem_phys_addr(pa_base);
+        memcpy(pa_base,image_base,image_size);
 #endif
         break;
     case OS_TYPE_ZEPHYR:
@@ -186,17 +192,21 @@ static int vm_ram_mem_create(struct vm_mem_domain *vmem_domain)
         size = ZEPHYR_VM_MEM_SIZE;
 #ifndef CONFIG_VM_DYNAMIC_MEMORY
         UNUSED(image_base);
+        UNUSED(image_size);
+        ARG_UNUSED(ret);
         pa_base = ZEPHYR_VM_MEM_BASE;
 #else
         image_base = zvm_mapped_zephyr_image();
+        image_size = ZEPHYR_VM_IMG_SIZE;
+       
         pa_base = k_malloc(size + CONFIG_MMU_PAGE_SIZE);
-        if(pa_base == NULL) {
+        if(pa_base == NULL){
             ZVM_LOG_ERR("The heap memory is not enough\n");
             return -EMMAO;
         }
-        pa_base = ROUND_UP(pa_base, CONFIG_MMU_PAGE_SIZE);
-        memcpy(pa_base, image_base, size);
+        pa_base = ROUND_UP(pa_base,CONFIG_MMU_PAGE_SIZE);
         pa_base = z_mem_phys_addr(pa_base);
+        memcpy(pa_base,image_base,image_size);;
 #endif
         break;
     default:

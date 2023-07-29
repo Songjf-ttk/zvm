@@ -26,6 +26,12 @@ properties:
         vm virtual base address.
       required: true
 
+    img_sz:
+      type: int
+      description: |
+        vm image size
+      required: true
+
     address_type:
       type: string
       description: |

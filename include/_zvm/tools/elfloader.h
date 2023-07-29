@@ -73,7 +73,7 @@ typedef struct {
  *
  * @param src_addr : vm' origin image address.
  * @param dest_addr : The vm's memory map addrss.
- * @param vcpu : vcpu strcut.
+ * @param vm_info : z_vm_info strcut.
  * @return int : return code.
  */
 int elf_loader(void *src_addr, void *dest_addr,  struct z_vm_info *vm_info);

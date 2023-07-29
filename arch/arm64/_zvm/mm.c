@@ -122,7 +122,7 @@ static uint64_t *vm_new_table(uint32_t vmid)
 	unsigned int i;
 
 	/* Look for a free table. */
-	for (i = 0U; i < CONFIG_MAX_XLAT_TABLES; i++) {
+	for (i = 0U; i < CONFIG_ZVM_MAX_XLAT_TABLES; i++) {
 		if (vm_xlat_use_count[vmid][i] == 0U) {
 			vm_xlat_use_count[vmid][i] = 1U;
 			/* each table assign 512 entrys */
@@ -187,7 +187,7 @@ static inline unsigned int vm_table_index(uint64_t *pte, uint32_t vmid)
 {
 	unsigned int i = (pte - &vm_xlat_tables[vmid][0]) / Ln_XLAT_NUM_ENTRIES;
 
-	__ASSERT(i < CONFIG_MAX_XLAT_TABLES, "table %p out of range", pte);
+	__ASSERT(i < CONFIG_ZVM_MAX_XLAT_TABLES, "table %p out of range", pte);
 	return i;
 }
 

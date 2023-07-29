@@ -67,7 +67,7 @@ int zvm_new_guest(size_t argc, char **argv)
     /* init virq struct here */
 	ret = vm_virq_block_desc_init(new_vm, NULL);
     if (ret) {
-        ZVM_LOG_WARN("Init vm's vm_irq_block_data error");
+        ZVM_LOG_WARN("Init vm's vm_irq_block_data error \n");
         return  ret;
     }
 
