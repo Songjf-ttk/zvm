@@ -290,11 +290,17 @@ config MAX_XLAT_TABLES
 	  platform and how much granularity is required while assigning
 	  attributes to these memory regions.
 
-config ZVM_MAX_XLAT_TABLES
-	int "Maximum numbers of zvm translation tables"
+config ZVM_ZEPHYR_MAX_XLAT_TABLES
+	int "Maximum numbers of zvm zephyr translation tables"
 	default 16
 	help
-	  This option specifies the maximum numbers of zvm translation tables.
+	  This option specifies the maximum numbers of zvm zephyr translation tables.
+
+config ZVM_LINUX_MAX_XLAT_TABLES
+	int "Maximum numbers of zvm linux translation tables"
+	default 1024
+	help
+	  This option specifies the maximum numbers of zvm linux translation tables.
 
 endif # ARM_MMU
 

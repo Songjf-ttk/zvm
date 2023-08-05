@@ -10,8 +10,7 @@
 #include <zephyr.h>
 #include <stdint.h>
 
-#include <_zvm/os/os_zephyr.h>
-#include <_zvm/os/os_linux.h>
+
 
 struct getopt_state;
 

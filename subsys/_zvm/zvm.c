@@ -183,7 +183,7 @@ static int zvm_overall_init(void)
         return ret;
     }
     /* Then initialize the last value in zvm_overall_info. */
-    zvm_overall_info->next_alloc_vmid = 0;
+    zvm_overall_info->alloced_vmid = 0;
     zvm_overall_info->vm_total_num = 0;
 
     return ret;

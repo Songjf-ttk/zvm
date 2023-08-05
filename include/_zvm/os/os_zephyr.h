@@ -11,7 +11,7 @@
 #include <stdint.h>
 
 #include <_zvm/arm/mm.h>
-#include <_zvm/vm_mm.h>
+
 
 
 /* Get vm image info from dts file */

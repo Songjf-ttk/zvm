@@ -28,6 +28,14 @@
 #define ZEPHYR_VM_BLOCK_SIZE    (1UL << ZEPHYR_BLK_MEM_SHIFT)    //64K
 #define LINUX_VM_BLOCK_SIZE     (1UL << LINUX_BLK_MEM_SHIFT)     //2M
 
+/* The max vmid is CONFIG_MAX_VM_NUM 
+ * Zephyr's ID is placed in the first half 
+ * Linux's ID is placed in the second half 
+ */
+#define ZVM_ZEPHYR_VM_NUM (CONFIG_MAX_VM_NUM/2 + CONFIG_MAX_VM_NUM%2)
+#define ZVM_LINUX_VM_NUM  (CONFIG_MAX_VM_NUM/2)
+
+
 /* For clear warning for unknow reason */
 struct vm;
 

@@ -8,6 +8,8 @@
 #include <zephyr.h>
 
 #include <_zvm/os/os.h>
+#include <_zvm/os/os_zephyr.h>
+#include <_zvm/os/os_linux.h>
 #include <_zvm/zvm.h>
 #include <_zvm/tools/elfloader.h>
 
