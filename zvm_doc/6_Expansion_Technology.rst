@@ -11,7 +11,7 @@ ZVM 提供了两阶段的内存映射，第一阶段是从zephyr的内核空间�
 第二阶段是虚拟机的物理地址映射到zephyr的物理地址空间。第一阶段的映射主要是把对应内核镜像映射到zephyr物理地址空间中，
 第二阶段的映射是使用vm_mem_partition 和 vm_mem_block 进行映射，具体如下图所示。
 
-.. figure:: https://gitee.com/cocoeoli/zvm/raw/refactor/zvm_doc/figure/mem_opt_arch.png
+.. figure:: https://gitee.com/cocoeoli/zvm/raw/master/zvm_doc/figure/mem_opt_arch.png
 
 
 (2)动态分配内存
@@ -22,7 +22,7 @@ ZVM 提供了 CONFIG_VM_DYNAMIC_MEMORY 这一个宏可以让用户自由的选�
 否则将使用vm_mem_block记录内存的映射。在vm_mem_partion 中维护一条关于block的双向链表，
 block的大小和映射范围可以动态的变化，这样就实现了内存的动态分配。基于双向链表的静态内存记录如下图所示。
 
-.. figure:: https://gitee.com/cocoeoli/zvm/raw/refactor/zvm_doc/figure/mem_opt_list.png
+.. figure:: https://gitee.com/cocoeoli/zvm/raw/master/zvm_doc/figure/mem_opt_list.png
 
 
 (3)压缩分区
@@ -34,7 +34,7 @@ block的大小和映射范围可以动态的变化，这样就实现了内存的
 缺点是压缩率不是很高，符合ZVM的使用场景。内存压缩方案概览图如下图所示。
 
 
-.. figure:: https://gitee.com/cocoeoli/zvm/raw/refactor/zvm_doc/figure/mem_compress.png
+.. figure:: https://gitee.com/cocoeoli/zvm/raw/master/zvm_doc/figure/mem_compress.png
 
 
 2.virtIO虚拟化方案
@@ -63,7 +63,7 @@ block的大小和映射范围可以动态的变化，这样就实现了内存的
 virtio-queue是一种数据结构，其位于主机和虚拟机都能访问的共享内存中，
 其是前端驱动程序和后端虚拟设备消息传输的通道，对I/O请求和I/O响应的操作满足生产者-消费者模型。
 
-.. figure:: https://gitee.com/cocoeoli/zvm/raw/refactor/zvm_doc/figure/virtIO_arch.png
+.. figure:: https://gitee.com/cocoeoli/zvm/raw/master/zvm_doc/figure/virtIO_arch.png
 
 
 (2)virtio-queue设计
@@ -75,7 +75,7 @@ virtio-driver和virtio-device通过virtio-queue进行数据交流，
 而VMM中的virtio-device从相应设备的virtio-queue中读取并处理I/O请求，
 并将响应信息写回到相应的virtio-queue中。
 
-.. figure:: https://gitee.com/cocoeoli/zvm/raw/refactor/zvm_doc/figure/virtIO_queue.png
+.. figure:: https://gitee.com/cocoeoli/zvm/raw/master/zvm_doc/figure/virtIO_queue.png
 
 
 (3)virtio-driver设计
@@ -90,7 +90,7 @@ ioprio成员用于指示该缓冲区中保存的I/O请求的优先级，值越�
 缓冲区的最后一个字节是只写的，如果请求成功则写入0，失败则写入1，不支持该请求则写入2。
 剩余的缓冲区部分的长度以及类型依据于请求的类型而定。
 
-.. figure:: https://gitee.com/cocoeoli/zvm/raw/refactor/zvm_doc/figure/virtIO_driver.png
+.. figure:: https://gitee.com/cocoeoli/zvm/raw/master/zvm_doc/figure/virtIO_driver.png
 
 
 (4)virtio-device设计
@@ -101,8 +101,8 @@ ioprio成员用于指示该缓冲区中保存的I/O请求的优先级，值越�
 
 
 
-`Prev>> ZVM运行与调试 <https://gitee.com/cocoeoli/zvm/blob/refactor/zvm_doc/5_Running_and_Debugging.rs>`__
+`Prev>> ZVM运行与调试 <https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/5_Running_and_Debugging.rst>`__
 
 
-`Next>> ZVM后续规划 <https://gitee.com/cocoeoli/zvm/blob/refactor/zvm_doc/7_Todo_List.rst>`__
+`Next>> ZVM后续规划 <https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/7_Todo_List.rst>`__
 

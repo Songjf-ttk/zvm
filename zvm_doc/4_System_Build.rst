@@ -86,7 +86,7 @@ Building Zephyr OS
 构建zephyr vm镜像(qemu)：
 +++++++++++++++++++++++++++++
 
-Supported board: fvp_base_revc_2xaemv8a
+Supported board: qemu_cortex_a53
 
 .. code:: shell
 
@@ -97,7 +97,7 @@ Supported board: fvp_base_revc_2xaemv8a
 构建zephyr vm镜像(fvp)：
 ++++++++++++++++++++++++++++++++++
 
-Supported board: qemu_cortex_a53
+Supported board: fvp_base_revc_2xaemv8a
 
 .. code:: shell
 
