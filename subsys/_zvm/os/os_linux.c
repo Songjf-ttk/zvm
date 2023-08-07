@@ -28,33 +28,33 @@ int load_linux_image(struct vm_mem_domain *vmem_domain)
 #endif /* CONFIG_VM_DYNAMIC_MEMORY */
 
     /*Find the zephyr image base_addr and it size here */
-    zbase_addr = LINUX_VM_MEM_BASE;
-    zsize = LINUX_VM_MEM_SIZE;
+    // zbase_addr = LINUX_VM_MEM_BASE;
+    // zsize = LINUX_VM_MEM_SIZE;
 
-    /* Find the related vpart for this vm */
-    SYS_DLIST_FOR_EACH_NODE_SAFE(&vmem_domain->mapped_vpart_list, d_node, ds_node){
-        vpart = CONTAINER_OF(d_node, struct vm_mem_partition, vpart_node);
-        /* find the related vtme */
-        if (vpart->area_size == zsize) {
-            // relocate memory for each block
-                SYS_DLIST_FOR_EACH_NODE_SAFE(&vpart->blk_list, d_node, ds_node){
-                blk = CONTAINER_OF(d_node, struct vm_mem_block, vblk_node);
+    // /* Find the related vpart for this vm */
+    // SYS_DLIST_FOR_EACH_NODE_SAFE(&vmem_domain->mapped_vpart_list, d_node, ds_node){
+    //     vpart = CONTAINER_OF(d_node, struct vm_mem_partition, vpart_node);
+    //     /* find the related vtme */
+    //     if (vpart->area_size == zsize) {
+    //         // relocate memory for each block
+    //             SYS_DLIST_FOR_EACH_NODE_SAFE(&vpart->blk_list, d_node, ds_node){
+    //             blk = CONTAINER_OF(d_node, struct vm_mem_block, vblk_node);
 
-                sbuf = (char *)(zbase_addr + blk->cur_blk_offset * LINUX_VM_BLOCK_SIZE);
-                dbuf = (char *)blk->phy_base;
-                memcpy(dbuf, sbuf, LINUX_VM_BLOCK_SIZE);
+    //             sbuf = (char *)(zbase_addr + blk->cur_blk_offset * LINUX_VM_BLOCK_SIZE);
+    //             dbuf = (char *)blk->phy_base;
+    //             memcpy(dbuf, sbuf, LINUX_VM_BLOCK_SIZE);
 
-                zsize = zsize - LINUX_VM_BLOCK_SIZE;
-            }
-            break;
-        } else {
-            continue;
-        }
+    //             zsize = zsize - LINUX_VM_BLOCK_SIZE;
+    //         }
+    //         break;
+    //     } else {
+    //         continue;
+    //     }
 
-    }
-    if (zsize) {
-        ret = -EIO;
-    }
+    // }
+    // if (zsize) {
+    //     ret = -EIO;
+    // }
 
     return ret;
 

@@ -11,6 +11,7 @@
 
 #include <_zvm/os/os.h>
 #include <_zvm/os/os_zephyr.h>
+#include <_zvm/os/os_linux.h>
 #include <_zvm/zvm.h>
 #include <_zvm/arm/vgic_v3.h>
 
@@ -67,7 +68,7 @@ int zvm_new_guest(size_t argc, char **argv)
     /* init virq struct here */
 	ret = vm_virq_block_desc_init(new_vm, NULL);
     if (ret) {
-        ZVM_LOG_WARN("Init vm's vm_irq_block_data error");
+        ZVM_LOG_WARN("Init vm's vm_irq_block_data error \n");
         return  ret;
     }
 
@@ -116,8 +117,8 @@ int zvm_run_guest(size_t argc, char **argv)
 	struct vm *vm;
 
 	vm_id = z_parse_run_vm_args(argc, argv, state);
-	if (vm_id >= zvm_overall_info->next_alloc_vmid) {
-        ZVM_LOG_WARN("This vmid is not exist!\n Please input zvm info to show info \n!");
+	if (!(BIT(vm_id) & zvm_overall_info->alloced_vmid)) {
+        ZVM_LOG_WARN("This vmid is not exist!\n Please input zvm info to show info! \n");
 		return -EINVAL;
     }
 
@@ -159,8 +160,8 @@ int zvm_pause_guest(size_t argc, char **argv)
     key = k_spin_lock(&zvm_overall_info->spin_zmi);
 
 	vm_id = z_parse_pause_vm_args(argc, argv, state);
-	if (vm_id >= zvm_overall_info->next_alloc_vmid) {
-        ZVM_LOG_WARN("This vmid is not exist!\n Please input zvm info to show info \n!");
+	if (!(BIT(vm_id) & zvm_overall_info->alloced_vmid)) {
+        ZVM_LOG_WARN("This vmid is not exist!\n Please input zvm info to show info! \n");
 		k_spin_unlock(&zvm_overall_info->spin_zmi, key);
 		return -EINVAL;
     }
@@ -183,7 +184,7 @@ int zvm_delete_guest(size_t argc, char **argv)
 	struct vm *vm;
 
 	vm_id = z_parse_delete_vm_args(argc, argv, state);
-	if (vm_id >= zvm_overall_info->next_alloc_vmid) {
+	if (!(BIT(vm_id) & zvm_overall_info->alloced_vmid)) {
         ZVM_LOG_WARN("This vm is not exist!\n Please input zvm info to list vms!");
 		return 0;
     }
@@ -216,7 +217,7 @@ int zvm_info_guest(size_t argc, char **argv)
 	int ret = 0;
 
 	vm_id = z_parse_info_vm_args(argc, argv, state);
-	if (vm_id >= zvm_overall_info->next_alloc_vmid && vm_id != CONFIG_MAX_VM_NUM) {
+	if (!(BIT(vm_id) & zvm_overall_info->alloced_vmid) && vm_id != CONFIG_MAX_VM_NUM) {
         ZVM_LOG_WARN("This vm is not exist!\n Please input zvm info to list vms! \n");
 		return -ENODEV;
     }

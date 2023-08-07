@@ -89,14 +89,14 @@ static void z_list_vm_info(uint16_t vmid)
  */
 static void z_list_all_vms_info(void)
 {
-    uint16_t vm_count, i;
+    uint16_t i;
 
-    vm_count = zvm_overall_info->next_alloc_vmid;
 
     printk("\n|******************** All VMS INFO *******************|\n");
     printk("|***vmid name \t    vcpus    vmem(M)\tstatus ***|\n");
-    for(i = 0; i < vm_count; i++){
-        z_list_vm_info(i);
+    for(i = 0; i < CONFIG_MAX_VM_NUM; i++){
+        if(BIT(i) & zvm_overall_info->alloced_vmid)
+            z_list_vm_info(i);
     }
 
 }
@@ -177,7 +177,7 @@ int vm_create(struct z_vm_info *vm_info, struct vm *new_vm)
     struct vm *vm = new_vm;
 
     /* init vmid here, this vmid is for vm level*/
-    vm->vmid = allocate_vmid();
+    vm->vmid = allocate_vmid(vm_info);
     if (vm->vmid >= CONFIG_MAX_VM_NUM) {
         return -EOVERFLOW;
     }

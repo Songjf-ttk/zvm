@@ -128,7 +128,7 @@ int vm_debug_console_add(struct vm *vm)
     /* This vdev need to bind to VM */
     dbgcon_dev = (struct virt_dev *)k_malloc(sizeof(struct virt_dev));
     if (!dbgcon_dev) {
-        ZVM_LOG_ERR("Allocate memory for dgconsole error!");
+        ZVM_LOG_ERR("Allocate memory for dgconsole error!\n");
         return -EMMAO;
     }
 
@@ -137,7 +137,7 @@ int vm_debug_console_add(struct vm *vm)
     ret = vm_virt_dev_add(vm, dbgcon_dev, vdev->name, vdev->vm_vdev_paddr,
         vdev->vm_vdev_vaddr, vdev->vm_vdev_size);
     if (ret) {
-        ZVM_LOG_WARN("Init virt dev error");
+        ZVM_LOG_WARN("Init virt dev error\n");
         return -ENOVDEV;
     }
     dbgcon_dev->hirq = vdev->hirq;

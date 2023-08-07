@@ -35,6 +35,7 @@ z_vm_info_t z_overall_vm_infos[] = {
         .vm_virt_base = ZEPHYR_VMSYS_ENTRY,
         .vm_image_base = ZEPHYR_VM_MEM_BASE,
         .vm_image_size = ZEPHYR_VM_MEM_SIZE,
+        .vm_image_imsz = ZEPHYR_VM_IMG_SIZE,
         .vcpu_num = VM_DEFAULT_VCPU_NUM,
         .vm_os_type = OS_TYPE_ZEPHYR,
     },
@@ -44,6 +45,7 @@ z_vm_info_t z_overall_vm_infos[] = {
         .vm_virt_base = LINUX_VMSYS_ENTRY,
         .vm_image_base = LINUX_VM_MEM_BASE,
         .vm_image_size = LINUX_VM_MEM_SIZE,
+        .vm_image_imsz = LINUX_VM_IMG_SIZE,
         .vcpu_num = VM_DEFAULT_VCPU_NUM,
         .vm_os_type = OS_TYPE_LINUX,
     },
@@ -181,7 +183,7 @@ static int zvm_overall_init(void)
         return ret;
     }
     /* Then initialize the last value in zvm_overall_info. */
-    zvm_overall_info->next_alloc_vmid = 0;
+    zvm_overall_info->alloced_vmid = 0;
     zvm_overall_info->vm_total_num = 0;
 
     return ret;

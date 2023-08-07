@@ -23,6 +23,7 @@
 #include <_zvm/arm/cpu.h>
 #include <_zvm/arm/vgic_v3.h>
 #include <_zvm/arm/vtimer.h>
+#include <_zvm/os/os_linux.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
