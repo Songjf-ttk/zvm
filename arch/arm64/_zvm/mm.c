@@ -443,6 +443,18 @@ static int vm_add_map(struct arm_mmu_ptables *ptables, const char *name,
 	return ret;
 }
 
+static int vm_remove_map(struct arm_mmu_ptables *ptables, const char *name,
+				uintptr_t virt,size_t size,uint32_t vmid)
+{
+	k_spinlock_key_t key;
+	int ret;
+
+	key = k_spin_lock(&vm_xlat_lock);
+	ret = vm_set_mapping(ptables,virt,size,0,true,vmid);
+	k_spin_unlock(&vm_xlat_lock,key);
+	return ret;
+}
+
 int arch_mmap_vpart_to_block(uintptr_t phys, uintptr_t virt, size_t size, uint32_t attrs)
 {
     int ret;
@@ -496,6 +508,19 @@ int arch_vm_mem_domain_partition_add(struct k_mem_domain *domain,
 
 	return vm_add_map(domain_ptables, "vm-mmio-space", phys_start,
 				ptn->start, ptn->size, ptn->attr.attrs, vmid);
+}
+
+int arch_vm_mem_domain_partition_remove(struct k_mem_domain *domain,
+				uint32_t partition_id, uint32_t vmid)
+{
+	uint32_t attrs;
+	int ret;
+	struct arm_mmu_ptables *domain_ptables = &domain->arch.ptables;
+	struct k_mem_partition *ptn = &domain->partitions[partition_id];
+
+	ret =  vm_remove_map(domain_ptables,"vm-mmio-space",ptn->start,ptn->size,vmid);
+
+	return ret;
 }
 
 int arch_vm_mem_domain_init(struct k_mem_domain *domain, uint32_t vmid)

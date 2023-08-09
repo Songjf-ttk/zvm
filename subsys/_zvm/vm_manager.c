@@ -84,6 +84,7 @@ int zvm_new_guest(size_t argc, char **argv)
 		return ret;
 	}
 
+	k_free(vm_info);
 
 	ZVM_LOG_INFO("\n|*********************************************|\n");
 	ZVM_LOG_INFO("|******\t Create vm successful!  **************| \n");
@@ -197,6 +198,7 @@ int zvm_delete_guest(size_t argc, char **argv)
 		break;
 	case VM_STATE_PAUSE:
 		ZVM_LOG_INFO("This vm is paused!\n Just delete it!\n");
+		vm_delete(vm);
 		break;
 	case VM_STATE_NEVER_RUN:
 		ZVM_LOG_INFO("This vm is created but not run!\n Just delete it!\n");

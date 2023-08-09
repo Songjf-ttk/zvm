@@ -434,8 +434,9 @@ int vm_delete(struct vm *vm)
     struct  _dnode *d_node, *ds_node;
     struct virt_dev *vdev;
     k_spinlock_key_t key;
-    struct vm_mem_partition *vpart;
     struct vm_mem_domain *vmem_dm = vm->vmem_domain;
+    struct vcpu *vcpu;
+    struct vcpu_work *vwork;
 
     key = k_spin_lock(&vm->spinlock);
 
@@ -449,10 +450,24 @@ int vm_delete(struct vm *vm)
         }
     }
 
-    SYS_DLIST_FOR_EACH_NODE_SAFE(&vmem_dm->idle_vpart_list, d_node, ds_node){
-        vpart = CONTAINER_OF(d_node, struct vm_mem_partition, vpart_node);
-        sys_dlist_remove(&vpart->vpart_node);
+    /* remove all the partition in the vmem_domain */
+    ret = vm_mem_apart_remove(vmem_dm);
+
+    /* delete vcpu struct */
+    for(int i = 0; i < vm->vcpu_num; i++){
+        vcpu = vm->vcpus[i];
+        if(!vcpu) continue;
+        vwork = vcpu->work;
+        if(vwork){
+            k_free(vwork->vcpu_thread);
+        }
+
+        k_free(vcpu->arch);
+        k_free(vcpu->virq_struct);
+        k_free(vcpu->work);
+        k_free(vcpu);
     }
+
 
     /* remov vm's desc struct */
     struct virt_irq_desc *desc = VGIC_DATA_VID(vm->vm_irq_block_data);
@@ -462,12 +477,14 @@ int vm_delete(struct vm *vm)
     k_free(vm->arch);
     k_free(vm->vcpus);
     k_free(vm->vmem_domain);
+    if(vm->os->name) k_free(vm->os->name);
     k_free(vm->os);
     zvm_overall_info->vms[vm->vmid] = NULL;
     k_free(vm);
     k_spin_unlock(&vm->spinlock, key);
 
     zvm_overall_info->vm_total_num--;
+    zvm_overall_info->alloced_vmid &= ~BIT(vm->vmid);
     return 0;
 }
 
