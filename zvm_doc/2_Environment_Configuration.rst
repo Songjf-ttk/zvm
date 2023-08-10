@@ -1,6 +1,10 @@
 主机开发环境构建
 ======================
 
+注：如果您是首次使用`Zephyr`进行开发，请遵照下面教程在您电脑上先安装`Zephyr`运行环境，并在`Zephyr`使用
+`Zephyr`简易sample进行测试。以避免开发环境本身对zvm运行产生影响。如果使用过Zephyr的就可以直接按照下面教程
+进行zvm环境配置。
+
 开发环境配置
 ---------------
 Zephyr-Based Virtual Machine 基于 ZephyrProject 代码库进行开发，构建和运行工具与沿用ZephyrProject原先的
@@ -20,6 +24,8 @@ west 工具，本项目已经将west.yml文件进行了配置，只需要使用w
 
 2. 升级Kitware archive
 ^^^^^^^^^^^^^^^^^^^^^^
+
+一般在 `~` 目录下执行下面初始化命令： 
 
 .. code:: shell
 
@@ -62,7 +68,7 @@ west 工具，本项目已经将west.yml文件进行了配置，只需要使用w
    cd zephyr-sdk-0.16.1
    ./setup.sh
 
-5. 安装west工具
+1. 安装west工具
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 (这里选择全局安装，若是想要在python-env中安装，参考[1]中资料)
 

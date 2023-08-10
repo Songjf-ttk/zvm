@@ -18,9 +18,9 @@ if [ "$OPS" = "$ops_build" ]; then
     if [ "$PLAT" = "$plat_qemu" ]; then
         west build -b qemu_cortex_max_smp samples/_zvm
     elif [ "$PLAT" = "$plat_fvp" ]; then
-        west build -b fvp_cortex_a55 samples/_zvm \
-        -DARMFVP_BL1_FILE=/path-to/bl1.bin \
-        -DARMFVP_FIP_FILE=/path-to/fip.bin
+        west build -b fvp_cortex_a55x4_a75x2_smp samples/_zvm \
+        -DARMFVP_BL1_FILE=$(pwd)/zvm_config/fvp_platform/hub/bl1.bin \
+        -DARMFVP_FIP_FILE=$(pwd)/zvm_config/fvp_platform/hub/fip.bin
     elif [ "$PLAT" = "$plat_rk3568" ]; then
         west build -b roc_rk3568_pc samples/_zvm 
     else
@@ -30,15 +30,14 @@ if [ "$OPS" = "$ops_build" ]; then
 elif [ "$OPS" = "$ops_debug" ]; then
 
     if [ "$PLAT" = "$plat_qemu" ]; then
-
         /path-to/qemu-system-aarch64 \
         -cpu max -m 4G -nographic -machine virt,virtualization=on,gic-version=3 \
         -net none -pidfile qemu.pid -chardev stdio,id=con,mux=on \
         -serial chardev:con -mon chardev=con,mode=readline -serial pty -serial pty -smp cpus=4 \
-        -device loader,file=/path-to/zephyr.bin,addr=0x48000000,force-raw=on \
-        -device loader,file=/path-to/Image,addr=0x80000000,force-raw=on \
-        -device loader,file=/path-to/linux-qemu-virt.dtb,addr=0x88000000 \
-        -kernel /path-to/zvm_host.elf -s -S
+        -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/zephyr.bin,addr=0x48000000,force-raw=on \
+        -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/Image,addr=0x80000000,force-raw=on \
+        -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/linux-qemu-virt.dtb,addr=0x88000000 \
+        -kernel $(pwd)/build/zephyr/zvm_host.elf -s -S
 
     elif [ "$PLAT" = "$plat_fvp" ]; then
 
