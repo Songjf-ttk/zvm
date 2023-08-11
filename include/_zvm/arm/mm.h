@@ -110,6 +110,12 @@ int arch_vm_mem_domain_partition_add(struct k_mem_domain *domain,
 				  uint32_t partition_id, uintptr_t phys_start, uint32_t vmid);
 
 /**
+ * @brief remove a partition from the vm virtual memory domain.
+ */
+int arch_vm_mem_domain_partition_remove(struct k_mem_domain *domain,
+					uint32_t partition_id, uint32_t vmid);
+
+/**
  * @brief Architecture-specific hook for vm domain initialization.
  */
 int arch_mem_domain_init(struct k_mem_domain *domain);
