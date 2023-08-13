@@ -4,4 +4,4 @@
 
 主要修改的文件
 1. qemu-root/hw/arm/virt.c
-2. qemu/root/include/hw/arm/virt.h
+2. qemu-root/include/hw/arm/virt.h

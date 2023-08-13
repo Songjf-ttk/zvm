@@ -213,6 +213,7 @@ static void vcpu_state_to_halted(struct vcpu *vcpu)
         ZVM_LOG_WARN("Invalid cpu state here. \n");
         break;
     }
+    vcpu_ipi_scheduler(VCPU_IPI_MASK_ALL,0);
 
 }
 
@@ -257,8 +258,6 @@ int vcpu_state_switch(struct k_thread *thread, uint16_t new_state)
         ret = EINVAL;
         break;
     }
-
-    vcpu_ipi_scheduler(VCPU_IPI_MASK_ALL,0);
     vcpu->vcpu_state = new_state;
 
     return ret;

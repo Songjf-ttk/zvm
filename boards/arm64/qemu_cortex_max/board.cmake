@@ -5,7 +5,7 @@
 set(SUPPORTED_EMU_PLATFORMS qemu)
 set(QEMU_ARCH aarch64)
 
-set(QEMU_CPU_TYPE_${ARCH} cortex-max)
+set(QEMU_CPU_TYPE_${ARCH} max)
 
 if(CONFIG_ARMV8_A_NS)
 set(QEMU_MACH virt,gic-version=3)

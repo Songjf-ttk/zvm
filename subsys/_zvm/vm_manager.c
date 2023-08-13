@@ -170,7 +170,7 @@ int zvm_pause_guest(size_t argc, char **argv)
 	vm = zvm_overall_info->vms[vm_id];
 	k_spin_unlock(&zvm_overall_info->spin_zmi, key);
 	if (vm->vm_status != VM_STATE_RUNNING) {
-		ZVM_LOG_WARN("This vm is not running!\n Can not pause it! \n");
+		ZVM_LOG_WARN("This vm is not running!\n No need to pause it! \n");
 		return -EPERM;
 	}
 	ret = vm_vcpus_pause(vm);

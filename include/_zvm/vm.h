@@ -46,10 +46,10 @@
 
 #define _VCPU_STATE_READY        (BIT(0))
 #define _VCPU_STATE_RUNNING      (BIT(1))
-#define _VCPU_STATE_RESET        (BIT(2))
-#define _VCPU_STATE_PAUSED       (BIT(3))
-#define _VCPU_STATE_HALTED       (BIT(4))
-#define _VCPU_STATE_UNKNOWN      (BIT(5))
+#define _VCPU_STATE_PAUSED       (BIT(2))
+#define _VCPU_STATE_HALTED       (BIT(3))
+#define _VCPU_STATE_UNKNOWN      (BIT(4))
+#define _VCPU_STATE_RESET        (BIT(5))
 
 #define VCPU_THREAD(thread)  ((struct k_thread *)thread->vcpu_struct ? true: false)
 
