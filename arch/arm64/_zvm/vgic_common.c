@@ -140,7 +140,8 @@ static int set_virt_irq(struct vcpu *vcpu, struct virt_irq_desc *desc)
     struct virq_struct *virq_struct = vcpu->virq_struct;
 
     if (!is_vm_irq_valid(vcpu->vm, desc->virq_flags)) {
-        ZVM_LOG_WARN("VM can not recieve virq signal here.");
+        ZVM_LOG_WARN("VM can not recieve virq signal, \
+						VM's name: %s.", vcpu->vm->vm_name);
         return -EVIRQ;
     }
 
@@ -156,7 +157,11 @@ static int set_virt_irq(struct vcpu *vcpu, struct virt_irq_desc *desc)
         }
     }
     k_spin_unlock(&virq_struct->spinlock, key);
-    wakeup_target_vcpu(vcpu, desc);
+
+	/*occur bug here: without judgement, wakeup_target_vcpu will 
+	  introduce a pause vm error !*/
+	if(vcpu->work->vcpu_thread != _current)
+    	wakeup_target_vcpu(vcpu, desc);
 
     return 0;
 }

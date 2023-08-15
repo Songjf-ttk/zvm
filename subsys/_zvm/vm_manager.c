@@ -18,7 +18,7 @@
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
 /* Structure for parsing args. */
-struct getopt_state *state;
+struct getopt_state *state = NULL;
 
 
 int zvm_new_guest(size_t argc, char **argv)

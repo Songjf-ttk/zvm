@@ -72,7 +72,7 @@ struct vm_ops {
  */
 
 /* Structure for parsing args. */
-extern struct getopt_state *state;
+//extern struct getopt_state *state;
 
 /**
  * @brief Create vm, other instructions will compose a function pointer struct
