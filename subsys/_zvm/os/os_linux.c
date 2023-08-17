@@ -44,12 +44,16 @@ static uint64_t zvm_mapped_linux_image()
 int load_linux_image(struct vm_mem_domain *vmem_domain)
 {
     char *dbuf, *sbuf;
+    ARG_UNUSED(dbuf);
+    ARG_UNUSED(sbuf);
     int ret = 0;
     uint64_t lbase_size,limage_base,limage_size;
     struct _dnode *d_node, *ds_node;
     struct vm_mem_partition *vpart;
     struct vm_mem_block *blk;
     struct vm *this_vm = vmem_domain->vm;
+    ARG_UNUSED(blk);
+    ARG_UNUSED(this_vm);
 
 #ifndef  CONFIG_VM_DYNAMIC_MEMORY
     ARG_UNUSED(this_vm);
@@ -63,7 +67,7 @@ int load_linux_image(struct vm_mem_domain *vmem_domain)
     SYS_DLIST_FOR_EACH_NODE_SAFE(&vmem_domain->mapped_vpart_list,d_node,ds_node){
         vpart = CONTAINER_OF(d_node,struct vm_mem_partition,vpart_node);
         if(vpart->part_hpa_size == lbase_size){
-            memcpy(vpart->part_hpa_base,limage_base,limage_size);
+            memcpy((void *)vpart->part_hpa_base,(const void *)limage_base,limage_size);
             break;
         }
     }

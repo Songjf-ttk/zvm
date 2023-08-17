@@ -127,6 +127,7 @@ int vm_unmap_ptdev(struct virt_dev *vdev, uint64_t vm_dev_base,
 int vm_vdev_pause(struct vcpu *vcpu)
 {
     ARG_UNUSED(vcpu);
+    return 0;
 }
 
 int vm_vdevs_init(struct vm *vm)

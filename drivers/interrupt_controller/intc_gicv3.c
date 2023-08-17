@@ -252,7 +252,7 @@ void arm_gic_eoi(unsigned int intid)
 	if(intid == 0x1A || intid == 0x0)
 		write_sysreg(intid, ICC_DIR_EL1);
 #elif CONFIG_SOC_QEMU_CORTEX_MAX
-	if(intid == 0x1A)
+	if(intid == 0x1A || intid == 0x0)
 		write_sysreg(intid, ICC_DIR_EL1);
 #endif
 

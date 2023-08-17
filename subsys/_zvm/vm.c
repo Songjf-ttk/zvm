@@ -138,6 +138,10 @@ int vm_mem_init(struct vm *vm)
     struct _dnode *d_node,*ds_node;
     struct vm_mem_partition *vpart;
     uint64_t hpa_base;
+    ARG_UNUSED(hpa_base);
+    ARG_UNUSED(vpart);
+    ARG_UNUSED(ds_node);
+    ARG_UNUSED(d_node);
     
     if (vmem_dm->is_init) {
         ZVM_LOG_WARN("Vm mem has been init before! \n");
@@ -361,6 +365,7 @@ int vm_vcpus_run(struct vm *vm)
     struct vcpu *vcpu;
     struct k_thread *thread;
     k_spinlock_key_t key;
+    ARG_UNUSED(thread);
 
     key = k_spin_lock(&vm->spinlock);
     for(i = 0; i < vm->vcpu_num; i++){
@@ -385,6 +390,8 @@ int vm_vcpus_pause(struct vm *vm)
     struct vcpu *vcpu;
     struct k_thread *thread, *cur_thread;
     k_spinlock_key_t key;
+    ARG_UNUSED(thread);
+    ARG_UNUSED(cur_thread);
 
     key = k_spin_lock(&vm->spinlock);
     for(i = 0; i < vm->vcpu_num; i++){
@@ -408,6 +415,7 @@ int vm_vcpus_halt(struct vm *vm)
     struct vcpu *vcpu;
     struct k_thread *thread;
     k_spinlock_key_t key;
+    ARG_UNUSED(thread);
 
     key = k_spin_lock(&vm->spinlock);
     for(i = 0; i < vm->vcpu_num; i++){

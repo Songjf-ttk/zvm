@@ -45,11 +45,8 @@ static bool is_basic_hardware_support(void)
     if (is_el2_vhe_supported()) {
         return true;
     } else {
-#ifdef CONFIG_HAS_ARM_VHE_EXTN
-        return false;
-#else
         hyp_memory_map();
-#endif
+        return false;
     }
 }
 

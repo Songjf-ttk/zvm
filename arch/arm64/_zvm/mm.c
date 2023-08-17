@@ -502,7 +502,6 @@ int arch_vm_dev_domain_map(uint64_t pbase, uint64_t vbase, uint64_t size, char *
 int arch_vm_mem_domain_partition_add(struct k_mem_domain *domain,
 				  uint32_t partition_id, uintptr_t phys_start, uint32_t vmid)
 {
-	uint32_t attrs;
 	struct arm_mmu_ptables *domain_ptables = &domain->arch.ptables;
 	struct k_mem_partition *ptn = &domain->partitions[partition_id];
 
@@ -513,7 +512,6 @@ int arch_vm_mem_domain_partition_add(struct k_mem_domain *domain,
 int arch_vm_mem_domain_partition_remove(struct k_mem_domain *domain,
 				uint32_t partition_id, uint32_t vmid)
 {
-	uint32_t attrs;
 	int ret;
 	struct arm_mmu_ptables *domain_ptables = &domain->arch.ptables;
 	struct k_mem_partition *ptn = &domain->partitions[partition_id];

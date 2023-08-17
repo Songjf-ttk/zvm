@@ -43,11 +43,11 @@ static int handle_ftrans_desc(int iss_dfsc, uint64_t pa_addr,
             struct esr_dabt_area *dabt, arch_commom_regs_t *regs)
 {
     int ret = 0;
-    uint16_t reg_index = dabt->srt;
-    uint64_t *reg_value;
 #ifdef CONFIG_VM_DYNAMIC_MEMORY
     /* TODO: Add dynamic memory allocate. */
 #else 
+    uint16_t reg_index = dabt->srt;
+    uint64_t *reg_value;
     ret = -ENOVDEV;
     ZVM_LOG_WARN("Do not support DYNAMIC MEMORY,VM's mem abort addr: %llx ! \n", pa_addr);
     reg_value = find_index_reg(reg_index, regs);

@@ -129,13 +129,13 @@ static int vm_ram_mem_create(struct vm_mem_domain *vmem_domain)
         ARG_UNUSED(kpa_base);
         pa_base = LINUX_VM_MEM_BASE;
 #else
-        kpa_base = k_malloc(size + CONFIG_MMU_PAGE_SIZE);
-        if(kpa_base == NULL){
+        kpa_base = (uint64_t)k_malloc(size + CONFIG_MMU_PAGE_SIZE);
+        if(kpa_base == 0){
             ZVM_LOG_ERR("The heap memory is not enough\n");
             return -EMMAO;
         }
         pa_base = ROUND_UP(kpa_base,CONFIG_MMU_PAGE_SIZE);
-        pa_base = z_mem_phys_addr(pa_base);
+        pa_base = z_mem_phys_addr((void *)pa_base);
 #endif
         break;
     case OS_TYPE_ZEPHYR:
@@ -145,13 +145,13 @@ static int vm_ram_mem_create(struct vm_mem_domain *vmem_domain)
         ARG_UNUSED(kpa_base);
         pa_base = ZEPHYR_VM_MEM_BASE;
 #else
-        kpa_base = k_malloc(size + CONFIG_MMU_PAGE_SIZE);
-        if(kpa_base == NULL){
+        kpa_base = (uint64_t)k_malloc(size + CONFIG_MMU_PAGE_SIZE);
+        if(kpa_base == 0){
             ZVM_LOG_ERR("The heap memory is not enough\n");
             return -EMMAO;
         }
         pa_base = ROUND_UP(kpa_base,CONFIG_MMU_PAGE_SIZE);
-        pa_base = z_mem_phys_addr(pa_base);
+        pa_base = z_mem_phys_addr((void *)pa_base);
 #endif
         break;
     default:
@@ -213,41 +213,41 @@ static int vm_init_mem_create(struct vm_mem_domain *vmem_domain)
 /**
  * @brief Alloc memory block for this vpart, direct use current address.
  */
-// static int alloc_vm_mem_block(struct vm_mem_domain *vmem_dm,
-//             struct vm_mem_partition *vpart, uint64_t unit_msize)
-// {
-//     ARG_UNUSED(vmem_dm);
-//     int i, ret = 0;
-//     uint64_t vpart_base, blk_count;
-//     struct vm_mem_block *block;
+//  static int alloc_vm_mem_block(struct vm_mem_domain *vmem_dm,
+//              struct vm_mem_partition *vpart, uint64_t unit_msize)
+//  {
+//      ARG_UNUSED(vmem_dm);
+//      int i, ret = 0;
+//      uint64_t vpart_base, blk_count;
+//      struct vm_mem_block *block;
 
-//     vpart_base = vpart->vm_mm_partition->start;
+//      vpart_base = vpart->vm_mm_partition->start;
 
-//     /* Add flag for blk map, set size as 64k(2M) block */
-//     vpart->area_attrs |= BLK_MAP;
-//     blk_count = vpart->vm_mm_partition->size / unit_msize;
+//      /* Add flag for blk map, set size as 64k(2M) block */
+//      vpart->area_attrs |= BLK_MAP;
+//      blk_count = vpart->vm_mm_partition->size / unit_msize;
 
-//     /* allocate physical memory for block */
-//     for (i = 0; i < blk_count; i++) {
-//         /* allocate block for block struct*/
-//         block = (struct vm_mem_block *)k_malloc(sizeof(struct vm_mem_block));
-//         if (block == NULL) {
-//             return -EMMAO;
-//         }
-//         memset(block, 0, sizeof(struct vm_mem_block));
+//      /* allocate physical memory for block */
+//      for (i = 0; i < blk_count; i++) {
+//          /* allocate block for block struct*/
+//          block = (struct vm_mem_block *)k_malloc(sizeof(struct vm_mem_block));
+//          if (block == NULL) {
+//              return -EMMAO;
+//          }
+//          memset(block, 0, sizeof(struct vm_mem_block));
 
-//         /* init block pointer for vm */
-//         block->virt_base = vpart_base + unit_msize*i;
-//         /* get the block number */
-//         block->cur_blk_offset = i;
-//         /* No physical base */
-//         block->phy_pointer = NULL;
+//          /* init block pointer for vm */
+//          block->virt_base = vpart_base + unit_msize*i;
+//          /* get the block number */
+//          block->cur_blk_offset = i;
+//          /* No physical base */
+//          block->phy_pointer = NULL;
 
-//         sys_dlist_append(&vpart->blk_list, &block->vblk_node);
-//     }
+//          sys_dlist_append(&vpart->blk_list, &block->vblk_node);
+//      }
 
-//     return ret;
-// }
+//      return ret;
+//  }
 
 
 int vm_vdev_mem_create(struct vm_mem_domain *vmem_domain, uint64_t hpbase,
@@ -485,6 +485,7 @@ static int vm_mem_domain_partition_remove(struct vm_mem_domain *vmem_dm)
     int p_idx;
     int ret = 0;
     uintptr_t phys_start;
+    ARG_UNUSED(phys_start);
     struct k_mem_domain *domain;
     struct vm *vm;
     k_spinlock_key_t key;
@@ -553,9 +554,9 @@ int vm_mem_apart_remove(struct vm_mem_domain *vmem_dm)
         vpart = CONTAINER_OF(d_node, struct vm_mem_partition, vpart_node);
         vmpart = vpart->vm_mm_partition;    
     #ifdef CONFIG_VM_DYNAMIC_MEMORY
-        if(vm->vmid < ZVM_ZEPHYR_VM_NUM && vpart->part_hpa_size == ZEPHYR_VM_MEM_SIZE ||
-           vm->vmid >= ZVM_ZEPHYR_VM_NUM && vpart->part_hpa_size == LINUX_VM_MEM_SIZE){
-                k_free(vpart->part_kpa_base);
+        if( (vm->vmid < ZVM_ZEPHYR_VM_NUM && vpart->part_hpa_size == ZEPHYR_VM_MEM_SIZE) ||
+           (vm->vmid >= ZVM_ZEPHYR_VM_NUM && vpart->part_hpa_size == LINUX_VM_MEM_SIZE) ){
+                k_free((void *)vpart->part_kpa_base);
            }
     #endif
         sys_dlist_remove(&vpart->vpart_node);
@@ -599,7 +600,7 @@ int vm_dynmem_apart_add(struct vm_mem_domain *vmem_dm)
         /*TODO: Need a judge for all.*/
         vpart = CONTAINER_OF(d_node, struct vm_mem_partition, vpart_node);
 
-        ret = alloc_vm_mem_block(vmem_dm, vpart, vm_mem_blk_size);
+//        ret = alloc_vm_mem_block(vmem_dm, vpart, vm_mem_blk_size);
         if(ret){
             ZVM_LOG_WARN("Init vm memory failed!\n");
             return ret;

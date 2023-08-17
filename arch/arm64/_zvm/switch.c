@@ -141,6 +141,11 @@ static int arch_vm_irq_trap(struct vcpu *vcpu)
 {
     ARG_UNUSED(vcpu);
     /* enable all execption */
+#ifdef CONFIG_SOC_QEMU_CORTEX_MAX
+    while(vcpu->vcpu_state == _VCPU_STATE_PAUSED){
+        ;
+    }
+#endif
     vm_enable_daif();
     return 0;
 }
