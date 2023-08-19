@@ -341,6 +341,8 @@ int vcpu_irq_exit(struct vcpu *vcpu)
 	return !(pend && active);
 }
 
+static int created_vm_num = 0;
+
 struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name)
 {
     uint16_t vm_prio;
@@ -419,6 +421,9 @@ struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name)
         ZVM_LOG_WARN("No suitable idle cpu for VM! \n");
         return NULL;
     }
+    /* Just work on 4 cores system */
+    if(++created_vm_num == CONFIG_MP_NUM_CPUS-1)
+        pcpu_num = CONFIG_MP_NUM_CPUS-1;
     k_thread_cpu_mask_enable(tid, pcpu_num);
     vcpu->cpu = pcpu_num;
 #endif /* CONFIG_SCHED_CPU_MASK */

@@ -167,17 +167,20 @@ void arm_gic_irq_enable(unsigned int intid)
 #ifdef CONFIG_SOC_SERIES_FVP_BASE_AARCH64
 		sys_write64(MPIDR_TO_CORE(GET_MPIDR()),
 				IROUTER(GET_DIST_BASE(intid), intid));
-		if(intid == 0x26){
-			sys_write64(0x01 << 8, IROUTER(GET_DIST_BASE(intid), intid));
-		}else if(intid == 0x27){
-			sys_write64(0x02 << 8,
-				IROUTER(GET_DIST_BASE(intid), intid));
+		if(intid == 0x26 || intid == 0x27 ){
+			struct vcpu *vcpu = _current_vcpu;
+			if(vcpu == NULL)
+				sys_write64(0x80000000, IROUTER(GET_DIST_BASE(intid), intid));
+			else
+				sys_write64(vcpu->cpu << 8, IROUTER(GET_DIST_BASE(intid), intid));
 		}
 #elif	CONFIG_SOC_QEMU_CORTEX_MAX
-		if(intid == 0x2a){
-			sys_write64(0x01, IROUTER(GET_DIST_BASE(intid), intid));
-		}else if(intid == 0x2b){
-			sys_write64(0x02, IROUTER(GET_DIST_BASE(intid), intid));
+		if(intid == 0x2a || intid == 0x2b){
+			struct vcpu *vcpu = _current_vcpu;
+			if(vcpu == NULL)
+				sys_write64(0x80000000, IROUTER(GET_DIST_BASE(intid), intid));
+			else
+				sys_write64(vcpu->cpu, IROUTER(GET_DIST_BASE(intid), intid));
 		}
 #else
 		sys_write64(0x80000000, IROUTER(GET_DIST_BASE(intid), intid));
