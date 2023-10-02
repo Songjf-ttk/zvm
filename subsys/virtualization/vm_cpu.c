@@ -353,6 +353,7 @@ struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name)
 
     vcpu = (struct vcpu *)k_malloc(sizeof(struct vcpu));
     if (!vcpu) {
+        ZVM_LOG_ERR("Allocate vcpu space failed");
         return NULL;
     }
 
@@ -375,8 +376,8 @@ struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name)
     sys_dlist_init(&vcpu->virq_struct->active_irqs);
     ZVM_SPINLOCK_INIT(&vcpu->virq_struct->spinlock);
 
+    /* Bug: we must use tmp_addr to get this address. */
     tmp_addr = (uint64_t)vcpu->virq_struct;
-    /* init virq desc in vcpu */
     init_vcpu_virt_irq_desc(vcpu->virq_struct);
     vcpu->virq_struct = (struct virq_struct *)tmp_addr;
 

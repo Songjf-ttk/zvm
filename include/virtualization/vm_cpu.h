@@ -10,7 +10,6 @@
 #include <kernel.h>
 #include <kernel/thread.h>
 #include <kernel_structs.h>
-
 #include <virtualization/zvm.h>
 
 #ifdef CONFIG_PREEMPT_ENABLED

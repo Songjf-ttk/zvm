@@ -331,7 +331,6 @@ int vm_vcpus_init(struct vm *vm)
     int i;
     struct vcpu *vcpu;
 
-    /* check vcpu args */
     if (vm->vcpu_num > CONFIG_MAX_VCPU_PER_VM) {
         ZVM_LOG_WARN("Vcpu counts is too big!");
         return -EPANO;
@@ -341,13 +340,9 @@ int vm_vcpus_init(struct vm *vm)
         memset(vcpu_name, 0, VCPU_NAME_LEN);
         snprintk(vcpu_name, VCPU_NAME_LEN-1, "%s-vcpu%d", vm->vm_name, i);
 
-        /* init vcpu struct */
         vcpu = vm_vcpu_init(vm, i, vcpu_name);
 
-        /* init vcpu list */
         sys_dlist_init(&vcpu->vcpu_lists);
-
-        /* init vm vpcu list */
         vm->vcpus[i] = vcpu;
         vcpu->next_vcpu = NULL;
 

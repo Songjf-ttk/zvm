@@ -188,9 +188,9 @@ struct zvm_manage_info {
 
     /* @TODO: try to add a flag to describe the running vm and pending vm list */
 
-    /** Each bit of this value represents a virtual machine id. 
-     * When the value of a bit is 1, 
-     * the ID of that virtual machine has been allocated, and vice versa. 
+    /** Each bit of this value represents a virtual machine id.
+     * When the value of a bit is 1,
+     * the ID of that virtual machine has been allocated, and vice versa.
      */
     uint32_t alloced_vmid;
 
@@ -221,24 +221,7 @@ static ALWAYS_INLINE int rt_get_idle_cpu(void){
 	    arch_irq_unlock(k);
 #endif
         int prio = k_thread_priority_get(tid);
-        if (prio == K_IDLE_PRIO) {
-            return i;
-        }
-    }
-    for (int i = 0; i < CONFIG_MP_NUM_CPUS; i++) {
-#ifdef CONFIG_SMP
-        /* In SMP, _current is a field read from _current_cpu, which
-        * can race with preemption before it is read.  We must lock
-        * local interrupts when reading it.
-        */
-        unsigned int k = arch_irq_lock();
-#endif
-        k_tid_t tid = _kernel.cpus[i].current;
-#ifdef CONFIG_SMP
-	    arch_irq_unlock(k);
-#endif
-        int prio = k_thread_priority_get(tid);
-        if (prio < K_IDLE_PRIO && prio > VCPU_RT_PRIO ) {
+        if (prio == K_IDLE_PRIO || (prio < K_IDLE_PRIO && prio > VCPU_RT_PRIO)) {
             return i;
         }
     }
@@ -272,8 +255,7 @@ static ALWAYS_INLINE bool is_vmid_full(void){
 
 static ALWAYS_INLINE uint32_t find_next_vmid(struct z_vm_info *vm_info,uint32_t *vmid){
     uint32_t id,maxid;
-   
-   
+
     if(vm_info->vm_os_type == OS_TYPE_ZEPHYR){
         *vmid = 0;
         id = BIT(0);
@@ -285,13 +267,12 @@ static ALWAYS_INLINE uint32_t find_next_vmid(struct z_vm_info *vm_info,uint32_t 
         maxid = BIT(CONFIG_MAX_VM_NUM);
     }
 
-
-    for(; id < maxid; id <<= 1,(*vmid)++) 
+    for(; id < maxid; id <<= 1,(*vmid)++){
         if(!(id & zvm_overall_info->alloced_vmid)){
             zvm_overall_info->alloced_vmid |= id;
             return 0;
         }
-
+    }
     return -EOVERFLOW;
 }
 

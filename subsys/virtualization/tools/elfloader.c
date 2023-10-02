@@ -287,7 +287,7 @@ static el_status elf_relocate(el_ctx *ctx, void *src)
     el_status rv = EL_OK;
     el_relocinfo ri;
 
-    // not dynamic
+    /*  not dynamic */
     if (ctx->ehdr.e_type != ET_DYN){
         return EL_OK;
     }
