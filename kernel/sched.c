@@ -20,8 +20,8 @@
 #include <timing/timing.h>
 
 #ifdef CONFIG_ZVM
-#include <_zvm/zvm.h>
-#include <_zvm/vm_cpu.h>
+#include <virtualization/zvm.h>
+#include <virtualization/vm_cpu.h>
 #endif
 
 LOG_MODULE_DECLARE(os, CONFIG_KERNEL_LOG_LEVEL);

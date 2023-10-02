@@ -15,7 +15,7 @@
 #include <string.h>
 
 #ifdef CONFIG_ZVM
-#include <_zvm/arm/vgic_v3.h>
+#include <virtualization/arm/vgic_v3.h>
 #endif
 
 /* Redistributor base addresses for each core */

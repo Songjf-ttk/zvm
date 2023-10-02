@@ -10,7 +10,7 @@
 #include "boot.h"
 
 #ifdef CONFIG_ZVM
-#include <_zvm/arm/cpu.h>
+#include <virtualization/arm/cpu.h>
 #endif
 
 void __weak z_arm64_el_highest_plat_init(void)

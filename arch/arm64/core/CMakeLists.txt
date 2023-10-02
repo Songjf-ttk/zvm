@@ -32,3 +32,4 @@ endif ()
 zephyr_cc_option_ifdef(CONFIG_USERSPACE -mno-outline-atomics)
 
 add_subdirectory_ifdef(CONFIG_SOC_XENVM xen)
+add_subdirectory_ifdef(CONFIG_ZVM virtualization)
