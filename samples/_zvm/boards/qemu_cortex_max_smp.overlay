@@ -37,13 +37,14 @@
         dtb_address = <0x49000000>;
         dtb_size = <DT_SIZE_M(2)>;
 
-        memory@48000000 {
+        memory@f2000000 {
             compatible = "vm-dram";
 
-            memmap_type = "dirct";
+            memmap_type = "direct";
             address_type = "normal_memory";
             vm_reg = <0x40000000>;
-            reg = <0x0 0x48000000 0x0 DT_SIZE_M(2)>;
+            img_sz = <0x70dd8>;
+            reg = <0x0 0xf2000000 0x0 DT_SIZE_M(2)>;
             label = "VM0_MEM";
         };
 
@@ -54,16 +55,17 @@
         #size-cells = <2>;
         compatible = "linux-vm";
         /* dtb_address must locate at some unused place */
-        dtb_address = <0x88000000>;
+        dtb_address = <0xfb000000>;
         dtb_size = <DT_SIZE_M(2)>;
 
-        memory@80000000 {
+        memory@f3000000 {
             compatible = "vm-dram";
 
-            memmap_type = "dirct";
+            memmap_type = "direct"; 
             address_type = "normal_memory";
             vm_reg = <0x40000000>;
-            reg = <0x0 0x80000000 0x0 DT_SIZE_M(1024)>;
+            img_sz = <0x3600000>;
+            reg = <0x0 0xf3000000 0x0 DT_SIZE_M(1024)>;
             label = "VM1_MEM";
         };
     }; 

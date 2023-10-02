@@ -26,9 +26,12 @@
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
-static uint64_t vm_xlat_tables[CONFIG_MAX_VM_NUM][CONFIG_ZVM_MAX_XLAT_TABLES * Ln_XLAT_NUM_ENTRIES]\
+static uint64_t vm_zephyr_xlat_tables[ZVM_ZEPHYR_VM_NUM][CONFIG_ZVM_ZEPHYR_MAX_XLAT_TABLES * Ln_XLAT_NUM_ENTRIES]\
 		__aligned(Ln_XLAT_NUM_ENTRIES * sizeof(uint64_t));
-uint16_t vm_xlat_use_count[CONFIG_MAX_VM_NUM][CONFIG_ZVM_MAX_XLAT_TABLES];
+uint16_t vm_zephyr_xlat_use_count[ZVM_ZEPHYR_VM_NUM][CONFIG_ZVM_ZEPHYR_MAX_XLAT_TABLES];
+static uint64_t vm_linux_xlat_tables[ZVM_LINUX_VM_NUM][CONFIG_ZVM_LINUX_MAX_XLAT_TABLES * Ln_XLAT_NUM_ENTRIES]\
+		__aligned(Ln_XLAT_NUM_ENTRIES * sizeof(uint64_t));
+uint16_t vm_linux_xlat_use_count[ZVM_LINUX_VM_NUM][CONFIG_ZVM_LINUX_MAX_XLAT_TABLES];
 static struct k_spinlock vm_xlat_lock;
 
 /**
@@ -122,13 +125,24 @@ static uint64_t *vm_new_table(uint32_t vmid)
 	unsigned int i;
 
 	/* Look for a free table. */
-	for (i = 0U; i < CONFIG_MAX_XLAT_TABLES; i++) {
-		if (vm_xlat_use_count[vmid][i] == 0U) {
-			vm_xlat_use_count[vmid][i] = 1U;
-			/* each table assign 512 entrys */
-			return &vm_xlat_tables[vmid][i * Ln_XLAT_NUM_ENTRIES];
+	if(vmid < ZVM_ZEPHYR_VM_NUM){
+		for (i = 0U; i < CONFIG_ZVM_ZEPHYR_MAX_XLAT_TABLES; i++) {
+			if (vm_zephyr_xlat_use_count[vmid][i] == 0U) {
+				vm_zephyr_xlat_use_count[vmid][i] = 1U;
+				/* each table assign 512 entrys */
+				return &vm_zephyr_xlat_tables[vmid][i * Ln_XLAT_NUM_ENTRIES];
+			}
+		}
+	}else{
+		for (i = 0U; i < CONFIG_ZVM_LINUX_MAX_XLAT_TABLES; i++) {
+			if (vm_linux_xlat_use_count[vmid-ZVM_ZEPHYR_VM_NUM][i] == 0U) {
+				vm_linux_xlat_use_count[vmid-ZVM_ZEPHYR_VM_NUM][i] = 1U;
+				/* each table assign 512 entrys */
+				return &vm_linux_xlat_tables[vmid-ZVM_ZEPHYR_VM_NUM][i * Ln_XLAT_NUM_ENTRIES];
+			}
 		}
 	}
+	
 	return NULL;
 }
 
@@ -185,9 +199,16 @@ static void vm_set_pte_table_desc(uint64_t *pte, uint64_t *table, unsigned int l
 
 static inline unsigned int vm_table_index(uint64_t *pte, uint32_t vmid)
 {
-	unsigned int i = (pte - &vm_xlat_tables[vmid][0]) / Ln_XLAT_NUM_ENTRIES;
-
-	__ASSERT(i < CONFIG_MAX_XLAT_TABLES, "table %p out of range", pte);
+	unsigned int i ;
+	if(vmid < ZVM_ZEPHYR_VM_NUM){
+		i = (pte - &vm_zephyr_xlat_tables[vmid][0]) / Ln_XLAT_NUM_ENTRIES;
+		__ASSERT(i < CONFIG_ZVM_ZEPHYR_MAX_XLAT_TABLES, "table %p out of range", pte);
+	}
+	else{ 
+		i = (pte - &vm_linux_xlat_tables[vmid-ZVM_ZEPHYR_VM_NUM][0]) / Ln_XLAT_NUM_ENTRIES;
+		__ASSERT(i < CONFIG_ZVM_LINUX_MAX_XLAT_TABLES, "table %p out of range", pte);
+	}
+	
 	return i;
 }
 
@@ -196,19 +217,32 @@ static void vm_free_table(uint64_t *table, uint32_t vmid)
 {
 	unsigned int i = vm_table_index(table, vmid);
 
-	__ASSERT(vm_xlat_use_count[vmid][i] == 1U, "table still in use");
-	vm_xlat_use_count[vmid][i] = 0U;
+	if(vmid < ZVM_ZEPHYR_VM_NUM){
+		__ASSERT(vm_zephyr_xlat_use_count[vmid][i] == 1U, "table still in use");
+		vm_zephyr_xlat_use_count[vmid][i] = 0U;
+	}else{
+		__ASSERT(vm_linux_xlat_use_count[vmid-ZVM_ZEPHYR_VM_NUM][i] == 1U, "table still in use");
+		vm_linux_xlat_use_count[vmid-ZVM_ZEPHYR_VM_NUM][i] = 0U;
+	}
 }
 
 /* Adjusts usage count and returns current count. */
 static int vm_table_usage(uint64_t *table, int adjustment, uint32_t vmid)
 {
-	unsigned int i = vm_table_index(table, vmid);
+	unsigned int i,table_use;
+	i = vm_table_index(table, vmid);
 
-	vm_xlat_use_count[vmid][i] += adjustment;
-	__ASSERT(vm_xlat_use_count[vmid][i] > 0, "usage count underflow");
+	if(vmid < ZVM_ZEPHYR_VM_NUM){
+		vm_zephyr_xlat_use_count[vmid][i] += adjustment;
+		table_use = vm_zephyr_xlat_use_count[vmid][i];
+		__ASSERT(vm_zephyr_xlat_use_count[vmid][i] > 0, "usage count underflow");
+	}else{
+		vm_linux_xlat_use_count[vmid-ZVM_ZEPHYR_VM_NUM][i] += adjustment;
+		table_use = vm_linux_xlat_use_count[vmid-ZVM_ZEPHYR_VM_NUM][i];
+		__ASSERT(vm_linux_xlat_use_count[vmid-ZVM_ZEPHYR_VM_NUM][i] > 0, "usage count underflow");
+	}
 
-	return vm_xlat_use_count[vmid][i];
+	return table_use;
 }
 
 static inline bool vm_is_table_unused(uint64_t *table, uint32_t vmid)
@@ -409,6 +443,18 @@ static int vm_add_map(struct arm_mmu_ptables *ptables, const char *name,
 	return ret;
 }
 
+static int vm_remove_map(struct arm_mmu_ptables *ptables, const char *name,
+				uintptr_t virt,size_t size,uint32_t vmid)
+{
+	k_spinlock_key_t key;
+	int ret;
+
+	key = k_spin_lock(&vm_xlat_lock);
+	ret = vm_set_mapping(ptables,virt,size,0,true,vmid);
+	k_spin_unlock(&vm_xlat_lock,key);
+	return ret;
+}
+
 int arch_mmap_vpart_to_block(uintptr_t phys, uintptr_t virt, size_t size, uint32_t attrs)
 {
     int ret;
@@ -456,12 +502,23 @@ int arch_vm_dev_domain_map(uint64_t pbase, uint64_t vbase, uint64_t size, char *
 int arch_vm_mem_domain_partition_add(struct k_mem_domain *domain,
 				  uint32_t partition_id, uintptr_t phys_start, uint32_t vmid)
 {
-	uint32_t attrs;
 	struct arm_mmu_ptables *domain_ptables = &domain->arch.ptables;
 	struct k_mem_partition *ptn = &domain->partitions[partition_id];
 
 	return vm_add_map(domain_ptables, "vm-mmio-space", phys_start,
 				ptn->start, ptn->size, ptn->attr.attrs, vmid);
+}
+
+int arch_vm_mem_domain_partition_remove(struct k_mem_domain *domain,
+				uint32_t partition_id, uint32_t vmid)
+{
+	int ret;
+	struct arm_mmu_ptables *domain_ptables = &domain->arch.ptables;
+	struct k_mem_partition *ptn = &domain->partitions[partition_id];
+
+	ret =  vm_remove_map(domain_ptables,"vm-mmio-space",ptn->start,ptn->size,vmid);
+
+	return ret;
 }
 
 int arch_vm_mem_domain_init(struct k_mem_domain *domain, uint32_t vmid)

@@ -89,14 +89,14 @@ static void z_list_vm_info(uint16_t vmid)
  */
 static void z_list_all_vms_info(void)
 {
-    uint16_t vm_count, i;
+    uint16_t i;
 
-    vm_count = zvm_overall_info->next_alloc_vmid;
 
     printk("\n|******************** All VMS INFO *******************|\n");
     printk("|***vmid name \t    vcpus    vmem(M)\tstatus ***|\n");
-    for(i = 0; i < vm_count; i++){
-        z_list_vm_info(i);
+    for(i = 0; i < CONFIG_MAX_VM_NUM; i++){
+        if(BIT(i) & zvm_overall_info->alloced_vmid)
+            z_list_vm_info(i);
     }
 
 }
@@ -135,24 +135,25 @@ int vm_mem_init(struct vm *vm)
 {
     int ret = 0;
     struct vm_mem_domain *vmem_dm = vm->vmem_domain;
-
+    struct _dnode *d_node,*ds_node;
+    struct vm_mem_partition *vpart;
+    uint64_t hpa_base;
+    ARG_UNUSED(hpa_base);
+    ARG_UNUSED(vpart);
+    ARG_UNUSED(ds_node);
+    ARG_UNUSED(d_node);
+    
     if (vmem_dm->is_init) {
         ZVM_LOG_WARN("Vm mem has been init before! \n");
         return -EMMAO;
     }
-#ifndef CONFIG_VM_DYNAMIC_MEMORY
+
     ret = vm_mem_apart_add(vmem_dm);
     if (ret) {
         ZVM_LOG_WARN("Add partition to domain failed!, Code: %d \n", ret);
         return ret;
     }
-#else
-    ret = vm_dynmem_apart_add(vmem_dm);
-    if (ret) {
-        return ret;
-    }
 
-#endif /* CONFIG_VM_DYNAMIC_MEMORY */
     return 0;
 }
 
@@ -180,7 +181,7 @@ int vm_create(struct z_vm_info *vm_info, struct vm *new_vm)
     struct vm *vm = new_vm;
 
     /* init vmid here, this vmid is for vm level*/
-    vm->vmid = allocate_vmid();
+    vm->vmid = allocate_vmid(vm_info);
     if (vm->vmid >= CONFIG_MAX_VM_NUM) {
         return -EOVERFLOW;
     }
@@ -364,6 +365,7 @@ int vm_vcpus_run(struct vm *vm)
     struct vcpu *vcpu;
     struct k_thread *thread;
     k_spinlock_key_t key;
+    ARG_UNUSED(thread);
 
     key = k_spin_lock(&vm->spinlock);
     for(i = 0; i < vm->vcpu_num; i++){
@@ -388,6 +390,8 @@ int vm_vcpus_pause(struct vm *vm)
     struct vcpu *vcpu;
     struct k_thread *thread, *cur_thread;
     k_spinlock_key_t key;
+    ARG_UNUSED(thread);
+    ARG_UNUSED(cur_thread);
 
     key = k_spin_lock(&vm->spinlock);
     for(i = 0; i < vm->vcpu_num; i++){
@@ -411,6 +415,7 @@ int vm_vcpus_halt(struct vm *vm)
     struct vcpu *vcpu;
     struct k_thread *thread;
     k_spinlock_key_t key;
+    ARG_UNUSED(thread);
 
     key = k_spin_lock(&vm->spinlock);
     for(i = 0; i < vm->vcpu_num; i++){
@@ -437,8 +442,9 @@ int vm_delete(struct vm *vm)
     struct  _dnode *d_node, *ds_node;
     struct virt_dev *vdev;
     k_spinlock_key_t key;
-    struct vm_mem_partition *vpart;
     struct vm_mem_domain *vmem_dm = vm->vmem_domain;
+    struct vcpu *vcpu;
+    struct vcpu_work *vwork;
 
     key = k_spin_lock(&vm->spinlock);
 
@@ -452,10 +458,24 @@ int vm_delete(struct vm *vm)
         }
     }
 
-    SYS_DLIST_FOR_EACH_NODE_SAFE(&vmem_dm->idle_vpart_list, d_node, ds_node){
-        vpart = CONTAINER_OF(d_node, struct vm_mem_partition, vpart_node);
-        sys_dlist_remove(&vpart->vpart_node);
+    /* remove all the partition in the vmem_domain */
+    ret = vm_mem_apart_remove(vmem_dm);
+
+    /* delete vcpu struct */
+    for(int i = 0; i < vm->vcpu_num; i++){
+        vcpu = vm->vcpus[i];
+        if(!vcpu) continue;
+        vwork = vcpu->work;
+        if(vwork){
+            k_free(vwork->vcpu_thread);
+        }
+
+        k_free(vcpu->arch);
+        k_free(vcpu->virq_struct);
+        k_free(vcpu->work);
+        k_free(vcpu);
     }
+
 
     /* remov vm's desc struct */
     struct virt_irq_desc *desc = VGIC_DATA_VID(vm->vm_irq_block_data);
@@ -465,12 +485,14 @@ int vm_delete(struct vm *vm)
     k_free(vm->arch);
     k_free(vm->vcpus);
     k_free(vm->vmem_domain);
+    if(vm->os->name) k_free(vm->os->name);
     k_free(vm->os);
     zvm_overall_info->vms[vm->vmid] = NULL;
     k_free(vm);
     k_spin_unlock(&vm->spinlock, key);
 
     zvm_overall_info->vm_total_num--;
+    zvm_overall_info->alloced_vmid &= ~BIT(vm->vmid);
     return 0;
 }
 

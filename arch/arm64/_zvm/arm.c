@@ -23,6 +23,7 @@
 #include <_zvm/arm/cpu.h>
 #include <_zvm/arm/vgic_v3.h>
 #include <_zvm/arm/vtimer.h>
+#include <_zvm/os/os_linux.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
@@ -44,11 +45,8 @@ static bool is_basic_hardware_support(void)
     if (is_el2_vhe_supported()) {
         return true;
     } else {
-#ifdef CONFIG_HAS_ARM_VHE_EXTN
-        return false;
-#else
         hyp_memory_map();
-#endif
+        return false;
     }
 }
 

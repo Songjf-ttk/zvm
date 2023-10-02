@@ -11,13 +11,14 @@
 
 #include <_zvm/os/os.h>
 #include <_zvm/os/os_zephyr.h>
+#include <_zvm/os/os_linux.h>
 #include <_zvm/zvm.h>
 #include <_zvm/arm/vgic_v3.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
 /* Structure for parsing args. */
-struct getopt_state *state;
+struct getopt_state *state = NULL;
 
 
 int zvm_new_guest(size_t argc, char **argv)
@@ -67,7 +68,7 @@ int zvm_new_guest(size_t argc, char **argv)
     /* init virq struct here */
 	ret = vm_virq_block_desc_init(new_vm, NULL);
     if (ret) {
-        ZVM_LOG_WARN("Init vm's vm_irq_block_data error");
+        ZVM_LOG_WARN("Init vm's vm_irq_block_data error \n");
         return  ret;
     }
 
@@ -83,6 +84,7 @@ int zvm_new_guest(size_t argc, char **argv)
 		return ret;
 	}
 
+	k_free(vm_info);
 
 	ZVM_LOG_INFO("\n|*********************************************|\n");
 	ZVM_LOG_INFO("|******\t Create vm successful!  **************| \n");
@@ -116,8 +118,8 @@ int zvm_run_guest(size_t argc, char **argv)
 	struct vm *vm;
 
 	vm_id = z_parse_run_vm_args(argc, argv, state);
-	if (vm_id >= zvm_overall_info->next_alloc_vmid) {
-        ZVM_LOG_WARN("This vmid is not exist!\n Please input zvm info to show info \n!");
+	if (!(BIT(vm_id) & zvm_overall_info->alloced_vmid)) {
+        ZVM_LOG_WARN("This vmid is not exist!\n Please input zvm info to show info! \n");
 		return -EINVAL;
     }
 
@@ -159,8 +161,8 @@ int zvm_pause_guest(size_t argc, char **argv)
     key = k_spin_lock(&zvm_overall_info->spin_zmi);
 
 	vm_id = z_parse_pause_vm_args(argc, argv, state);
-	if (vm_id >= zvm_overall_info->next_alloc_vmid) {
-        ZVM_LOG_WARN("This vmid is not exist!\n Please input zvm info to show info \n!");
+	if (!(BIT(vm_id) & zvm_overall_info->alloced_vmid)) {
+        ZVM_LOG_WARN("This vmid is not exist!\n Please input zvm info to show info! \n");
 		k_spin_unlock(&zvm_overall_info->spin_zmi, key);
 		return -EINVAL;
     }
@@ -168,7 +170,7 @@ int zvm_pause_guest(size_t argc, char **argv)
 	vm = zvm_overall_info->vms[vm_id];
 	k_spin_unlock(&zvm_overall_info->spin_zmi, key);
 	if (vm->vm_status != VM_STATE_RUNNING) {
-		ZVM_LOG_WARN("This vm is not running!\n Can not pause it! \n");
+		ZVM_LOG_WARN("This vm is not running!\n No need to pause it! \n");
 		return -EPERM;
 	}
 	ret = vm_vcpus_pause(vm);
@@ -183,7 +185,7 @@ int zvm_delete_guest(size_t argc, char **argv)
 	struct vm *vm;
 
 	vm_id = z_parse_delete_vm_args(argc, argv, state);
-	if (vm_id >= zvm_overall_info->next_alloc_vmid) {
+	if (!(BIT(vm_id) & zvm_overall_info->alloced_vmid)) {
         ZVM_LOG_WARN("This vm is not exist!\n Please input zvm info to list vms!");
 		return 0;
     }
@@ -196,6 +198,7 @@ int zvm_delete_guest(size_t argc, char **argv)
 		break;
 	case VM_STATE_PAUSE:
 		ZVM_LOG_INFO("This vm is paused!\n Just delete it!\n");
+		vm_delete(vm);
 		break;
 	case VM_STATE_NEVER_RUN:
 		ZVM_LOG_INFO("This vm is created but not run!\n Just delete it!\n");
@@ -216,7 +219,7 @@ int zvm_info_guest(size_t argc, char **argv)
 	int ret = 0;
 
 	vm_id = z_parse_info_vm_args(argc, argv, state);
-	if (vm_id >= zvm_overall_info->next_alloc_vmid && vm_id != CONFIG_MAX_VM_NUM) {
+	if (!(BIT(vm_id) & zvm_overall_info->alloced_vmid) && vm_id != CONFIG_MAX_VM_NUM) {
         ZVM_LOG_WARN("This vm is not exist!\n Please input zvm info to list vms! \n");
 		return -ENODEV;
     }

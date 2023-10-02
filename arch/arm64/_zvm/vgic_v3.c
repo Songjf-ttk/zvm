@@ -475,7 +475,6 @@ struct vgicv3_dev *vgicv3_dev_init(struct vm *vm)
 int vgicv3_ctrlblock_create(struct device *unused, struct vm *vm)
 {
     ARG_UNUSED(unused);
-	int ret = 0;
 	uint32_t gic_flags = 0;
 	struct vm_vgic_block *this_block;
 

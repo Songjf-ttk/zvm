@@ -784,7 +784,6 @@ static void enable_mmu_el1(struct arm_mmu_ptables *ptables, unsigned int flags)
 {
 	ARG_UNUSED(flags);
 	uint64_t val=0xffff;
-	uint64_t tmp_val;
 
 	/* Set MAIR, TCR and TBBR registers */
 	write_mair_el1(MEMORY_ATTRIBUTES);

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022 xcl (xiongcl@hnu.edu.cn)
+# Copyright 2021-2022 HNU
 
 
 zephyr_sources_ifdef(

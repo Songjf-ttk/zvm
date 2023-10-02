@@ -7,6 +7,12 @@
 #include <toolchain.h>
 #include <linker/sections.h>
 #include <arch/cpu.h>
+#include <arch/arm64/sys_io.h>
+#include <sys/util_macro.h>
+#include <drivers/interrupt_controller/gic.h>
+
+/* For get GICv3 address */
+#include "../../../../drivers/interrupt_controller/intc_gicv3_priv.h"
 
 void z_arm64_el3_plat_init(void)
 {
@@ -16,4 +22,13 @@ void z_arm64_el3_plat_init(void)
 	       ICC_SRE_ELx_SRE_BIT | ICC_SRE_EL3_EN_BIT);
 
 	write_sysreg(reg, ICC_SRE_EL3);
+	
+	/* Init GICv3 ctrl register for NS group1 route enable*/
+#ifdef CONFIG_ARMV8_A_NS
+	/* set DS bit to enable NS mode */
+//	sys_write32(BIT(GICD_CTRL_NS), GICD_CTLR);
+	sys_write32(BIT(GICD_CTLR_ENABLE_G1NS), GICD_CTLR);
+	/* Direct write to GICD_CTRL_ARE_NS may have some unpredictable value */
+//	sys_write32(BIT(GICD_CTRL_NS)|BIT(GICD_CTRL_ARE_NS), GICD_CTLR);
+#endif
 }

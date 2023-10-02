@@ -15,10 +15,10 @@
 #include <sys/dlist.h>
 #include <sys/printk.h>
 #include <toolchain/common.h>
+#include <sys/util.h>
 
 #include <_zvm/os/os.h>
-#include <_zvm/os/os_zephyr.h>
-#include <_zvm/os/os_linux.h>
+
 
 /**
  * @brief We need devicetree.h file.
@@ -154,6 +154,7 @@ struct z_vm_info {
     uint16_t    vcpu_num;
     uint64_t    vm_image_base;
     uint64_t    vm_image_size;
+    uint64_t    vm_image_imsz;
     uint64_t    vm_virt_base;
     uint64_t    entry_point;
 };
@@ -187,14 +188,13 @@ struct zvm_manage_info {
 
     /* @TODO: try to add a flag to describe the running vm and pending vm list */
 
-    /** This value is current smallest vmid which can be allocated, default 0.
-     * Everytime create a new vm, we will allocate a vmid for it.  Conversely,
-     * everytime delete/destroy a vm, we will recycle vmid and compare with
-     * this value.
+    /** Each bit of this value represents a virtual machine id. 
+     * When the value of a bit is 1, 
+     * the ID of that virtual machine has been allocated, and vice versa. 
      */
-    uint32_t next_alloc_vmid;
+    uint32_t alloced_vmid;
 
-    /* ID of vm in system, vm's id starts from 1. */
+    /* total num of vm in system */
     uint32_t vm_total_num;
     struct k_spinlock spin_zmi;
 };
@@ -267,25 +267,41 @@ static ALWAYS_INLINE int nrt_get_idle_cpu(void) {
 }
 
 static ALWAYS_INLINE bool is_vmid_full(void){
-    return zvm_overall_info->next_alloc_vmid == CONFIG_MAX_VM_NUM;
+    return zvm_overall_info->alloced_vmid == BIT_MASK(CONFIG_MAX_VM_NUM);
 }
 
-static ALWAYS_INLINE uint32_t find_next_vmid(void){
-    do {
-        if (is_vmid_full()) {
-            return -EOVERFLOW;  /* Value overflow. */
+static ALWAYS_INLINE uint32_t find_next_vmid(struct z_vm_info *vm_info,uint32_t *vmid){
+    uint32_t id,maxid;
+   
+   
+    if(vm_info->vm_os_type == OS_TYPE_ZEPHYR){
+        *vmid = 0;
+        id = BIT(0);
+        maxid = BIT(ZVM_ZEPHYR_VM_NUM);
+    }
+    else{
+        *vmid = ZVM_ZEPHYR_VM_NUM;
+        id = BIT(ZVM_ZEPHYR_VM_NUM);
+        maxid = BIT(CONFIG_MAX_VM_NUM);
+    }
+
+
+    for(; id < maxid; id <<= 1,(*vmid)++) 
+        if(!(id & zvm_overall_info->alloced_vmid)){
+            zvm_overall_info->alloced_vmid |= id;
+            return 0;
         }
-    } while(zvm_overall_info->vms[zvm_overall_info->next_alloc_vmid++] != NULL);
-    return 0;
+
+    return -EOVERFLOW;
 }
 
 /**
  * @brief Allocate a unique vmid for this VM.
  * TODO: Need atomic op to vmid.
  */
-static ALWAYS_INLINE uint32_t allocate_vmid(void) {
+static ALWAYS_INLINE uint32_t allocate_vmid(struct z_vm_info *vm_info) {
     int err;
-    int res;
+    uint32_t res;
     k_spinlock_key_t key;
 
     if (unlikely(is_vmid_full())) {
@@ -293,13 +309,12 @@ static ALWAYS_INLINE uint32_t allocate_vmid(void) {
     }
 
     key = k_spin_lock(&zvm_overall_info->spin_zmi);
-    err = find_next_vmid();
+    err = find_next_vmid(vm_info,&res);
     if (err) {
         k_spin_unlock(&zvm_overall_info->spin_zmi, key);
         return CONFIG_MAX_VM_NUM;
     }
 
-    res = zvm_overall_info->next_alloc_vmid-1;
     zvm_overall_info->vm_total_num++;
 
     k_spin_unlock(&zvm_overall_info->spin_zmi, key);

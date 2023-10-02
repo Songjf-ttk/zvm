@@ -1,28 +1,25 @@
 ZVM 开源文档
 ==================
 
-欢迎来到Zephyr based Virtual Machine(ZVM) 项目开发的文档，本项目是一个基于
-`Zephyr RTOS <https://github.com/zephyrproject-rtos/zephyr>`__ 开发的虚拟机管理器项目，
-由湖南大学信息科学与工程学院谢国琪教授团队开发，旨在于实时嵌入式操作系统中构建一个虚拟化管理平台，
-在需要虚拟化支持的环境中实现多个系统运行在统一的硬件平台上。
-项目仓库中包含Zephyr RTOS内核及工具的一些源码，以及添加虚拟化支持所需的一些代码，共同构成了ZVM的代码仓。
+欢迎来到嵌入式实时虚拟机ZVM (Zephyr-based Virtual Machine) 项目的开发文档，
+本项目是一个基于 `Zephyr RTOS <https://github.com/zephyrproject-rtos/zephyr>`__ 开发的虚拟机管理器， 由湖南大学教授、
+嵌入式与网络计算湖南省重点实验室主任谢国琪老师团队开发，旨在实时嵌入式操作系统中构建一个虚拟化管理平台。
 
 ZVM使用
 `zephyrproject-rtos <https://github.com/zephyrproject-rtos/zephyr>`__ 所遵守的
-`Apache 2.0 许可证 <https://github.com/zephyrproject-rtos/zephyr/blob/main/LICENSE>`__ 
+`Apache 2.0 许可证 <https://github.com/zephyrproject-rtos/zephyr/blob/main/LICENSE>`__
 ，主要开发语言为C（C++）语言。
 
 
 介绍：什么是ZVM
 ------------------
 基于实时操作系统Zephyr的虚拟机 Zephyr-based Virtual Machine（ZVM），
-是一种参考Kernel-based Virtual Machine（KVM）实现的虚拟机，其面向高性能嵌入式计算环境，
-提供嵌入式平台上操作系统级别的资源隔离和共享服务。
+是一款实时虚拟机，其面向高性能嵌入式计算环境，提供嵌入式平台上操作系统级别的资源隔离和共享服务。
 
 .. figure:: https://gitee.com/openeuler/zvm/raw/master/zvm_doc/figure/zvm_demo.png
    :alt: zvm_demo
 
-   
+
    zvm_demo
 
 
@@ -31,10 +28,6 @@ Zephyr RTOS是一个小型的实时操作系统，用于连接、资源受限和
 Zephyr包括内核、所有组件和库、设备驱动程序、协议栈、文件系统和固件更新，以开发连接、资源受限和嵌入式设备。
 Zephyr RTOS易于部署、安全、连接和管理。它具有不断增长的软件库集，可用于各种应用和行业领域，
 如工业物联网、可穿戴设备、机器学习等。
-
-Zephyr系统整体结构和Linux类似，本项目参考基于内核的虚拟机（Kernel-based Virtual Machine, KVM）思路，
-实现基于Zephyr RTOS的虚拟化管理平台ZVM，有助于更好的理解KVM等复杂虚拟化系统的实现原理。
-同时考虑在嵌入式等资源受限场景下的虚拟化实现需要注意哪些内容。
 
 文档目录
 ------------------

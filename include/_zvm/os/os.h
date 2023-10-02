@@ -10,8 +10,7 @@
 #include <zephyr.h>
 #include <stdint.h>
 
-#include <_zvm/os/os_zephyr.h>
-#include <_zvm/os/os_linux.h>
+
 
 struct getopt_state;
 
@@ -28,8 +27,8 @@ struct getopt_state;
 
 #elif CONFIG_SOC_QEMU_CORTEX_MAX
 
-#define ZEPHYR_VMMM_STRING  memory_48000000
-#define LINUX_VMMM_STRING   memory_80000000
+#define ZEPHYR_VMMM_STRING  memory_f2000000
+#define LINUX_VMMM_STRING   memory_f3000000
 
 #endif /* CONFIG_SOC_FVP_BASE_A55X4_A75X2 */
 

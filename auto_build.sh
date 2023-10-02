@@ -5,7 +5,7 @@ OPS=$1
 PLAT=$2
 
 ops_build="build"
-ops_debug="debugserver"
+ops_debug="debug"
 
 plat_qemu="qemu"
 plat_fvp="fvp"
@@ -22,7 +22,7 @@ if [ "$OPS" = "$ops_build" ]; then
         -DARMFVP_BL1_FILE=$(pwd)/zvm_config/fvp_platform/hub/bl1.bin \
         -DARMFVP_FIP_FILE=$(pwd)/zvm_config/fvp_platform/hub/fip.bin
     elif [ "$PLAT" = "$plat_rk3568" ]; then
-        west build -b roc_rk3568_pc samples/_zvm 
+        west build -b roc_rk3568_pc samples/_zvm
     else
         echo "Error arguments for this auto.sh! \n Please input command like: ./auto_build.sh build qemu. "
     fi
@@ -30,14 +30,17 @@ if [ "$OPS" = "$ops_build" ]; then
 elif [ "$OPS" = "$ops_debug" ]; then
 
     if [ "$PLAT" = "$plat_qemu" ]; then
-        /path-to/qemu-system-aarch64 \
+        $(pwd)/zvm_config/qemu_platform/hub/qemu-system-aarch64 \
         -cpu max -m 4G -nographic -machine virt,virtualization=on,gic-version=3 \
         -net none -pidfile qemu.pid -chardev stdio,id=con,mux=on \
         -serial chardev:con -mon chardev=con,mode=readline -serial pty -serial pty -smp cpus=4 \
-        -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/zephyr.bin,addr=0x48000000,force-raw=on \
-        -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/Image,addr=0x80000000,force-raw=on \
-        -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/linux-qemu-virt.dtb,addr=0x88000000 \
-        -kernel $(pwd)/build/zephyr/zvm_host.elf -s -S
+        -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/zephyr.bin,addr=0xf2000000,force-raw=on \
+        -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/Image,addr=0xf3000000,force-raw=on \
+        -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/linux-qemu-virt.dtb,addr=0xfb000000 \
+        -kernel $(pwd)/build/zephyr/zvm_host.elf
+
+### using gdb to connect it:  ###
+# gdb-multiarch -q -ex 'file ./build/zephyr/zvm_host.elf' -ex 'target remote localhost:1234'
 
     elif [ "$PLAT" = "$plat_fvp" ]; then
 
@@ -63,4 +66,4 @@ elif [ "$OPS" = "$ops_debug" ]; then
         echo "Error arguments for this auto.sh! \n Please input command like: ./z_auto.sh build qemu. "
     fi
 
-fi 
+fi

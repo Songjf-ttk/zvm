@@ -8,6 +8,8 @@
 #include <zephyr.h>
 
 #include <_zvm/os/os.h>
+#include <_zvm/os/os_zephyr.h>
+#include <_zvm/os/os_linux.h>
 #include <_zvm/zvm.h>
 #include <_zvm/tools/elfloader.h>
 
@@ -183,6 +185,7 @@ out:
 	vm_info->vcpu_num = tmp_vm_info.vcpu_num;
     vm_info->vm_image_base = tmp_vm_info.vm_image_base;
 	vm_info->vm_image_size = tmp_vm_info.vm_image_size;
+    vm_info->vm_image_imsz = tmp_vm_info.vm_image_imsz;
     vm_info->vm_virt_base = tmp_vm_info.vm_virt_base;
 	vm_info->vm_os_type = tmp_vm_info.vm_os_type;
 

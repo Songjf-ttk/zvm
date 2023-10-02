@@ -28,6 +28,14 @@
 #define ZEPHYR_VM_BLOCK_SIZE    (1UL << ZEPHYR_BLK_MEM_SHIFT)    //64K
 #define LINUX_VM_BLOCK_SIZE     (1UL << LINUX_BLK_MEM_SHIFT)     //2M
 
+/* The max vmid is CONFIG_MAX_VM_NUM 
+ * Zephyr's ID is placed in the first half 
+ * Linux's ID is placed in the second half 
+ */
+#define ZVM_ZEPHYR_VM_NUM (CONFIG_MAX_VM_NUM/2 + CONFIG_MAX_VM_NUM%2)
+#define ZVM_LINUX_VM_NUM  (CONFIG_MAX_VM_NUM/2)
+
+
 /* For clear warning for unknow reason */
 struct vm;
 
@@ -58,12 +66,6 @@ struct vm_mem_partition {
     uint64_t part_hpa_base;
     uint64_t part_hpa_size;
 
-    /*TODO: When using static allocate, below value are not used, May moved later. */
-    uint64_t    area_start;
-    uint64_t    area_end;
-    uint64_t    area_size;
-    uint32_t    area_attrs;
-
     /* the vm_mem_partition node link to vm mm */
     sys_dnode_t vpart_node;
 
@@ -72,6 +74,11 @@ struct vm_mem_partition {
 
     /* vwork_mm_area belong to one vmem_domain */
     struct  vm_mem_domain   *vmem_domain;
+    
+#ifdef CONFIG_VM_DYNAMIC_MEMORY
+    /* base address of memory allocated by kmalloc */
+    uint64_t part_kpa_base;
+#endif 
 };
 
 /**
@@ -136,6 +143,9 @@ int vm_dynmem_apart_add(struct vm_mem_domain *vmem_dm);
 
 /* Add area partition to vm memory struct */
 int vm_mem_apart_add(struct vm_mem_domain *vmem_dm);
+
+/* Remove area partition from the vm memory struct */
+int vm_mem_apart_remove(struct vm_mem_domain *vmem_dm);
 
 /**
  * @brief init vm's domain
