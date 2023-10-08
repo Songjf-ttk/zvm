@@ -27,9 +27,7 @@ LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 /* A spinlock for shell */
 static struct k_spinlock shell_vmops_lock;
 
-/**
- * @brief New a vm in the system.
- */
+
 static int cmd_zvm_new(const struct shell *shell, size_t argc, char **argv)
 {
     int ret = 0;
@@ -51,9 +49,6 @@ static int cmd_zvm_new(const struct shell *shell, size_t argc, char **argv)
 }
 
 
-/**
- * @brief Run a exit vm in the system.
- */
 static int cmd_zvm_run(const struct shell *shell, size_t argc, char **argv)
 {
     /* Run vm code. */
@@ -75,9 +70,7 @@ static int cmd_zvm_run(const struct shell *shell, size_t argc, char **argv)
     return ret;
 }
 
-/**
- * @brief pause a vm.
- */
+
 static int cmd_zvm_pause(const struct shell *shell, size_t argc, char **argv)
 {
     int ret = 0;
@@ -98,9 +91,6 @@ static int cmd_zvm_pause(const struct shell *shell, size_t argc, char **argv)
 }
 
 
-/**
- * @brief delete a vm.
- */
 static int cmd_zvm_delete(const struct shell *shell, size_t argc, char **argv)
 {
     int ret = 0;
@@ -122,9 +112,6 @@ static int cmd_zvm_delete(const struct shell *shell, size_t argc, char **argv)
 }
 
 
-/**
- * @brief List a vm's info.
- */
 static int cmd_zvm_info(const struct shell *shell, size_t argc, char **argv)
 {
     int ret = 0;
@@ -145,9 +132,7 @@ static int cmd_zvm_info(const struct shell *shell, size_t argc, char **argv)
     return 0;
 }
 
-/**
- * @brief update a vm in the system.
- */
+
 static int cmd_zvm_update(const struct shell *shell, size_t argc, char **argv)
 {
     /* Update vm code. */

@@ -272,9 +272,11 @@ void z_arm64_el1_init(void)
 		SCTLR_I_BIT |		/* Enable i-cache */
 		SCTLR_SA_BIT);		/* Enable SP alignment check */
 	write_sctlr_el1(reg);
-	/* We use cntp register here. */
+
 	write_cntv_cval_el0(~(uint64_t)0);
+#if CONFIG_HAS_ARM_VHE_EXTN
 	write_cntp_cval_el0(~(uint64_t)0);
+#endif
 	/*
 	 * Enable these if/when we use the corresponding timers.
 	 * write_cntp_cval_el0(~(uint64_t)0);

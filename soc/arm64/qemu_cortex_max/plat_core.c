@@ -22,7 +22,7 @@ void z_arm64_el3_plat_init(void)
 	       ICC_SRE_ELx_SRE_BIT | ICC_SRE_EL3_EN_BIT);
 
 	write_sysreg(reg, ICC_SRE_EL3);
-	
+
 	/* Init GICv3 ctrl register for NS group1 route enable*/
 #ifdef CONFIG_ARMV8_A_NS
 	/* set DS bit to enable NS mode */

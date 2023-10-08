@@ -61,3 +61,6 @@ tags
 
 # todolist
 todo
+
+# shell file
+*.sh

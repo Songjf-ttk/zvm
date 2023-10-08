@@ -1378,7 +1378,7 @@ int shell_init(const struct shell *shell, const void *transport_config,
 	k_thread_name_set(tid, shell->thread_name);
 
 #ifdef CONFIG_SCHED_CPU_MASK
-	//try unable shell run on cpu1
+	/* bind shell run on cpu0 */
 	k_thread_cpu_mask_disable(tid, 0x1);
 #endif
 	z_shell_thread_force = shell->thread;

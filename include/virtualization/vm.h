@@ -53,7 +53,11 @@
 
 #define VCPU_THREAD(thread)  ((struct k_thread *)thread->vcpu_struct ? true: false)
 
+#define CONFIG_ZVM
 #define _current_vcpu _current->vcpu_struct
+#else
+#define _current_vcpu NULL
+#endif
 
 #define get_current_vcpu_id()       \
 ({                                  \
