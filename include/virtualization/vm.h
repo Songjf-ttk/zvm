@@ -20,14 +20,13 @@
 #include <virtualization/arm/cpu.h>
 #include <virtualization/vm_mm.h>
 
-#define DEFAULT_VM         (0)
+#define DEFAULT_VM          (0)
+#define VM_NAME_LEN         (32)
+#define VCPU_NAME_LEN       (32)
+#define RAMDISK_NAME_LEN    (32)
 
-#define VM_NAME_LEN         32
-#define VCPU_NAME_LEN       32
-#define RAMDISK_NAME_LEN    32
-
-#define VCPU_THREAD_STACKSIZE 8192
-#define VCPU_THREAD_PRIO    (1)
+#define VCPU_THREAD_STACKSIZE   (32768)
+#define VCPU_THREAD_PRIO        (1)
 
 /**
  * @brief VM Status.
@@ -53,7 +52,7 @@
 
 #define VCPU_THREAD(thread)  ((struct k_thread *)thread->vcpu_struct ? true: false)
 
-#define CONFIG_ZVM
+#ifdef CONFIG_ZVM
 #define _current_vcpu _current->vcpu_struct
 #else
 #define _current_vcpu NULL

@@ -274,8 +274,8 @@ void z_arm64_el1_init(void)
 	write_sctlr_el1(reg);
 
 	write_cntv_cval_el0(~(uint64_t)0);
-#if CONFIG_HAS_ARM_VHE_EXTN
-	write_cntp_cval_el0(~(uint64_t)0);
+#if CONFIG_ZVM
+	write_cntp_cval_el0(~(uint64_t)0);	/* Can not access cntp_el0 in el1 */
 #endif
 	/*
 	 * Enable these if/when we use the corresponding timers.

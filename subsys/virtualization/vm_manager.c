@@ -51,21 +51,18 @@ int zvm_new_guest(size_t argc, char **argv)
 		return ret;
 	}
 
-	/*Create vm irq control block*/
 	ret = vm_irq_block_create(new_vm);
 	if (ret < 0) {
         ZVM_LOG_WARN(" Init vm's vm_irq_block_data error!\n");
         return ret;
     }
 
-	/* create vcpu here */
 	ret = vm_vcpus_init(new_vm);
 	if (ret < 0) {
 		ZVM_LOG_WARN("create vcpu error! \n");
 		return -ENXIO;
 	}
 
-    /* init virq struct here */
 	ret = vm_virq_block_desc_init(new_vm, NULL);
     if (ret) {
         ZVM_LOG_WARN("Init vm's vm_irq_block_data error \n");

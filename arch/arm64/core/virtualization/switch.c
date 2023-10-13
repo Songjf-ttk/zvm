@@ -246,9 +246,9 @@ int arch_vcpu_run(struct vcpu *vcpu)
 /**
  * @brief Check before irq interrupt
  */
-
 void z_vm_switch_handle_pre(uint32_t irq)
 {
+    bool *bit_addr;
     struct k_thread *thread;
     struct vcpu *vcpu;
 
@@ -256,7 +256,7 @@ void z_vm_switch_handle_pre(uint32_t irq)
         return;
     }
 
-    bool *bit_addr = VGIC_DATA_IBP(vcpu->vm->vm_irq_block_data);
+    bit_addr = VGIC_DATA_IBP(vcpu->vm->vm_irq_block_data);
     /* If it is a vcpu thread, judge whether the signal is send to it */
     if(!bit_addr[irq]){
         return;

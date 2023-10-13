@@ -254,9 +254,6 @@ void arm_gic_eoi(unsigned int intid)
 #ifdef CONFIG_SOC_FVP_BASE_A55X4_A75X2
 	if(intid == 0x1A || intid == 0x0)
 		write_sysreg(intid, ICC_DIR_EL1);
-#elif CONFIG_SOC_QEMU_CORTEX_MAX
-	if(intid == 0x1A || intid == 0x0)
-		write_sysreg(intid, ICC_DIR_EL1);
 #endif
 
 #endif

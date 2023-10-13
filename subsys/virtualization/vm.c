@@ -185,12 +185,12 @@ int vm_create(struct z_vm_info *vm_info, struct vm *new_vm)
     if (vm->vmid >= CONFIG_MAX_VM_NUM) {
         return -EOVERFLOW;
     }
-    
+
     /* allocate vm's os struct */
     vm->os = (struct os *)k_malloc(sizeof(struct os));
 	if (!vm->os) {
 		ZVM_LOG_WARN("Allocate memory for os error! \n");
-		return -ENOMEM;	
+		return -ENOMEM;
 	}
     /* init os here */
 	ret = vm_os_create(vm, vm_info);
