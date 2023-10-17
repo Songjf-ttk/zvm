@@ -2,11 +2,13 @@
 ---------------------
 
 
-QEMU platform
+QEMU 平台构建流程
 ~~~~~~~~~~~~~~~~~~~~~
 
 1. 在ZVM的工作目录下构建ZVM镜像
 +++++++++++++++++++++++++++++++++++++++++++
+
+拉取镜像并进入工作区：
 
 .. code:: shell
 
@@ -18,22 +20,21 @@ QEMU platform
 
    ./auto_build.sh build qemu
 
-2）或者使用命令行构建镜像:
+或者使用命令行构建镜像:
 
 .. code:: shell
 
-   west build -b qemu_cortex_max_smp samples/_zvm 
+   west build -b qemu_cortex_max_smp samples/_zvm
 
 
-2. 生成ZVM镜像文件如下: 
-++++++++++++++++++++++++++
+2） 生成ZVM镜像文件如下:
 
 .. code:: shell
 
     build/zephyr/zvm_host.elf
 
 
-Arm FVP platform
+Arm FVP 平台构建流程
 ~~~~~~~~~~~~~~~~~~
 
 1. 在ZVM的工作目录构建ZVM镜像
@@ -50,18 +51,17 @@ Arm FVP platform
 
    ./auto_build.sh build fvp
 
-2）或者使用命令行构建镜像:
+或者使用命令行构建镜像:
 
 .. code:: shell
 
    west build -b fvp_cortex_a55x4_a75x2_smp samples/_zvm \
    -DARMFVP_BL1_FILE=path-to/trusted-firmware-a/build/fvp/release/bl1.bin \
-   -DARMFVP_FIP_FILE=path-to/trusted-firmware-a/build/fvp/release/fip.bin 
+   -DARMFVP_FIP_FILE=path-to/trusted-firmware-a/build/fvp/release/fip.bin
 
 后面的'arm-trusted-fireware-a'为arm 平台的安全启动工具，
 
-2. 生成ZVM镜像文件如下: 
-+++++++++++++++++++++++++++
+2）生成ZVM镜像文件如下:
 
 .. code:: shell
 
@@ -102,8 +102,8 @@ Supported board: fvp_base_revc_2xaemv8a
 .. code:: shell
 
    west build -b fvp_base_revc_2xaemv8a samples/subsys/shell/shell_module/  \
-   -DARMFVP_BL1_FILE=/home/xiong/trusted-firmware-a/build/fvp/release/bl1.bin \ 
-   -DARMFVP_FIP_FILE=/home/xiong/trusted-firmware-a/build/fvp/release/fip.bin 
+   -DARMFVP_BL1_FILE=/home/xiong/trusted-firmware-a/build/fvp/release/bl1.bin \
+   -DARMFVP_FIP_FILE=/home/xiong/trusted-firmware-a/build/fvp/release/fip.bin
 
 
 最终生成如下镜像文件：
@@ -149,7 +149,6 @@ BusyBox，配置CONFIG_STATIC参数，编译静态版BusyBox，编译好的可�
       [*]   Provide GDB scripts for kernel debugging
       $ make -j 20
 
-      
 
 2） 拉取busybox包
 
@@ -170,9 +169,9 @@ BusyBox，配置CONFIG_STATIC参数，编译静态版BusyBox，编译好的可�
       #此时会安装在_install目录下
       $ ls _install
       bin  linuxrc  sbin  usr
-        
+
 4）创建initramfs，启动脚本init
-   
+
    .. code:: shell
 
       $ mkdir initramfs
@@ -234,7 +233,7 @@ BusyBox，配置CONFIG_STATIC参数，编译静态版BusyBox，编译好的可�
 
 .. code:: shell
 
-   # build dtb file for linux os, the dts file is locate at ../zvm_config/fdts/* 
+   # build dtb file for linux os, the dts file is locate at ../zvm_config/fdts/*
    dtc fdts/fvp-base-gicv3-psci.dts -I dts -O dtb > fvp-base-gicv3-psci.dtb
 
 4. Build filesystem.
@@ -243,7 +242,7 @@ BusyBox，配置CONFIG_STATIC参数，编译静态版BusyBox，编译好的可�
 .. code:: shell
 
    # build the filesystem and generate the filesystem image
-   # Using busybox to build it, ref: https://consen.github.io/2018/01/17/debug-linux-kernel-with-qemu-and-gdb/. 
+   # Using busybox to build it, ref: https://consen.github.io/2018/01/17/debug-linux-kernel-with-qemu-and-gdb/.
 
 5. Build linux image.
 +++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -265,20 +264,31 @@ BusyBox，配置CONFIG_STATIC参数，编译静态版BusyBox，编译好的可�
 
 在qemu平台，成功生成如下文件：
 ++++++++++++++++++++++++++++++++++++++++++++
-.. code:: shell 
+.. code:: shell
 
    zvm_host.elf, zephyr.bin, linux-qemu-virt.dtb, Image, initramfs.cpio.gz
 
 在fvp平台，成功生成如下文件：
 +++++++++++++++++++++++++++++++++++++++++++++
-.. code:: shell 
-   
+.. code:: shell
+
    zvm_host.elf, zephyr.bin, linux-system.axf(包含内核镜像，文件系统及设备树等文件)
+
+
+自动化构建和运行
+---------------------
+
+如果不想自己去构建Linux和Zephyr的相关镜像文件，本项目提供了直接可以在平台上执行的镜像文件，
+在`zvm_config/qemu_platform/hub`目录下，直接执行如下命令即可运行：
++++++++++++++++++++++++++++++++++++++++++++++
+.. code:: shell
+
+   ./auto_zvm.sh debug qemu
 
 
 
 参考资料：
 ---------------------------
-[1] https://docs.zephyrproject.org/latest/index.html 
+[1] https://docs.zephyrproject.org/latest/index.html
 
-[2] https://gitee.com/cocoeoli/arm-trusted-firmware-a 
+[2] https://gitee.com/cocoeoli/arm-trusted-firmware-a

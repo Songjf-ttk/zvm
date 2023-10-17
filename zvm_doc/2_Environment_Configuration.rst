@@ -25,7 +25,7 @@ west 工具，本项目已经将west.yml文件进行了配置，只需要使用w
 2. 升级Kitware archive
 ^^^^^^^^^^^^^^^^^^^^^^
 
-一般在 `~` 目录下执行下面初始化命令： 
+一般在 `~` 目录下执行下面初始化命令：
 
 .. code:: shell
 
@@ -53,7 +53,7 @@ west 工具，本项目已经将west.yml文件进行了配置，只需要使用w
    wget -O - https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.1/sha256.sum | shasum --check --ignore-missing
 
 如果需要，您可以更改0.16.1为其他版本；Zephyr SDK 版本页面包含所有可用的 SDK 版本。
-   
+
 提取 Zephyr SDK 捆绑包存档：
 
 .. code:: shell
@@ -97,7 +97,7 @@ west 工具，本项目已经将west.yml文件进行了配置，只需要使用w
 
    cd ~
    mkdir zvm_workspace && cd zvm_workspace
-   git clone https://gitee.com/cocoeoli/zvm.git 
+   git clone https://gitee.com/cocoeoli/zvm.git
 
 
 （2）初始化工作仓
@@ -121,7 +121,7 @@ west 工具，本项目已经将west.yml文件进行了配置，只需要使用w
 .. code:: shell
 
    ls -a
-      
+
 显示有west信息后，即说明工作仓初始化成功，可以进行主机操作系统和客户机操作系统的开发。
 
 
@@ -134,6 +134,6 @@ west 工具，本项目已经将west.yml文件进行了配置，只需要使用w
 参考资料：
 ~~~~~~~~~~~~~~~~
 
-[1] https://docs.zephyrproject.org/latest/index.html 
+[1] https://docs.zephyrproject.org/latest/index.html
 
-[2] https://gitee.com/cocoeoli/arm-trusted-firmware-a 
+[2] https://gitee.com/cocoeoli/arm-trusted-firmware-a

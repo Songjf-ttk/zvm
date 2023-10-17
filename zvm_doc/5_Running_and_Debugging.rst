@@ -33,8 +33,8 @@ qemu版本及配置：
 
    cd path-to/qemu
    mkdir build
-   ../configure --target-list=aarch64
-   make 
+   ../configure --target-list=aarch64-softmmu
+   make
    make install
 
 生成镜像文件位于'/path-to/qemu/build/aarch64-softmmu/'目录下，此时可以开始执行相关运行命令。
@@ -50,7 +50,7 @@ qemu platform 运行zvm：
 1. 通过`auto_build.sh`脚本执行：
 
 .. code:: shell
-   
+
    ./auto_build.sh debugserver qemu
 
 2. 直接执行命令：
@@ -64,7 +64,7 @@ qemu platform 运行zvm：
       -device loader,file=/path-to/zephyr.bin,addr=0x48000000,force-raw=on \
       -device loader,file=/path-to/Image,addr=0x80000000,force-raw=on \
       -device loader,file=/path-to/linux-qemu-virt.dtb,addr=0x88000000 \
-      -kernel /path-to/zvm_host.elf 
+      -kernel /path-to/zvm_host.elf
 
 执行上面命令则会正常启动zvm,并打印如下shell，此时开始可以测试相应命令了。
 
@@ -126,9 +126,9 @@ ZVM中虚拟机的状态有以下几种：
 
 .. code:: c++
 
-   zvm new -t linux    # new a linux vm with vmid that allocated by system. 
+   zvm new -t linux    # new a linux vm with vmid that allocated by system.
 
-   zvm new -t zephyr   # new a zephyr vm with vmid that allocated by system. 
+   zvm new -t zephyr   # new a zephyr vm with vmid that allocated by system.
 
 
 运行虚拟机：
@@ -136,9 +136,9 @@ ZVM中虚拟机的状态有以下几种：
 
 .. code:: shell
 
-   zvm run -n 0        # run the vm with vm\'s vmid equal to 0 
+   zvm run -n 0        # run the vm with vm\'s vmid equal to 0
 
-   zvm run -n 1        # run the vm with vm\'s vmid equal to 1 
+   zvm run -n 1        # run the vm with vm\'s vmid equal to 1
 
 
 取消虚拟机：
@@ -146,9 +146,9 @@ ZVM中虚拟机的状态有以下几种：
 
 .. code:: shell
 
-   zvm pause -n 0      # pause the vm with vm\'s vmid equal to 0 
+   zvm pause -n 0      # pause the vm with vm\'s vmid equal to 0
 
-   zvm pause -n 1      # pause the vm with vm\'s vmid equal to 1 
+   zvm pause -n 1      # pause the vm with vm\'s vmid equal to 1
 
 
 打印虚拟机信息：
@@ -156,17 +156,17 @@ ZVM中虚拟机的状态有以下几种：
 
 .. code:: shell
 
-   zvm info            # list vms. 
+   zvm info            # list vms.
 
 
 删除虚拟机：
 ^^^^^^^^^^^^^^^^^^^
 
 .. code:: shell
-   
-   zvm delete -n 0     # delete the vm with vm\'s vmid equal to 0 
 
-   zvm delete -n 1     # delete the vm with vm\'s vmid equal to 1 
+   zvm delete -n 0     # delete the vm with vm\'s vmid equal to 0
+
+   zvm delete -n 1     # delete the vm with vm\'s vmid equal to 1
 
 
 `Prev>> ZVM系统构建 <https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/4_System_Build.rst>`__

@@ -2,8 +2,9 @@ ZVM 开源文档
 ==================
 
 欢迎来到嵌入式实时虚拟机ZVM (Zephyr-based Virtual Machine) 项目的开发文档，
-本项目是一个基于 `Zephyr RTOS <https://github.com/zephyrproject-rtos/zephyr>`__ 开发的虚拟机管理器， 由湖南大学教授、
-嵌入式与网络计算湖南省重点实验室主任谢国琪老师团队开发，旨在实时嵌入式操作系统中构建一个虚拟化管理平台。
+本项目是一个基于 `Zephyr RTOS <https://github.com/zephyrproject-rtos/zephyr>`__ 开发的虚拟机管理器，
+ 由湖南大学教授、 嵌入式与网络计算湖南省重点实验室主任谢国琪老师团队开发，旨在实时嵌入式操作系统中构建一个虚拟化管理平台 
+ 项目仓库中包含Zephyr RTOS内核及工具的一些源码，以及添加虚拟化支持所需的一些代码，共同构成了ZVM的代码仓。
 
 ZVM使用
 `zephyrproject-rtos <https://github.com/zephyrproject-rtos/zephyr>`__ 所遵守的
@@ -94,14 +95,3 @@ Sig-Zephyr分享视频：
 2.  新建 Feat_xxx 分支
 3.  提交代码
 4.  新建 Pull Request
-
-
-特技
-^^^^^^^^^^^^^^^^^^^^^^
-
-1.  使用 Readme\_XXX.rst 来支持不同的语言，例如 Readme\_en.rst, Readme\_zh.rst
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
