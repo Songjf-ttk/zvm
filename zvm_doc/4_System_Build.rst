@@ -286,6 +286,10 @@ BusyBox，配置CONFIG_STATIC参数，编译静态版BusyBox，编译好的可�
    ./auto_zvm.sh debug qemu
 
 
+`Prev>> 核心模块介绍： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/3_Key_Modules.rst>`__
+
+`Next>> ZVM运行与调试： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/5_Running_and_Debugging.rst>`__
+
 
 参考资料：
 ---------------------------

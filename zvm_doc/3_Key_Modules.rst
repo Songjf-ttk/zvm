@@ -14,7 +14,7 @@ ZVM是基于实时操作系统Zephyr设计的虚拟机管理器（Hypervisor）�
 
 CPU虚拟化模块主要功能在于为每个虚拟机虚拟出单独隔离的上下文、程序执行及异常状态，在系统中，
 每个vCPU以一个线程的形式存在，并由Hypervisor统一调度。为了更好的提高vCPU的性能，
-ZVM利用ARMv8架构为Hypervisors提供了一个单独的特权级模式，具有比Kernel更高的特权级，便于对VM进行监管。 
+ZVM利用ARMv8架构为Hypervisors提供了一个单独的特权级模式，具有比Kernel更高的特权级，便于对VM进行监管。
 
 CPU虚拟化模块主要功能在于为每个虚拟机虚拟出单独隔离的上下文、程序执行及异常状态，在系统中，
 每个vCPU以一个线程的形式存在，并由Hypervisor统一调度。
@@ -174,9 +174,9 @@ cpu0与cpuN间的IPI通信通过方式实现，cpu0通过IPI通知cpuN执行任�
 .. figure:: https://gitee.com/cocoeoli/zvm/raw/master/zvm_doc/figure/vcpu_allocate.png
 
 
-`Prev>> 主机开发环境搭建 <https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/2_Environment_Configuration.rst>`__
+`Prev>> 主机开发环境搭建 <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/2_Environment_Configuration.rst>`__
 
-`Next>> ZVM系统构建 <https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/4_System_Build.rst>`__
+`Next>> ZVM系统构建： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/4_System_Build.rst>`__
 
 
 

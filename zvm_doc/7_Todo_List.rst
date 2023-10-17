@@ -12,6 +12,6 @@
 
 
 
-`Prev>> 拓展技术介绍 <https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/6_Expansion_Technology.rst>`__
+`Prev>> 拓展技术介绍： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/6_Expansion_Technology.rst>`__
 
-`Next>> 加入我们 <https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/8_Join_us.rst>`__
+`Next>> 加入我们： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/8_Join_us.rst>`__

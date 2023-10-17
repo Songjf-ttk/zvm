@@ -125,9 +125,9 @@ west 工具，本项目已经将west.yml文件进行了配置，只需要使用w
 显示有west信息后，即说明工作仓初始化成功，可以进行主机操作系统和客户机操作系统的开发。
 
 
-`Prev>> 系统简介 <https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/1_System_Overview.rst>`__
+`Prev>> 系统简介 <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/1_System_Overview.rst>`__
 
-`Next>> 核心模块介绍 <https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/3_Key_Modules.rst>`__
+`Next>> 核心模块介绍 <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/3_Key_Modules.rst>`__
 
 
 

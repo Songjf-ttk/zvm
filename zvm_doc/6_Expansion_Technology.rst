@@ -101,8 +101,8 @@ ioprio成员用于指示该缓冲区中保存的I/O请求的优先级，值越�
 
 
 
-`Prev>> ZVM运行与调试 <https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/5_Running_and_Debugging.rst>`__
+`Prev>> ZVM运行与调试： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/5_Running_and_Debugging.rst>`__
 
 
-`Next>> ZVM后续规划 <https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/7_Todo_List.rst>`__
+`Next>> ZVM后续规划： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/7_Todo_List.rst>`__
 

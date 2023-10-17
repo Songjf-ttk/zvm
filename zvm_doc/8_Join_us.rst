@@ -1,12 +1,12 @@
 欢迎加入
 =============
 
-欢迎对Zephyr以及基于Zephyr虚拟化工作感兴趣的小伙伴加入我们。
+欢迎对ZVM及基于Zephyr感兴趣的小伙伴加入我们。
 
 团队介绍：
 -----------
 研发团队依托
-`嵌入式与网络计算湖南省重点实验室 <http://esnl.hnu.edu.cn/index.htm>`__ 及 
+`嵌入式与网络计算湖南省重点实验室 <http://esnl.hnu.edu.cn/index.htm>`__ 及
 `车网智能融合技术研创中心 <http://cyy.hnu.edu.cn/yjly1/cwznrhjs1.htm>`__
 等平台。
 
@@ -35,5 +35,4 @@
 ******************************************************************
 
 
-
-`Prev>> ZVM后续规划 <https://gitee.com/cocoeoli/zvm/blob/master/zvm_doc/7_Todo_List.rst>`__
+`Prev>> ZVM后续规划： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/7_Todo_List.rst>`__
