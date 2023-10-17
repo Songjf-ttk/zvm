@@ -90,7 +90,7 @@ static struct vm_mem_partition *alloc_vm_mem_partition(uint64_t hpbase,
 /**
  * @brief init vpart from default device tree.
  */
-static int create_vm_mem_vpart(struct vm_mem_domain *vmem_domain, uint64_t hpbase, 
+static int create_vm_mem_vpart(struct vm_mem_domain *vmem_domain, uint64_t hpbase,
                     uint64_t ipbase, uint64_t size, uint32_t attrs)
 {
     int ret = 0;
@@ -502,7 +502,6 @@ static int vm_mem_domain_partition_remove(struct vm_mem_domain *vmem_dm)
     }
 #endif
     k_free(domain);
-    
     k_spin_unlock(&vm_mem_domain_lock,key);
 
     return ret;
@@ -543,16 +542,15 @@ int vm_mem_apart_remove(struct vm_mem_domain *vmem_dm)
     struct k_mem_partition  *vmpart;
     struct k_mem_domain  *vm_mem_dm;
     struct vm *vm;
-    
-    vm = vmem_dm->vm;
 
+    vm = vmem_dm->vm;
     key = k_spin_lock(&vmem_dm->spin_mmlock);
 
     vm_mem_dm = vmem_dm->vm_mm_domain;
     ret = vm_mem_domain_partition_remove(vmem_dm);
     SYS_DLIST_FOR_EACH_NODE_SAFE(&vmem_dm->mapped_vpart_list, d_node, ds_node){
         vpart = CONTAINER_OF(d_node, struct vm_mem_partition, vpart_node);
-        vmpart = vpart->vm_mm_partition;    
+        vmpart = vpart->vm_mm_partition;
     #ifdef CONFIG_VM_DYNAMIC_MEMORY
         if( (vm->vmid < ZVM_ZEPHYR_VM_NUM && vpart->part_hpa_size == ZEPHYR_VM_MEM_SIZE) ||
            (vm->vmid >= ZVM_ZEPHYR_VM_NUM && vpart->part_hpa_size == LINUX_VM_MEM_SIZE) ){
@@ -563,7 +561,7 @@ int vm_mem_apart_remove(struct vm_mem_domain *vmem_dm)
         k_free(vmpart);
         k_free(vpart);
     }
-   
+
     k_spin_unlock(&vmem_dm->spin_mmlock,key);
     return ret;
 }

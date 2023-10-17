@@ -74,11 +74,11 @@ struct vm_mem_partition {
 
     /* vwork_mm_area belong to one vmem_domain */
     struct  vm_mem_domain   *vmem_domain;
-    
+
 #ifdef CONFIG_VM_DYNAMIC_MEMORY
     /* base address of memory allocated by kmalloc */
     uint64_t part_kpa_base;
-#endif 
+#endif
 };
 
 /**

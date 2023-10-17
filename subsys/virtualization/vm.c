@@ -142,7 +142,7 @@ int vm_mem_init(struct vm *vm)
     ARG_UNUSED(vpart);
     ARG_UNUSED(ds_node);
     ARG_UNUSED(d_node);
-    
+
     if (vmem_dm->is_init) {
         ZVM_LOG_WARN("Vm mem has been init before! \n");
         return -EMMAO;

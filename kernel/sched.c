@@ -1017,7 +1017,7 @@ void *z_get_next_switch_handle(void *interrupted)
 			if(vcpu_need_switch(new_thread, old_thread)){
 				do_vcpu_swap(new_thread, old_thread);
 			}
-#endif /* CONFIG_ZVM */ 
+#endif /* CONFIG_ZVM */
 		}
 		old_thread->switch_handle = interrupted;
 		ret = new_thread->switch_handle;

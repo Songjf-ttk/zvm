@@ -69,9 +69,6 @@ static void vcpu_timer_event_pause(struct vcpu *vcpu)
     z_abort_timeout(&timer_ctxt->ptimer_timeout);
 }
 
-/**
- * @brief Load and store vcpu context for vm.
- */
 static void vcpu_context_switch(struct k_thread *new_thread,
             struct k_thread *old_thread)
 {
@@ -98,7 +95,6 @@ static void vcpu_context_switch(struct k_thread *new_thread,
         default:
             break;
         }
-
     }
 
     if (VCPU_THREAD(new_thread)) {
@@ -109,7 +105,6 @@ static void vcpu_context_switch(struct k_thread *new_thread,
         }
 
         load_vcpu_context(new_thread);
-
         new_vcpu->vcpu_state = _VCPU_STATE_RUNNING;
     }
 
