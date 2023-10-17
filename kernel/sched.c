@@ -20,8 +20,8 @@
 #include <timing/timing.h>
 
 #ifdef CONFIG_ZVM
-#include <_zvm/zvm.h>
-#include <_zvm/vm_cpu.h>
+#include <virtualization/zvm.h>
+#include <virtualization/vm_cpu.h>
 #endif
 
 LOG_MODULE_DECLARE(os, CONFIG_KERNEL_LOG_LEVEL);
@@ -1017,7 +1017,7 @@ void *z_get_next_switch_handle(void *interrupted)
 			if(vcpu_need_switch(new_thread, old_thread)){
 				do_vcpu_swap(new_thread, old_thread);
 			}
-#endif /* CONFIG_ZVM */ 
+#endif /* CONFIG_ZVM */
 		}
 		old_thread->switch_handle = interrupted;
 		ret = new_thread->switch_handle;

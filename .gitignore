@@ -59,8 +59,8 @@ tags
 
 .idea
 
-# script
-_auto_build.sh
-
 # todolist
 todo
+
+# shell file
+*.sh

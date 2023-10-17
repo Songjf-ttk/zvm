@@ -27,8 +27,8 @@
 #include <exc.h>
 
 #ifdef CONFIG_ZVM
-#include <_zvm/arm/cpu.h>
-#include <_zvm/vm.h>
+#include <virtualization/arm/cpu.h>
+#include <virtualization/vm.h>
 #endif
 
 #ifndef _ASMLANGUAGE

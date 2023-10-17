@@ -42,7 +42,7 @@ SECTION_FUNC(TEXT,rk3568_dcache_init)
 	mrs x3, ctr_el0
 	ubfm x3, x3, #16, #19 	// cache line size encoding
 	mov x2, #4
-	lsl x2, x2, x3 
+	lsl x2, x2, x3
 
 	sub	x3, x2, #1
 	tst	x1, x3

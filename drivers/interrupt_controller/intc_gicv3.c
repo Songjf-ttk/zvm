@@ -15,7 +15,7 @@
 #include <string.h>
 
 #ifdef CONFIG_ZVM
-#include <_zvm/arm/vgic_v3.h>
+#include <virtualization/arm/vgic_v3.h>
 #endif
 
 /* Redistributor base addresses for each core */
@@ -164,7 +164,7 @@ void arm_gic_irq_enable(unsigned int intid)
 	 */
 	/* Default irq is route to cpu0, so we need to enable on cpu1 */
 	if (GIC_IS_SPI(intid)){
-#ifdef CONFIG_SOC_SERIES_FVP_BASE_AARCH64
+#if defined(CONFIG_SOC_SERIES_FVP_BASE_AARCH64) && defined(CONFIG_ZVM)
 		sys_write64(MPIDR_TO_CORE(GET_MPIDR()),
 				IROUTER(GET_DIST_BASE(intid), intid));
 		if(intid == 0x26 || intid == 0x27 ){
@@ -174,7 +174,7 @@ void arm_gic_irq_enable(unsigned int intid)
 			else
 				sys_write64(vcpu->cpu << 8, IROUTER(GET_DIST_BASE(intid), intid));
 		}
-#elif	CONFIG_SOC_QEMU_CORTEX_MAX
+#elif	defined(CONFIG_SOC_QEMU_CORTEX_MAX) && defined(CONFIG_ZVM)
 		if(intid == 0x2a || intid == 0x2b){
 			struct vcpu *vcpu = _current_vcpu;
 			if(vcpu == NULL)
@@ -252,9 +252,6 @@ void arm_gic_eoi(unsigned int intid)
 #ifdef CONFIG_ZVM
 	/* For processing el2 hw timer schduler */
 #ifdef CONFIG_SOC_FVP_BASE_A55X4_A75X2
-	if(intid == 0x1A || intid == 0x0)
-		write_sysreg(intid, ICC_DIR_EL1);
-#elif CONFIG_SOC_QEMU_CORTEX_MAX
 	if(intid == 0x1A || intid == 0x0)
 		write_sysreg(intid, ICC_DIR_EL1);
 #endif

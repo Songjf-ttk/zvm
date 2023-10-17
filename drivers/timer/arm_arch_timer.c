@@ -12,7 +12,7 @@
 #include <arch/arm64/debug_uart.h>
 
 #ifdef CONFIG_ZVM
-#include <_zvm/arm/vtimer.h>
+#include <virtualization/arm/vtimer.h>
 #endif
 
 #define CYC_PER_TICK	((uint64_t)sys_clock_hw_cycles_per_sec() \

@@ -10,7 +10,7 @@
 #include "boot.h"
 
 #ifdef CONFIG_ZVM
-#include <_zvm/arm/cpu.h>
+#include <virtualization/arm/cpu.h>
 #endif
 
 void __weak z_arm64_el_highest_plat_init(void)
@@ -272,9 +272,11 @@ void z_arm64_el1_init(void)
 		SCTLR_I_BIT |		/* Enable i-cache */
 		SCTLR_SA_BIT);		/* Enable SP alignment check */
 	write_sctlr_el1(reg);
-	/* We use cntp register here. */
+
 	write_cntv_cval_el0(~(uint64_t)0);
-	write_cntp_cval_el0(~(uint64_t)0);
+#if CONFIG_ZVM
+	write_cntp_cval_el0(~(uint64_t)0);	/* Can not access cntp_el0 in el1 */
+#endif
 	/*
 	 * Enable these if/when we use the corresponding timers.
 	 * write_cntp_cval_el0(~(uint64_t)0);

@@ -32,11 +32,8 @@
  * "inside" a given critical section).  Do the synchronization port
  * later as an optimization.
  */
-#ifdef CONFIG_ZVM
+
 static struct k_spinlock lock;
-#else
-volatile static struct k_spinlock lock;
-#endif
 
 enum POLL_MODE { MODE_NONE, MODE_POLL, MODE_TRIGGERED };
 

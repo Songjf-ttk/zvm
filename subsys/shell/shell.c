@@ -1184,11 +1184,7 @@ static int instance_init(const struct shell *sh,
 			(sh->shell_flag == SHELL_FLAG_OLF_CRLF));
 
 	memset(sh->ctx, 0, sizeof(*sh->ctx));
-#ifndef CONFIG_ZVM
 	sh->ctx->prompt = sh->default_prompt;
-#else
-	sh->ctx->prompt = "zvm_host:~#";
-#endif
 	if (CONFIG_SHELL_CMD_ROOT[0]) {
 		sh->ctx->selected_cmd = root_cmd_find(CONFIG_SHELL_CMD_ROOT);
 	}
@@ -1349,8 +1345,6 @@ void shell_thread(void *shell_handle, void *arg_log_backend,
 	}
 }
 
-struct k_thread *z_shell_thread_force;
-
 int shell_init(const struct shell *shell, const void *transport_config,
 	       struct shell_backend_config_flags cfg_flags,
 	       bool log_backend, uint32_t init_log_level)
@@ -1377,11 +1371,6 @@ int shell_init(const struct shell *shell, const void *transport_config,
 	shell->ctx->tid = tid;
 	k_thread_name_set(tid, shell->thread_name);
 
-#ifdef CONFIG_SCHED_CPU_MASK
-	//try unable shell run on cpu1
-	k_thread_cpu_mask_disable(tid, 0x1);
-#endif
-	z_shell_thread_force = shell->thread;
 	return 0;
 }
 
