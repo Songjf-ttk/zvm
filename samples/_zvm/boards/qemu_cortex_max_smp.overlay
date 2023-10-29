@@ -39,7 +39,6 @@
 
         memory@f2000000 {
             compatible = "vm-dram";
-
             memmap_type = "direct";
             address_type = "normal_memory";
             vm_reg = <0x40000000>;
@@ -60,7 +59,6 @@
 
         memory@f3000000 {
             compatible = "vm-dram";
-
             memmap_type = "direct";
             address_type = "normal_memory";
             vm_reg = <0x40000000>;

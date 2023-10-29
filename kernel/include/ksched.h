@@ -66,6 +66,7 @@ struct k_thread *z_swap_next_thread(void);
 void z_thread_abort(struct k_thread *thread);
 
 #ifdef CONFIG_ZVM
+bool zvm_thread_active_elsewhere(struct k_thread *thread);
 void dequeue_ready_thread(struct k_thread *thread);
 void yield_thread(struct k_thread *thread);
 #endif

@@ -20,9 +20,6 @@ static void zvm_vm_uart_irq_init(const struct device *dev, const struct virt_dev
     uart_irq_callback_user_data_set(dev, vm_uart_callback, (void*)dev_info);
 }
 
-/**
- * @brief Add idle uart dev info to the zvm total dev list.
- */
 int zvm_add_uart_dev(struct zvm_dev_lists *dev_list)
 {
     struct virt_dev *dev_info;
@@ -57,6 +54,7 @@ int zvm_add_uart_dev(struct zvm_dev_lists *dev_list)
     /* add the node to dev list */
     sys_dlist_append(&dev_list->dev_idle_list, &dev_info->vdev_node);
 
+    /* Get device info from macro. */
     dev = ZVM_VM_UART0_DEV;
     zvm_vm_uart_irq_init(dev, dev_info);
 

@@ -190,17 +190,16 @@ static int zvm_overall_init(void)
 }
 
 /**
- * @brief This function aim to add physical dev info to zvm system for dev allocate to vm.
- * 1. Find all available idle dev on board and get it dev info(eg. address).
- * 2. Build a idle dev list for the zvm system, VM init function can get dev info from it.
+ * @brief Provide physical dev info to zvm system:
+ * 1. Find all available devices on the board and get it infomation(eg. address and size);
+ * 2. Build a idle dev list for the system;
+ * 3. VM init function can get dev info from it.
  * 3. Each list node is a struct that store the dev's info
  * Now it just allocate uart dev for vm.
  * @return int
  */
-static int zvm_dev_list_init()
+static int zvm_dev_list_init(void)
 {
-
-    /* init totle list */
     sys_dlist_init(&zvm_overall_dev_lists.dev_idle_list);
     sys_dlist_init(&zvm_overall_dev_lists.dev_used_list);
 
@@ -241,14 +240,12 @@ static int zvm_init(const struct device *dev)
        return ret;
     }
 
-    /* init overall area here */
     ret = zvm_overall_init();
     if (ret) {
         ZVM_LOG_ERR("Init zvm_overall struct error. \n ZVM init failed ! \n");
         return ret;
     }
 
-    /* init zvm dev info */
     ret = zvm_dev_list_init();
     if (ret) {
         ZVM_LOG_ERR("Init zvm_dev_list struct error. \n ZVM init failed ! \n");

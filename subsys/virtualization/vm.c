@@ -192,7 +192,7 @@ int vm_create(struct z_vm_info *vm_info, struct vm *new_vm)
 		ZVM_LOG_WARN("Allocate memory for os error! \n");
 		return -ENOMEM;
 	}
-    /* init os here */
+
 	ret = vm_os_create(vm, vm_info);
     if (ret) {
         ZVM_LOG_WARN("Unknow os type! \n");
@@ -211,25 +211,20 @@ int vm_create(struct z_vm_info *vm_info, struct vm *new_vm)
         return ret;
     }
 
-    /* create zvm_arch struct here */
 	vm->arch = (struct vm_arch *)k_malloc(sizeof(struct vm_arch));
 	if (!vm->arch) {
 		ZVM_LOG_WARN("Allocate mm memory for vm arch struct failed!");
 		return -EMMAO;
 	}
 
-    /* create vm_ops struct here */
     vm->ops = (struct zvm_ops *)k_malloc(sizeof(struct zvm_ops));
     if (!vm->ops) {
         ZVM_LOG_WARN("Allocate mm memory for vm ops struct failed!");
         return -EMMAO;
     }
 
-    /* The struct init totle vcpuid */
     vm->vm_vcpu_id.totle_vcpu_id = 0;
     ZVM_SPINLOCK_INIT(&vm->vm_vcpu_id.vcpu_id_lock);
-
-    /* vm init spinlock */
     ZVM_SPINLOCK_INIT(&vm->spinlock);
 
     char vmid_str[4];

@@ -203,8 +203,8 @@ int vm_virq_desc_init(struct vm *vm, void *args);
 int zvm_arch_vgic_init(void *op);
 
 /**
- * @brief When vcpu is loop on idel mode, we must send virq to it
- * for activating it.
+ * @brief When vcpu is loop on idel mode, we must send virq
+ * to activate it.
  */
 static ALWAYS_INLINE void wakeup_target_vcpu(struct vcpu *vcpu, struct virt_irq_desc *desc)
 {

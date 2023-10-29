@@ -40,8 +40,7 @@ int vm_virt_dev_add(struct vm *vm, struct virt_dev *vdev, char *vdev_name,
     if (!vdev) {
         return -ENODEV;
     }
-
-    /* get vm struct */
+    /* Bind virt device to vm. */
     vdev->vm = vm;
     vdev->vm_vdev_paddr = pbase;
     vdev->vm_vdev_vaddr = vbase;
@@ -53,7 +52,6 @@ int vm_virt_dev_add(struct vm *vm, struct virt_dev *vdev, char *vdev_name,
         return -ENODEV;
     }
     ret = vm_vdev_mem_add(vm, vdev);
-
     name_len = strlen(vdev_name);
     name_len = name_len > VIRT_DEV_NAME_LENGTH ? VIRT_DEV_NAME_LENGTH : name_len;
     strncpy(vdev->name, vdev_name, name_len );
@@ -91,9 +89,11 @@ int vdev_mmio_abort(arch_commom_regs_t *regs, int write, uint64_t addr,
     return -ENODEV;
 }
 
+/**
+ * Init passthrough device for this vm.
+*/
 int vm_monopoly_vdev_create(struct vm *vm)
 {
-    /* Init uart device */
     return vm_debug_console_add(vm);
 }
 
@@ -133,7 +133,6 @@ int vm_vdev_pause(struct vcpu *vcpu)
 int vm_vdevs_init(struct vm *vm)
 {
     int ret;
-
     sys_dlist_init(&vm->vdev_list);
 
     ret = vm_intctrl_vdev_create(vm);
@@ -142,7 +141,6 @@ int vm_vdevs_init(struct vm *vm)
 		return -ENODEV;
     }
 
-    /*Init vm's monopoly device */
 	ret = vm_monopoly_vdev_create(vm);
 	if (ret) {
 		ZVM_LOG_WARN(" Init monopoly device error! \n");

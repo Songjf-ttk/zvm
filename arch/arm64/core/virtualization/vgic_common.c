@@ -5,6 +5,7 @@
  */
 
 #include <kernel.h>
+#include <ksched.h>
 #include <zephyr.h>
 #include <device.h>
 #include <kernel_structs.h>
@@ -158,10 +159,23 @@ static int set_virt_irq(struct vcpu *vcpu, struct virt_irq_desc *desc)
     }
     k_spin_unlock(&virq_struct->spinlock, key);
 
-	/*occur bug here: without judgement, wakeup_target_vcpu will 
-	  introduce a pause vm error !*/
-	if(vcpu->work->vcpu_thread != _current)
-    	wakeup_target_vcpu(vcpu, desc);
+	/**
+	 * @Bug: Occur bug here: without judgement, wakeup_target_vcpu
+	 * will introduce a pause vm error !
+	 * When vcpu is not bind to current cpu, we should inform the
+	 * dest pcpu. In this situation, vCPU may run on the other pcpus
+	 * or it is in a idle states. So, we should consider all the
+	 * situations.
+	*/
+	if(vcpu->work->vcpu_thread != _current){
+		if(zvm_thread_active_elsewhere(vcpu->work->vcpu_thread)){
+#if defined(CONFIG_SMP) &&  defined(CONFIG_SCHED_IPI_SUPPORTED)
+			arch_sched_ipi();
+#endif
+		}else{
+			wakeup_target_vcpu(vcpu, desc);
+		}
+	}
 
     return 0;
 }
@@ -171,7 +185,7 @@ static bool vgic_set_sgi2vcpu(struct vcpu *vcpu, struct virt_irq_desc *desc)
 	return true;
 }
 
-static int vgic_gicd_mem_read(struct vcpu *vcpu, struct virt_gic_gicd *gicd, 
+static int vgic_gicd_mem_read(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
                                 uint32_t offset, uint64_t *v)
 {
 	int i, irq;
@@ -218,7 +232,7 @@ static int vgic_gicd_mem_read(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
 	return 0;
 }
 
-static int vgic_gicd_mem_write(struct vcpu *vcpu, struct virt_gic_gicd *gicd, 
+static int vgic_gicd_mem_write(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
                                 uint32_t offset, uint64_t *v)
 {
 	int i, irq;
@@ -434,7 +448,7 @@ int vgic_vdev_mem_write(struct virt_dev *vdev, arch_commom_regs_t *regs,
     int i;
 	int type = TYPE_GIC_INVAILD;
 	struct vcpu *vcpu = _current_vcpu;
-	struct vgicv3_dev *vgic = CONTAINER_OF(vdev, struct vgicv3_dev, v_dev); 
+	struct vgicv3_dev *vgic = CONTAINER_OF(vdev, struct vgicv3_dev, v_dev);
 	struct virt_gic_gicd *gicd = &vgic->gicd;
 	struct virt_gic_gicr *gicr = vgic->gicr[vcpu->vcpu_id];
 
@@ -500,12 +514,6 @@ int set_virq_to_vm(struct vm *vm, uint32_t virq_num)
     struct vcpu *vcpu, *target_vcpu;
     vcpu = vm->vcpus[DEFAULT_VCPU];
 
-    if (!vm) {
-        ZVM_LOG_WARN("VM struct not exit here!");
-        return -ENODEV;
-    }
-
-    /* get desc from vm or vcpu struct */
     if (virq_num < VM_LOCAL_VIRQ_NR) {
         desc = &vcpu->virq_struct->vcpu_virt_irq_desc[virq_num];
     } else if (virq_num <= VM_SPI_VIRQ_NR + VM_LOCAL_VIRQ_NR) {
