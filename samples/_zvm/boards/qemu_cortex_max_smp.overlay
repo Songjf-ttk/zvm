@@ -37,7 +37,7 @@
         dtb_address = <0x49000000>;
         dtb_size = <DT_SIZE_M(2)>;
 
-        memory@f2000000 {
+        zephyr_ddr: memory@f2000000 {
             compatible = "vm-dram";
             memmap_type = "direct";
             address_type = "normal_memory";
@@ -57,7 +57,7 @@
         dtb_address = <0xfb000000>;
         dtb_size = <DT_SIZE_M(2)>;
 
-        memory@f3000000 {
+        linux_ddr: memory@f3000000 {
             compatible = "vm-dram";
             memmap_type = "direct";
             address_type = "normal_memory";
