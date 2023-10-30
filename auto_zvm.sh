@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # operation string and platform string
 OPS=$1
 PLAT=$2

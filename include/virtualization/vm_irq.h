@@ -56,7 +56,10 @@ struct virt_irq_desc {
 };
 
 /**
- * @brief Vcpu irq infomation.
+ * @brief Record all the virtual irq that will sent
+ * to vm of this vcpu.
+ * @TODO: This may be record the SGI and PPI irq for
+ * vCPU, not for VM.
  */
 struct virq_struct{
     /* active virq */

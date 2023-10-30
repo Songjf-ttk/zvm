@@ -174,16 +174,13 @@ void arm_gic_irq_enable(unsigned int intid)
 			else
 				sys_write64(vcpu->cpu << 8, IROUTER(GET_DIST_BASE(intid), intid));
 		}
-#elif	defined(CONFIG_SOC_QEMU_CORTEX_MAX) && defined(CONFIG_ZVM)
-		if(intid == 0x2a || intid == 0x2b){
-			struct vcpu *vcpu = _current_vcpu;
-			if(vcpu == NULL)
-				sys_write64(0x80000000, IROUTER(GET_DIST_BASE(intid), intid));
-			else
-				sys_write64(vcpu->cpu, IROUTER(GET_DIST_BASE(intid), intid));
-		}
 #else
-		sys_write64(0x80000000, IROUTER(GET_DIST_BASE(intid), intid));
+		struct vcpu *vcpu = _current_vcpu;
+		if(vcpu == NULL){
+			sys_write64(0x80000000, IROUTER(GET_DIST_BASE(intid), intid));
+		}else{
+			sys_write64(vcpu->cpu, IROUTER(GET_DIST_BASE(intid), intid));
+		}
 #endif
 	}
 #endif

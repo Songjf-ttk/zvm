@@ -203,7 +203,6 @@ int arch_vcpu_run(struct vcpu *vcpu)
     h_ctxt = &vcpu->arch->host_ctxt;
     h_ctxt->regs.lr = GET_HOST_LR;
     save_host_context(h_ctxt, vcpu);
-
     vm_load_pgd(vcpu->vm->arch);
     active_hyp_trap(vcpu);
     vcpu->arch->host_ctxt.sys_regs[VCPU_TPIDRRO_EL0] = read_tpidrro_el0();

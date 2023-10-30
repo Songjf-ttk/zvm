@@ -672,29 +672,6 @@ static void add_to_waitq_locked(struct k_thread *thread, _wait_q_t *wait_q)
 	}
 }
 
-#ifdef CONFIG_ZVM
-void dequeue_ready_thread(struct k_thread *thread)
-{
-	unready_thread(thread);
-#if defined(CONFIG_SMP) &&  defined(CONFIG_SCHED_IPI_SUPPORTED)
-	arch_sched_ipi();
-#endif
-}
-
-void yield_thread(struct k_thread *thread)
-{
-	if (z_is_thread_queued(thread)) {
-		dequeue_thread(thread);
-	}
-	update_cache(thread == _current);
-	queue_thread(thread);
-	update_cache(0);
-#if defined(CONFIG_SMP) &&  defined(CONFIG_SCHED_IPI_SUPPORTED)
-	arch_sched_ipi();
-#endif
-}
-#endif
-
 static void add_thread_timeout(struct k_thread *thread, k_timeout_t timeout)
 {
 	if (!K_TIMEOUT_EQ(timeout, K_FOREVER)) {
@@ -1454,10 +1431,6 @@ void z_impl_k_wakeup(k_tid_t thread)
 extern void z_trace_sched_ipi(void);
 #endif
 
-#ifdef CONFIG_ZVM
-extern void	zvm_ipi_handler(void);
-#endif
-
 #ifdef CONFIG_SMP
 void z_sched_ipi(void)
 {
@@ -1887,6 +1860,34 @@ uint64_t z_sched_thread_usage(struct k_thread *thread)
 #endif /* CONFIG_SCHED_THREAD_USAGE */
 
 #ifdef CONFIG_ZVM
+
+extern void	zvm_ipi_handler(void);
+
+bool zvm_thread_active_elsewhere(struct k_thread *thread)
+{
+	return thread_active_elsewhere(thread);
+}
+
+void dequeue_ready_thread(struct k_thread *thread)
+{
+	unready_thread(thread);
+#if defined(CONFIG_SMP) &&  defined(CONFIG_SCHED_IPI_SUPPORTED)
+	arch_sched_ipi();
+#endif
+}
+
+void yield_thread(struct k_thread *thread)
+{
+	if (z_is_thread_queued(thread)) {
+		dequeue_thread(thread);
+	}
+	update_cache(thread == _current);
+	queue_thread(thread);
+	update_cache(0);
+#if defined(CONFIG_SMP) &&  defined(CONFIG_SCHED_IPI_SUPPORTED)
+	arch_sched_ipi();
+#endif
+}
 
 void z_vm_runq_add(struct k_thread *thread)
 {

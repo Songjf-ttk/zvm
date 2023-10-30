@@ -108,5 +108,4 @@
 int zvm_add_uart_dev(struct zvm_dev_lists *dev_list);
 
 
-
 #endif  /* __ZVM_UART_H_ */

@@ -10,27 +10,12 @@
 #include <zephyr.h>
 #include <stdint.h>
 
-
-
 struct getopt_state;
 
 #define OS_NAME_LENGTH 32
 
 /* Default vcpu num is 1 */
 #define VM_DEFAULT_VCPU_NUM     (1)
-
-
-#ifdef CONFIG_SOC_FVP_BASE_A55X4_A75X2
-
-#define ZEPHYR_VMMM_STRING  memory_a0000000
-#define LINUX_VMMM_STRING   memory_b0000000
-
-#elif CONFIG_SOC_QEMU_CORTEX_MAX
-
-#define ZEPHYR_VMMM_STRING  memory_f2000000
-#define LINUX_VMMM_STRING   memory_f3000000
-
-#endif /* CONFIG_SOC_FVP_BASE_A55X4_A75X2 */
 
 
 /* For clear warning for unknow reason */

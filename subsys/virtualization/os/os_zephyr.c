@@ -15,8 +15,8 @@
 static atomic_t zvm_zephyr_image_map_init = ATOMIC_INIT(0);
 static uint64_t zvm_zephyr_image_map_phys = 0;
 /**
- * @brief Establish a mapping between the linux image addresses 
- *      and virtual addresses 
+ * @brief Establish a mapping between the linux image addresses
+ *      and virtual addresses
  */
 static uint64_t zvm_mapped_zephyr_image()
 {

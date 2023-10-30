@@ -1,6 +1,6 @@
 /*
  * Copyright 2021-2022 HNU
- * 
+ *
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -18,6 +18,32 @@
 #include <virtualization/vm_mm.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
+
+
+void vm_uart_callback(const struct device *dev, void *user_data)
+{
+    uint32_t virq, pirq;
+    ARG_UNUSED(pirq);
+    int err = 0;
+    const struct virt_dev *vdev = (const struct virt_dev *)user_data;
+
+    uart_irq_update(dev);
+    virq = vdev->virq;
+
+    if (virq == ZVM_VM_INVALID_UART_IRQ) {
+        ZVM_LOG_WARN("Invalid interrupt occur! \n");
+        return;
+    }
+    if (!vdev->vm) {
+        ZVM_LOG_WARN("VM struct not exit here!");
+        return;
+    }
+
+    err = set_virq_to_vm(vdev->vm, virq);
+    if (err < 0) {
+        ZVM_LOG_WARN("Send virq to vm error!");
+    }
+}
 
 /**
  * @brief Mem map the debug console address to the idle device.
@@ -47,9 +73,6 @@ this dev to the vm!");
     return arch_vm_dev_domain_map(p_base, v_base, p_size, name, vm);
 }
 
-/**
- * @brief remove the memory map for this dev.
- */
 static int unmap_debug_console(struct virt_dev *vdev, struct vm *vm)
 {
     int ret = 0;
@@ -62,40 +85,6 @@ static int unmap_debug_console(struct virt_dev *vdev, struct vm *vm)
     return vm_unmap_ptdev(vdev, vm_dev_base, vm_dev_size, vm);
 }
 
-/**
- * @brief vm's uart handler function.
- */
-void vm_uart_callback(const struct device *dev, void *user_data)
-{
-    uint32_t virq, pirq;
-    ARG_UNUSED(pirq);
-    int err = 0;
-    const struct virt_dev *vdev = (const struct virt_dev *)user_data;
-    struct vcpu *vcpu = _current_vcpu;
-
-    if (vcpu == NULL) {
-        return;
-    }
-
-    uart_irq_update(dev);
-
-    virq = vdev->virq;
-
-    if (virq == ZVM_VM_INVALID_UART_IRQ) {
-        ZVM_LOG_WARN("Invalid interrupt occur! \n");
-        return;
-    }
-
-    err = set_virq_to_vm(vcpu->vm, virq);
-    if (err < 0) {
-        ZVM_LOG_WARN("Send virq to vm error!");
-    }
-
-}
-
-/**
- * @brief Init debug console.
- */
 int vm_debug_console_add(struct vm *vm)
 {
     int ret;
@@ -105,11 +94,8 @@ int vm_debug_console_add(struct vm *vm)
     struct zvm_dev_lists *dev_lists;
     struct  _dnode *d_node, *ds_node;
 
-
-    /* Find the idle vm dev list */
     dev_lists = get_zvm_dev_lists();
     SYS_DLIST_FOR_EACH_NODE_SAFE(&dev_lists->dev_idle_list, d_node, ds_node){
-
         vdev = CONTAINER_OF(d_node, struct virt_dev, vdev_node);
         if (strncmp(vdev->name, ZVM_VM_UART0_NAME, 4)) {
             continue;
@@ -150,6 +136,8 @@ int vm_debug_console_add(struct vm *vm)
 
     /* We should find the default irq info from VM'dts later @TODO */
     vdev->virq = dbgcon_dev->virq;
+    /* Bind the vdev to vm. */
+    vdev->vm = vm;
 
     /* Find virq desc for this irq */
     desc = get_virt_irq_desc(vm->vcpus[DEFAULT_VCPU], vdev->virq);
@@ -165,10 +153,6 @@ int vm_debug_console_add(struct vm *vm)
     return 0;
 }
 
-
-/**
- * @brief Remove debug console.
- */
 int vm_debug_console_remove(struct vm *vm, struct virt_dev *vdev_remove)
 {
     int ret;
@@ -196,6 +180,9 @@ int vm_debug_console_remove(struct vm *vm, struct virt_dev *vdev_remove)
     if (irq <= CONFIG_NUM_IRQS) {
         arm_gic_irq_disable(irq);
     }
+
+    /* Release the vdev from vm. */
+    vdev->vm = NULL;
 
     /* unmap to the system map  */
     ret = unmap_debug_console(vdev_remove, vm);
