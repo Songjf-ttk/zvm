@@ -1,0 +1,83 @@
+/*
+ * Copyright 2021-2022 HNU
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/{
+    soc {
+
+        /* VM0's uart here! rk3568's port num is uart3 */
+        uart1: serial@fe670000 {
+            compatible = "rockchip,rk3568-uart", "ns16550";
+            reg = <0x0 0xfe670000 0x0 0x10000>;
+            interrupts = <GIC_SPI 119 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY>;
+            clock-frequency = <12000000>;
+            reg-shift = <2>;
+            label = "UART_1";
+            status = "disabled";
+        };
+
+        /* VM1's uart here! rk3568's port num is uart9 */
+        uart2: serial@fe6d0000 {
+            compatible = "rockchip,rk3568-uart", "ns16550";
+            reg = <0x0 0xfe6d0000 0x0 0x10000>;
+            interrupts = <GIC_SPI 125 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY>;
+            clock-frequency = <12000000>;
+            reg-shift = <2>;
+            label = "UART_2";
+            status = "disabled";
+        };
+    };
+
+    /*TODO: The device that used by vm will be added below. */
+    vm_zephyr_space {
+        #address-cells = <2>;
+        #size-cells = <2>;
+        compatible = "zephyr-vm";
+        dtb_address = <0x49000000>;
+        dtb_size = <DT_SIZE_M(2)>;
+
+        zephyr_ddr: memory@48000000 {
+            compatible = "vm-dram";
+            memmap_type = "dirct";
+            address_type = "normal_memory";
+            vm_reg = <0x40000000>;
+            img_sz = <0x70dd8>;
+            reg = <0x0 0x48000000 0x0 DT_SIZE_M(2)>; 	/* zephyr vm memory size (2M) */
+            label = "VM0_MEM";
+        };
+
+    };
+
+    vm_linux_space {
+        #address-cells = <2>;
+        #size-cells = <2>;
+        compatible = "linux-vm";
+        dtb_address = <0x88000000>;
+        dtb_size = <DT_SIZE_M(2)>;
+
+        linux_ddr: memory@80000000 {
+            compatible = "vm-dram";
+            memmap_type = "dirct";
+            address_type = "normal_memory";
+            vm_reg = <0x40000000>;
+            img_sz = <0x3600000>;
+            reg = <0x0 0x80000000 0x0 DT_SIZE_M(1024)>;	/* linux vm memory size (1G)*/
+            label = "VM1_MEM";
+        };
+    };
+
+};
+
+
+&uart1 {
+	status = "okay";
+	current-speed = <115200>;
+};
+
+&uart2 {
+	status = "okay";
+	current-speed = <115200>;
+};
+

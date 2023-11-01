@@ -1,11 +1,13 @@
-# Copyright (c) 2017-2022, HNU
+#
+# Copyright 2021 Huawei France Technologies SASU
+#
 # SPDX-License-Identifier: Apache-2.0
+#
 
-config SOC_FAMILY_RK3500
+config SOC_FAMILY_ROCKCHIP
 	bool
-	select HAS_SEGGER_RTT
 
-if SOC_FAMILY_RK3500
+if SOC_FAMILY_ROCKCHIP
 
 config SOC_FAMILY
 	string
@@ -13,4 +15,7 @@ config SOC_FAMILY
 
 source "soc/arm64/rockchip/*/Kconfig.soc"
 
-endif # SOC_FAMILY_RK3500
+config SOC_PART_NUMBER
+	default "RK3568" if SOC_SERIES_RK3568
+
+endif # SOC_FAMILY_ROCKCHIP

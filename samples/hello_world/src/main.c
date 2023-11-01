@@ -12,7 +12,7 @@
 void main(void){
     uint32_t curr_el = GET_EL(read_currentel());
 
-    printk("Hello world, It is a %s board. \r\n", CONFIG_BOARD);
     printk("Current EL = %d.\n", curr_el);
+    printk("Hello world, It is a %s board. \r\n", CONFIG_BOARD);
 
 }

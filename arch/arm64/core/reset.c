@@ -9,9 +9,8 @@
 #include <arch/arm64/debug_uart.h>
 #include "boot.h"
 
-#ifdef CONFIG_ZVM
 #include <virtualization/arm/cpu.h>
-#endif
+
 
 void __weak z_arm64_el_highest_plat_init(void)
 {
@@ -125,11 +124,12 @@ void z_arm64_el2_init(void)
 	uint64_t reg;
 
 	reg = read_sctlr_el2();
-	reg = (SCTLR_EL2_RES1 |	/* RES1 */
+	reg |= (SCTLR_EL2_RES1 |	/* RES1 */
 		SCTLR_I_BIT |		/* Enable i-cache */
 		SCTLR_SA_BIT);		/* Enable SP alignment check */
 	write_sctlr_el2(reg);
 
+	reg = read_hcr_el2();
 	/* when EL2 is enable in current security status:
 	 * Clear TGE bit: All exceptions that would not be routed to EL2;
 	 * Clear AMO bit: Physical SError interrupts are not taken to EL2 and EL3.
@@ -138,6 +138,60 @@ void z_arm64_el2_init(void)
 	reg &= ~(HCR_IMO_BIT | HCR_AMO_BIT | HCR_TGE_BIT);
 	reg |= HCR_RW_BIT;		/* EL1 Execution state is AArch64 */
 	write_hcr_el2(reg);
+
+#if	defined(CONFIG_HAS_ARM_VHE_EXTN)
+	reg = read_id_aa64mmfr1_el1();
+	if(ASM_UBFX(8, 4, reg)){
+		reg |= HCR_VHE_FLAGS;
+	}else{
+		/* Enable EL1 physical timer and clear vitrtual offset */
+		reg = 0x03;
+		write_cnthctl_el2(reg);
+		reg |= HCR_NVHE_FLAGS;
+	}
+	write_hcr_el2(reg);
+	zero_sysreg(cntvoff_el2);
+
+#if defined(CONFIG_GIC_V3)
+	reg = read_id_aa64pfr0_el1();
+	reg = ASM_UBFX(24, 4, reg);
+	if(reg){
+		__asm__ volatile(
+			"mrs x0, s3_4_c12_c9_5 \n"
+			"orr x0, x0, #0x01 \n"
+			"orr x0, x0, #0x08 \n"
+			"msr s3_4_c12_c9_5, x0 \n"
+			"isb \n"
+			"mrs x0, s3_4_c12_c9_5 \n"
+			"tbz x0, #0, 99f \n"
+			"msr s3_4_c12_c11_0, xzr \n "
+			"99: 	\n"
+		);
+	}
+#endif
+
+	/* Get identification information for the PE from midr_el1,
+		Set it to vpidr_el2 to info virtualization process id*/
+	reg = read_midr_el1();
+	write_vpidr_el2(reg);
+	/* Get an additional PE identification mechanism in multiprocessor system
+		and	info virtualization process id  */
+	reg = read_mpidr_el1();
+	write_vmpidr_el2(reg);
+
+	/* Disable CP15 trapping to EL2 of EL1 accesses to the System register  */
+	zero_sysreg(hstr_el2);
+	/* Debug related init  */
+	zero_sysreg(mdcr_el2);
+	/* Stage-2 translation base register init*/
+	zero_sysreg(vttbr_el2);
+
+	/* Set Exception type to EL1h, spsr_el2 hold the process state when exception happen */
+	reg = INIT_PSTATE_EL1 | SPSR_DAIF_MASK;
+	write_spsr_el2(reg);
+	isb();
+
+#endif
 
 	reg = 0U;			/* RES0 */
 	reg |= CPTR_EL2_RES1;		/* RES1 */
@@ -158,7 +212,6 @@ void z_arm64_el2_init(void)
 	 */
 
 	z_arm64_el2_plat_init();
-
 	isb();
 }
 
@@ -279,7 +332,7 @@ void z_arm64_el1_init(void)
 	write_sctlr_el1(reg);
 
 	write_cntv_cval_el0(~(uint64_t)0);
-#if CONFIG_ZVM
+#if defined(CONFIG_ZVM) && defined(CONFIG_HAS_ARM_VHE_EXTN)
 	write_cntp_cval_el0(~(uint64_t)0);	/* Can not access cntp_el0 in el1 */
 #endif
 	/*

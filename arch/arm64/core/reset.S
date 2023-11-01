@@ -10,10 +10,20 @@
 #include "boot.h"
 #include "macro_priv.inc"
 
-
-#define ASM_HCR_E2H		BIT(34)
-
 _ASM_FILE_PROLOGUE
+
+.macro z_rk3568_test_add_ops xreg0, xreg1, xreg2
+	ldr \xreg0, =arm64_boot_counts
+	ldr \xreg1, [\xreg0, #0]
+
+	add \xreg1, \xreg1, \xreg2
+	str \xreg1, [\xreg0, #0]
+.endm
+
+	.data
+arm64_boot_counts:
+	.word 0
+	.global arm64_boot_counts
 
 /*
  * Platform specific pre-C init code
@@ -34,37 +44,9 @@ WTEXT(z_arm64_el1_plat_prep_c)
 SECTION_FUNC(TEXT,z_arm64_el1_plat_prep_c)
 	ret
 
-/* clear dcache here */
-GTEXT(rk3568_dcache_init)
-SECTION_FUNC(TEXT,rk3568_dcache_init)
-	add	x1, x1, x0
-
-	mrs x3, ctr_el0
-	ubfm x3, x3, #16, #19 	// cache line size encoding
-	mov x2, #4
-	lsl x2, x2, x3
-
-	sub	x3, x2, #1
-	tst	x1, x3
-	bic	x1, x1, x3
-	b.eq	1f
-	dc	civac, x1
-1:	tst	x0, x3
-	bic	x0, x0, x3
-	b.eq	2f
-	dc	civac, x0
-	b	3f
-2:	dc	ivac, x0
-3:	add	x0, x0, x2
-	cmp	x0, x1
-	b.lo	2b
-	dsb	sy
-	ret
-
 /*
  * Set the minimum necessary to safely call C code
  */
-
 GTEXT(__reset_prep_c)
 SECTION_SUBSEC_FUNC(TEXT,_reset_section,__reset_prep_c)
 	/* return address: x23 */
@@ -88,10 +70,6 @@ SECTION_SUBSEC_FUNC(TEXT,_reset_section,__reset_prep_c)
 
 	b	out
 2:
-#ifdef CONFIG_SOC_RK3568
-	bl rk3568_dcache_init
-#endif
-
 	/* Disable alignment fault checking */
 	mrs	x0, sctlr_el2
 	bic	x0, x0, SCTLR_A_BIT
@@ -102,9 +80,11 @@ SECTION_SUBSEC_FUNC(TEXT,_reset_section,__reset_prep_c)
 
 	/* Set SP_EL1, make the kernel stack bind to sp_el1 */
 	msr		sp_el1, x24
+
+#if	defined(CONFIG_ZVM) && defined(CONFIG_HAS_ARM_VHE_EXTN)
 	msr		SPsel, #1
 	mov     sp, x24
-
+#endif
 	b	out
 1:
 	/* Disable alignment fault checking */
@@ -156,14 +136,42 @@ SECTION_SUBSEC_FUNC(TEXT,_reset_section,__start)
 	cmp x1, #0
 	bne 1f
 #endif
+#if defined(CONFIG_SOC_RK3568)
+	mov x1, x1, lsr #0x08
+#endif
 	cmp	x2, #-1
 	beq	primary_core
+
+#if defined(CONFIG_SOC_RK3568)
+	msr SPsel, #1
+	switch_el x13, 15f, 16f, 18f
+18:
+	nop
+16:
+	mov_imm x13, (SCTLR_EL2_RES1)
+	msr sctlr_el2, x13
+	isb
+	mov_imm x13, (SPSR_MODE_EL2H | DAIF_FIQ_BIT)
+	msr spsr_el2, x13
+	isb
+
+15:
+	mov_imm x13, (SCTLR_EL1_RES1) /* Do not enable mmu */
+	msr sctlr_el1, x13
+	isb
+	mov_imm x13, (SPSR_MODE_EL1H | DAIF_FIQ_BIT)
+	msr spsr_el1, x13
+
+#endif
 
 	/* loop until our turn comes */
 1:	dmb	ld
 	ldr	x2, [x0, #BOOT_PARAM_MPID_OFFSET]
 	cmp	x1, x2
 	bne	1b
+	/* rk3568 smp test pass this suit in 2023.06.02 */
+	mrs x13, CurrentEL
+	z_rk3568_test_add_ops x11, x12, x13
 
 	/* we can now load our stack pointer value and move on */
 	ldr	x24, [x0, #BOOT_PARAM_SP_OFFSET]
@@ -206,15 +214,9 @@ switch_el:
 	mov_imm	x0, (SPSR_DAIF_MASK | SPSR_MODE_EL1T)
 	msr	spsr_el2, x0
 
-#ifdef CONFIG_SOC_RK3568
-	/* clean all cache here, JUST DO it on rk3568 */
-	bl arch_flush_dcache_all
-#endif
-
-	/* Judge whether the cpu is support VHE */
+	/* Is VHE mode? */
 	mrs x0,	hcr_el2
-	and x0, x0,	#ASM_HCR_E2H
-	/*If nvhe, jump! */
+	and x0, x0,	#HCR_E2H_BIT
 	cbz	x0,	21f
 	b 1f
 

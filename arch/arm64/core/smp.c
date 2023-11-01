@@ -60,6 +60,7 @@ void arch_start_cpu(int cpu_num, k_thread_stack_t *stack, int sz,
 	int cpu_count, i, j;
 	uint64_t cpu_mpid = 0;
 	uint64_t master_core_mpid;
+	uint64_t sctlr_reg;
 
 	/* Now it is on master core */
 	__ASSERT(arch_curr_cpu()->id == 0, "");
@@ -98,16 +99,27 @@ void arch_start_cpu(int cpu_num, k_thread_stack_t *stack, int sz,
 			  sizeof(arm64_cpu_boot_params),
 			  K_CACHE_WB_INVD);
 
+	sys_cache_data_all(K_CACHE_INVD);
+	sctlr_reg = (uint64_t)(~SCTLR_C_BIT) & read_sctlr_el1();
+	write_sctlr_el1(sctlr_reg);
+	isb();
+
 	if (pm_cpu_on(cpu_mpid, (uint64_t)&__start)) {
 		printk("Failed to boot secondary CPU core %d (MPID:%#llx)\n",
 		       cpu_num, cpu_mpid);
 		return;
 	}
 
+//	sys_cache_data_all(K_CACHE_INVD);
+	sctlr_reg = SCTLR_C_BIT | read_sctlr_el1();
+	write_sctlr_el1(sctlr_reg);
+	isb();
 	/* Wait secondary cores up, see z_arm64_secondary_start */
 	while (arm64_cpu_boot_params.fn) {
 		wfe();
 	}
+	sys_cache_data_all(K_CACHE_INVD);
+	isb();
 	printk("Secondary CPU core %d (MPID:%#llx) is up\n", cpu_num, cpu_mpid);
 }
 
@@ -122,7 +134,7 @@ void z_arm64_secondary_start(void)
 
 	/* Initialize tpidrro_el0 with our struct _cpu instance address */
 	write_tpidrro_el0((uintptr_t)&_kernel.cpus[cpu_num]);
-#if defined(CONFIG_HAS_ARM_VHE_EXTN) && defined(CONFIG_ZVM)
+#if defined(CONFIG_ZVM) && defined(CONFIG_HAS_ARM_VHE_EXTN)
 	arch_set_cpu_id_elx();
 #endif
 
@@ -138,6 +150,10 @@ void z_arm64_secondary_start(void)
 #ifdef CONFIG_FPU_SHARING
 	irq_enable(SGI_FPU_IPI);
 #endif
+#endif
+
+#if defined(CONFIG_SOC_RK3568) && defined(CONFIG_NS16650_EARLYPRINT_DEBUG)
+	printascii("Init secondary core successful! \r\n");
 #endif
 
 	fn = arm64_cpu_boot_params.fn;

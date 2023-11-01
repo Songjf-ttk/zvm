@@ -41,7 +41,3 @@ CONFIG_THREAD_STACK_INFO=y
 
 # make more table for host's pgd
 CONFIG_MAX_XLAT_TABLES=16
-# make more table for vm's pgd
-CONFIG_ZVM_ZEPHYR_MAX_XLAT_TABLES=128
-CONFIG_ZVM_LINUX_MAX_XLAT_TABLES=1024
-

@@ -6,7 +6,6 @@
 
 /{
     soc {
-
         uart1: uart@9001000 {
 			compatible = "arm,pl011";
 			reg = <0x00 0x09001000 0x00 0x1000>;
@@ -16,7 +15,6 @@
 			clocks = <&uartclk>;
 			label = "UART_1";
 		};
-
 		uart2: uart@9002000 {
 			compatible = "arm,pl011";
 			reg = <0x00 0x09002000 0x00 0x1000>;
@@ -26,7 +24,6 @@
 			clocks = <&uartclk>;
 			label = "UART_2";
 		};
-
     };
 
     /*TODO: The device that used by vm will be added below. */
@@ -46,7 +43,6 @@
             reg = <0x0 0xf2000000 0x0 DT_SIZE_M(2)>;
             label = "VM0_MEM";
         };
-
     };
 
     vm_linux_space {

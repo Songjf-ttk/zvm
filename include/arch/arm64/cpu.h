@@ -9,6 +9,8 @@
 
 #include <sys/util.h>
 
+#define	RK3568_ASM_PRINTK	1
+
 #define DAIFSET_FIQ_BIT		BIT(0)
 #define DAIFSET_IRQ_BIT		BIT(1)
 #define DAIFSET_ABT_BIT		BIT(2)
@@ -84,7 +86,7 @@
 
 #define GET_MPIDR()		read_sysreg(mpidr_el1)
 
-#ifdef CONFIG_SOC_FVP_BASE_A55X4_A75X2
+#if defined(CONFIG_SOC_FVP_BASE_A55X4_A75X2) || defined(CONFIG_SOC_RK3568)
 #define MPIDR_TO_CORE(mpidr)	MPIDR_AFFLVL(mpidr, 1)
 #else
 #define MPIDR_TO_CORE(mpidr)	MPIDR_AFFLVL(mpidr, 0)

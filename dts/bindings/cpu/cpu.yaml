@@ -24,4 +24,5 @@ properties:
       description: d-cache line size
     enable-method:
       type: string
+      required: false
       description: Enable method for cpu, either it is "psci" or "spin-table"

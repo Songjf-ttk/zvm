@@ -24,7 +24,6 @@ fi
 # Build system
 if [ "$OPS" = "$ops_build" ]; then
     rm -rf build/
-
     if [ "$PLAT" = "$plat_qemu" ]; then
         west build -b qemu_cortex_max_smp samples/_zvm
     elif [ "$PLAT" = "$plat_fvp" ]; then
@@ -33,12 +32,12 @@ if [ "$OPS" = "$ops_build" ]; then
         -DARMFVP_FIP_FILE=$(pwd)/zvm_config/fvp_platform/hub/fip.bin
     elif [ "$PLAT" = "$plat_rk3568" ]; then
         west build -b roc_rk3568_pc samples/_zvm
+        cp build/zephyr/zvm_host.bin /home/xiong/tftp_server
     else
         echo "Error arguments for this auto.sh! \n Please input command like: ./auto_build.sh build qemu. "
     fi
 
 elif [ "$OPS" = "$ops_debug" ]; then
-
     if [ "$PLAT" = "$plat_qemu" ]; then
         $(pwd)/zvm_config/qemu_platform/hub/qemu-system-aarch64 \
         -cpu max -m 4G -nographic -machine virt,virtualization=on,gic-version=3 \
@@ -53,7 +52,6 @@ elif [ "$OPS" = "$ops_debug" ]; then
 # gdb-multiarch -q -ex 'file ./build/zephyr/zvm_host.elf' -ex 'target remote localhost:1234'
 
     elif [ "$PLAT" = "$plat_fvp" ]; then
-
 #        /opt/arm/developmentstudio-2021.2/bin/FVP_Base_Cortex-A55x4+Cortex-A75x2 	\
         /path-to/FVP_Base_RevC-2xAEMvA \
         -C pctl.startup=0.0.0.* \
@@ -71,7 +69,6 @@ elif [ "$OPS" = "$ops_debug" ]; then
         --data cluster0.cpu0=/path-to/fvp-base-gicv3-psci.dtb@0xc0000000   \
         --cpulimit 4 \
         --iris-server
-
     else
         echo "Error arguments for this auto.sh! \n Please input command like: ./z_auto.sh build qemu. "
     fi

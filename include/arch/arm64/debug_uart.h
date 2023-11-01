@@ -1,12 +1,7 @@
-/**
- * @file debug_uart.h
- * @author your name (you@domain.com)
- * @brief 
- * @version 0.1
- * @date 2022-04-04
- * 
- * @copyright Copyright (c) 2022
- * 
+/*
+ * Copyright 2021-2022 HNU
+ *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #ifndef __DEBUG_UART_H__
@@ -18,19 +13,18 @@ extern "C" {
 
 #ifndef _ASMLANGUAGE
 
-#ifdef CONFIG_ZVM_EARLYPRINT_MSG
-
 int save_boot_params(void);
 
 int tpl_main(void);
 
 void printascii(const char *str);
 
-void asm_print_debug(unsigned long long reg, unsigned long long reg2);
+void early_print_debug(unsigned long long reg, unsigned long long reg2);
+void asm_register_print_smp(unsigned long long reg0, unsigned long long reg1);
 
-int debug_printf(const char *fmt, ...);
+void show_print_debug_delay(void);
 
-#endif 
+int debug_earlyprint(const char *fmt, ...);
 
 #endif  /* _ASMLANGUAGE */
 

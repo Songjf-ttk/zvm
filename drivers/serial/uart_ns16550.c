@@ -355,15 +355,11 @@ static int uart_ns16550_configure(const struct device *dev,
 	const struct uart_ns16550_device_config * const dev_cfg = DEV_CFG(dev);
 	uint8_t mdc = 0U;
 
-	printascii("\n ######## ready uart_ns16550_configure ...\n");
-
 	/* temp for return value if error occurs in this locked region */
 	int ret = 0;
 	k_spinlock_key_t key = k_spin_lock(&dev_data->lock);
 	ARG_UNUSED(dev_data);
 	ARG_UNUSED(dev_cfg);
-
-	printascii("\n ######## ready UART_NS16550_ACCESS_IOPORT ...\n");
 
 #ifndef UART_NS16550_ACCESS_IOPORT
 #if DT_ANY_INST_ON_BUS_STATUS_OKAY(pcie)
@@ -377,33 +373,21 @@ static int uart_ns16550_configure(const struct device *dev,
 
 		pcie_probe_mbar(dev_cfg->pcie_bdf, 0, &mbar);
 		pcie_set_cmd(dev_cfg->pcie_bdf, PCIE_CONF_CMDSTAT_MEM, true);
-
-		debug_printf("The phy_addr is 0x%8x, size is 0x%8x. \n", mbar.phys_addr, mbar.size);
-
 		device_map(DEVICE_MMIO_RAM_PTR(dev), mbar.phys_addr, mbar.size,
 			   K_MEM_CACHE_NONE);
 	} else
 #endif /* DT_ANY_INST_ON_BUS_STATUS_OKAY(pcie) */
 	{
-
-#ifdef DEVICE_MMIO_IS_IN_RAM
-		printascii("\n ######## ready DEVICE_MMIO_IS_IN_RAM ...\n");
-#endif
-
-		printascii("\n ######## ready DEVICE_MMIO_MAP ...\n");
 		/* Map directly from DTS */
-		DEVICE_MMIO_MAP(dev, K_MEM_CACHE_NONE); //ignore it for some reason
+		DEVICE_MMIO_MAP(dev, K_MEM_CACHE_NONE);
 	}
 #endif /* UART_NS15660_ACCESS_IOPORT */
-	printascii("\n ######## ready CONFIG_UART_INTERRUPT_DRIVEN ...\n");
 #ifdef CONFIG_UART_INTERRUPT_DRIVEN
 	dev_data->iir_cache = 0U;
 #endif
-	printascii("\n ######## ready UART_NS16550_DLF_ENABLED ...\n");
 #if UART_NS16550_DLF_ENABLED
 	OUTBYTE(DLF(dev), dev_data->dlf);
 #endif
-	printascii("\n ######## ready UART_NS16550_PCP_ENABLED ...\n");
 #if UART_NS16550_PCP_ENABLED
 	uint32_t pcp = dev_cfg->pcp;
 
@@ -506,7 +490,6 @@ static int uart_ns16550_configure(const struct device *dev,
 
 out:
 	k_spin_unlock(&dev_data->lock, key);
-	debug_printf("Finish uart init\r\n");
 	return ret;
 };
 
@@ -539,27 +522,13 @@ static int uart_ns16550_init(const struct device *dev)
 {
 	int ret;
 
-	printascii("\n ######## ready to init ns16500 ...\n");
-
-	debug_printf("dev address = %08x \r\n", (unsigned long long )dev);
-
-	debug_printf("dev name = %s \r\n", dev->name);
-
-	debug_printf("DEV_DATA->uart_config: %08x \r\n", (unsigned long long )&DEV_DATA(dev)->uart_config);
-
-	debug_printf("baud_rate = %08x \r\n", DEV_DATA(dev)->uart_config.baudrate);
-
 	ret = uart_ns16550_configure(dev, &DEV_DATA(dev)->uart_config);
 	if (ret != 0) {
 		return ret;
 	}
-
 #ifdef CONFIG_UART_INTERRUPT_DRIVEN
 	DEV_CFG(dev)->irq_config_func(dev);
 #endif
-
-	printascii("\n ######## Finish init ns16500 ...\n");
-	/* ns16550_poll_out work success here, test on 4-26 */
 
 	return 0;
 }

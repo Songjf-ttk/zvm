@@ -778,8 +778,6 @@ static uint64_t get_tcr(int el)
 	return tcr;
 }
 
-extern void rk3568_dcache_init();
-
 static void enable_mmu_el1(struct arm_mmu_ptables *ptables, unsigned int flags)
 {
 	ARG_UNUSED(flags);
@@ -789,32 +787,14 @@ static void enable_mmu_el1(struct arm_mmu_ptables *ptables, unsigned int flags)
 	write_mair_el1(MEMORY_ATTRIBUTES);
 	write_tcr_el1(get_tcr(1));
 	write_ttbr0_el1((uint64_t)ptables->base_xlat_table);
-	write_ttbr1_el1((uint64_t)ptables->base_xlat_table);
 
 	/* Ensure these changes are seen before MMU is enabled */
 	isb();
 
-#ifdef CONFIG_ZVM_EARLYPRINT_MSG
-	uint64_t tmp_val;
-	val = read_tcr_el1();
-	tmp_val = read_spsr_el1();
-
-	val = read_id_aa64mmfr1_el1();
-	tmp_val = read_id_aa64mmfr0_el1();
-	//debug_printf("id_aa64mmfr1_el1: 0x%08x-%08x , id_aa64mmfr0_el1: 0x%08x-%08x  \r\n", val>>32, val, tmp_val>>32, tmp_val);
-	val = read_id_aa64pfr1_el1();
-	tmp_val = read_id_aa64pfr0_el1();
-	debug_printf("id_aa64pfr1_el1: 0x%08x-%08x , ID_AA64PFR0_EL1: 0x%08x-%08x  \r\n", val>>32, val, tmp_val>>32, tmp_val);
-	val = read_far_el1();
-	tmp_val = read_hcr_el2();
-	debug_printf("far_el1: 0x%08x-%08x , hcr_el2: 0x%08x-%08x  \r\n", val>>32, val, tmp_val>>32, tmp_val);
-
-#endif /* CONFIG_ZVM_EARLYPRINT_MSG */
-
-	/* some thing need to do before enable mmu */
-	sys_cache_data_all(K_CACHE_INVD);
-
-
+	/* some thing need to do before enable mmu.
+	   we need to disable cache flush and ivalued on rk3568
+		'sys_cache_data_all(K_CACHE_INVD);'
+	*/
 	val = read_sctlr_el1();
 	/* Enable the MMU and data cache */
 	write_sctlr_el1(val | SCTLR_M_BIT | SCTLR_C_BIT);
@@ -832,8 +812,6 @@ static struct arm_mmu_ptables kernel_ptables;
 static sys_slist_t domain_list;
 #endif
 
-
-void ivalidate_table_cache(uint64_t start_addr, uint64_t end_addr);
 /*
  * @brief MMU default configuration
  *
@@ -847,18 +825,18 @@ void z_arm64_mm_init(bool is_primary_core)
 	__ASSERT(CONFIG_MMU_PAGE_SIZE == KB(4),
 		 "Only 4K page size is supported\n");
 
-#ifndef CONFIG_HAS_ARM_VHE_EXTN
-	__ASSERT(GET_EL(read_currentel()) == MODE_EL1,
-		 "Exception level not EL1, MMU not enabled!\n");
-	
-	/* Ensure that MMU is already not enabled */
-	__ASSERT((read_sctlr_el1() & SCTLR_M_BIT) == 0, "MMU is already enabled\n");
-#else 
+#if defined(CONFIG_HAS_ARM_VHE_EXTN)
 	__ASSERT(GET_EL(read_currentel()) == MODE_EL2,
 		 "Exception level not EL2, MMU not enabled!\n");
 
 	/* Ensure that MMU is already not enabled */
 	__ASSERT((read_sctlr_el2() & SCTLR_M_BIT) == 0, "MMU is already enabled\n");
+#else
+	__ASSERT(GET_EL(read_currentel()) == MODE_EL1,
+		 "Exception level not EL1, MMU not enabled!\n");
+
+	/* Ensure that MMU is already not enabled */
+	__ASSERT((read_sctlr_el1() & SCTLR_M_BIT) == 0, "MMU is already enabled\n");
 #endif
 
 	/*

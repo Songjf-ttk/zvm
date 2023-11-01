@@ -35,7 +35,7 @@ static ALWAYS_INLINE void arch_kernel_init(void)
 
 static inline void arch_switch(void *switch_to, void **switched_from)
 {
-#if defined(CONFIG_HAS_ARM_VHE_EXTN) && defined(CONFIG_ZVM)
+#if defined(CONFIG_ZVM) && defined(CONFIG_HAS_ARM_VHE_EXTN)
 	z_arm64_call_hvc(switch_to, switched_from);
 #else
 	z_arm64_call_svc(switch_to, switched_from);

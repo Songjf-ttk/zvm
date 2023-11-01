@@ -174,13 +174,15 @@ void arm_gic_irq_enable(unsigned int intid)
 			else
 				sys_write64(vcpu->cpu << 8, IROUTER(GET_DIST_BASE(intid), intid));
 		}
-#else
+#elif	defined(CONFIG_ZVM)
 		struct vcpu *vcpu = _current_vcpu;
 		if(vcpu == NULL){
 			sys_write64(0x80000000, IROUTER(GET_DIST_BASE(intid), intid));
 		}else{
 			sys_write64(vcpu->cpu, IROUTER(GET_DIST_BASE(intid), intid));
 		}
+#else
+		sys_write64(0x80000000, IROUTER(GET_DIST_BASE(intid), intid));
 #endif
 	}
 #endif
@@ -245,14 +247,12 @@ void arm_gic_eoi(unsigned int intid)
 
 	/* (AP -> Pending) Or (Active -> Inactive) or (AP to AP) nested case */
 	write_sysreg(intid, ICC_EOIR1_EL1);
+	isb();
 
 #ifdef CONFIG_ZVM
 	/* For processing el2 hw timer schduler */
-#ifdef CONFIG_SOC_FVP_BASE_A55X4_A75X2
 	if(intid == 0x1A || intid == 0x0)
 		write_sysreg(intid, ICC_DIR_EL1);
-#endif
-
 #endif
 
 }

@@ -45,10 +45,8 @@ static inline void z_arm64_bss_zero(void)
 void z_arm64_prep_c(void)
 {
 	/* init uart for output, for rk3568 */
-#if defined(CONFIG_SOC_RK3568) && defined(CONFIG_ZVM_EARLYPRINT_MSG)
-	uint32_t el;
+#if defined(CONFIG_SOC_RK3568) && defined(CONFIG_NS16650_EARLYPRINT_DEBUG)
 	tpl_main();
-	debug_printf("current_el: 0x%08x-%08x \r\n", (el>>32), el);
 #endif
 
 	/* Initialize tpidrro_el0 with our struct _cpu instance address */

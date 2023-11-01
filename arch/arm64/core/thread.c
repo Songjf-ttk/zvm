@@ -106,7 +106,7 @@ void arch_new_thread(struct k_thread *thread, k_thread_stack_t *stack,
 #else
 	pInitCtx->elr = (uint64_t)z_thread_entry;
 #endif
-#if defined(CONFIG_HAS_ARM_VHE_EXTN) && defined(CONFIG_ZVM)
+#if defined(CONFIG_ZVM) && defined(CONFIG_HAS_ARM_VHE_EXTN)
 	pInitCtx->spsr = SPSR_MODE_EL2H | DAIF_FIQ_BIT;
 #else
 	/* Keep using SP_EL1 */

@@ -106,7 +106,7 @@ spurious_continue:
 	/* if (--(_kernel->nested) != 0) exit */
 	dec_nest_counter x0, x1
 
-	bne	exit
+	bne	exit	/* jump to nested interrupt */
 
 	/*
 	 * z_arch_get_next_switch_handle() is returning:

@@ -172,7 +172,6 @@ static void bg_thread_main(void *unused1, void *unused2, void *unused3)
 	ARG_UNUSED(unused1);
 	ARG_UNUSED(unused2);
 	ARG_UNUSED(unused3);
-
 #ifdef CONFIG_MMU
 	/* Invoked here such that backing store or eviction algorithms may
 	 * initialize kernel objects, and that all POST_KERNEL and later tasks
@@ -401,9 +400,6 @@ FUNC_NORETURN void z_cstart(void)
 {
 
 	/* gcov hook needed to get the coverage report.*/
-#ifdef CONFIG_SOC_RK3568
-	printascii("\n ########Success start z_start, ready to init system device...\n");
-#endif
 	gcov_static_init();
 
 	LOG_CORE_INIT();

@@ -1,6 +1,6 @@
 # Copyright 2022 HNU
 # SPDX-License-Identifier: Apache-2.0
-# it is a soc default config file 
+# it is a soc default config file
 
 if SOC_RK3568
 

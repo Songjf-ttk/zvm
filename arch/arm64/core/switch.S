@@ -142,7 +142,7 @@ SECTION_FUNC(TEXT, z_arm64_sync_exc)
 #endif
 
 
-#if defined(CONFIG_HAS_ARM_VHE_EXTN) && defined(CONFIG_ZVM)
+#if defined(CONFIG_ZVM) && defined(CONFIG_HAS_ARM_VHE_EXTN)
 	cmp x1, #0x16 /* 0x16 = HVC */
 #else
 	cmp	x1, #0x15 /* 0x15 = SVC */
@@ -203,7 +203,12 @@ context_switch:
 	ldp	x0, x1, [sp, ___esf_t_x0_x1_OFFSET]
 	/* Switch thread */
 	bl	z_arm64_context_switch
-
+#if defined(CONFIG_SOC_RK3568) && defined(CONFIG_NS16650_EARLYPRINT_DEBUG) && defined(RK3568_ASM_PRINTK)
+	stp     x0, x1, [sp, #-16]!
+	mov x0, #0x215
+	bl safe_print_debug
+	ldp     x0, x1, [sp], #16
+#endif
 	b	z_arm64_exit_exc
 
 inv:
