@@ -45,7 +45,7 @@
 
             memmap_type = "dirct";
             address_type = "normal_memory";
-            vm_reg = <0x88000000>;
+            vm_reg_base = <0x88000000>;
             reg = <0x0 0xa0000000 0x0 DT_SIZE_M(2)>; 	/* zephyr vm memory size (2M) */
             label = "VM0_MEM";
         };
@@ -64,7 +64,7 @@
 
             memmap_type = "dirct";
             address_type = "normal_memory";
-            vm_reg = <0x80000000>;
+            vm_reg_base = <0x80000000>;
             reg = <0x0 0xb0000000 0x0 DT_SIZE_M(1024)>;	/* linux vm memory size (1G)*/
             label = "VM1_MEM";
         };

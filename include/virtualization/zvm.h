@@ -149,13 +149,21 @@ struct zvm_ops {
     zvm_delete_vm_t         delete_vm;
 };
 
+/**
+ * .entry_point: vm code entry point;
+ * .vm_virt_base: virt base addredd of vm, In general,
+ * virt base address should not be a static address, It should
+ * allocated by host os.
+ * .vm_image_base: os's image base in the disk;
+ * .vm_image_size: os's image size in the disk;
+*/
 struct z_vm_info {
     uint16_t    vm_os_type;
     uint16_t    vcpu_num;
     uint64_t    vm_image_base;
     uint64_t    vm_image_size;
-    uint64_t    vm_image_imsz;
     uint64_t    vm_virt_base;
+    uint64_t    vm_sys_size;
     uint64_t    entry_point;
 };
 typedef struct z_vm_info z_vm_info_t;

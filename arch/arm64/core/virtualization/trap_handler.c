@@ -45,7 +45,7 @@ static int handle_ftrans_desc(int iss_dfsc, uint64_t pa_addr,
     int ret = 0;
 #ifdef CONFIG_VM_DYNAMIC_MEMORY
     /* TODO: Add dynamic memory allocate. */
-#else 
+#else
     uint16_t reg_index = dabt->srt;
     uint64_t *reg_value;
     ret = -ENOVDEV;
@@ -268,7 +268,6 @@ int arch_vm_trap_sync(struct vcpu *vcpu)
 
     esr_elx = vcpu->arch->fault.esr_el2;
     arch_ctxt = &vcpu->arch->ctxt.regs;
-
     switch (GET_ESR_EC(esr_elx)) {
         case 0b000000: /* 0x00: "Unknown reason" */
             err = cpu_unknwn_sync(arch_ctxt, esr_elx);
@@ -286,7 +285,7 @@ int arch_vm_trap_sync(struct vcpu *vcpu)
         case 0b000110: /* 0x06 */
             goto handler_failed;
             break;
-        case 0b000111: /* 0x07: "Trapped access to SVE, Advanced SIMD, or 
+        case 0b000111: /* 0x07: "Trapped access to SVE, Advanced SIMD, or
                 floating-point functionality" */
             err = cpu_simd_fp_sync(arch_ctxt, esr_elx);
             break;

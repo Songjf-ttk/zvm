@@ -16,7 +16,6 @@
 #include <drivers/interrupt_controller/gic.h>
 #include <logging/log.h>
 #include <../drivers/interrupt_controller/intc_gicv3_priv.h>
-
 #include <virtualization/arm/cpu.h>
 #include <virtualization/arm/vgic_v3.h>
 #include <virtualization/arm/vgic_common.h>

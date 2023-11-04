@@ -209,7 +209,7 @@ int vm_ops_init(struct vm *vm);
  * then allocate physical space to these block.
  * 4. build page table from vpart virt address to block physical address.
  *
- * @param vm: The vm that need to init mem
+ * @param vm: The vm which memory need to be init.
  * @return int 0 for success
  */
 int vm_mem_init(struct vm *vm);

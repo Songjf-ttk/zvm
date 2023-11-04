@@ -54,9 +54,6 @@ int add_mapped_vpart(struct vm_mem_domain *vmem_domain,
     return 0;
 }
 
-/**
- * @brief Init a vpart struct for vm's virtual address space.
- */
 static struct vm_mem_partition *alloc_vm_mem_partition(uint64_t hpbase,
             uint64_t ipbase, uint64_t size, uint32_t attrs)
 {
@@ -107,15 +104,11 @@ static int create_vm_mem_vpart(struct vm_mem_domain *vmem_domain, uint64_t hpbas
     return ret;
 }
 
-
-/**
- * @brief Create the dram or sram memory partition.
- */
 static int vm_ram_mem_create(struct vm_mem_domain *vmem_domain)
 {
     int ret = 0;
     int type = OS_TYPE_MAX;
-    uint64_t va_base, pa_base,kpa_base, size;
+    uint64_t va_base, pa_base, kpa_base, size;
     struct  _dnode *d_node, *ds_node;
     struct vm *vm = vmem_domain->vm;
     struct vm_mem_partition *vpart;
@@ -123,35 +116,33 @@ static int vm_ram_mem_create(struct vm_mem_domain *vmem_domain)
     type = vm->os->type;
     switch (type) {
     case OS_TYPE_LINUX:
-        va_base = LINUX_VMSYS_ENTRY;
-        size = LINUX_VM_MEM_SIZE;
+        va_base = LINUX_VMSYS_BASE;
+        size = LINUX_VMSYS_SIZE;
 #ifndef CONFIG_VM_DYNAMIC_MEMORY
         ARG_UNUSED(kpa_base);
-        pa_base = LINUX_VM_MEM_BASE;
+        pa_base = LINUX_VM_IMAGE_BASE;
 #else
         kpa_base = (uint64_t)k_malloc(size + CONFIG_MMU_PAGE_SIZE);
         if(kpa_base == 0){
             ZVM_LOG_ERR("The heap memory is not enough\n");
             return -EMMAO;
         }
-        pa_base = ROUND_UP(kpa_base,CONFIG_MMU_PAGE_SIZE);
-        pa_base = z_mem_phys_addr((void *)pa_base);
+        pa_base = z_mem_phys_addr((void *)ROUND_UP(kpa_base, CONFIG_MMU_PAGE_SIZE));
 #endif
         break;
     case OS_TYPE_ZEPHYR:
-        va_base = ZEPHYR_VMSYS_ENTRY;
-        size = ZEPHYR_VM_MEM_SIZE;
+        va_base = ZEPHYR_VMSYS_BASE;
+        size = ZEPHYR_VMSYS_SIZE;
 #ifndef CONFIG_VM_DYNAMIC_MEMORY
         ARG_UNUSED(kpa_base);
-        pa_base = ZEPHYR_VM_MEM_BASE;
+        pa_base = ZEPHYR_VM_IMAGE_BASE;
 #else
         kpa_base = (uint64_t)k_malloc(size + CONFIG_MMU_PAGE_SIZE);
         if(kpa_base == 0){
             ZVM_LOG_ERR("The heap memory is not enough\n");
             return -EMMAO;
         }
-        pa_base = ROUND_UP(kpa_base,CONFIG_MMU_PAGE_SIZE);
-        pa_base = z_mem_phys_addr((void *)pa_base);
+        pa_base = z_mem_phys_addr((void *)ROUND_UP(kpa_base, CONFIG_MMU_PAGE_SIZE));
 #endif
         break;
     default:
@@ -188,9 +179,6 @@ static int vm_dtb_mem_create(struct vm_mem_domain *vmem_domain)
             vm_dtb_size, MT_VM_NORMAL_MEM);
 }
 
-/**
- * @brief init vparts from default device tree.
- */
 static int vm_init_mem_create(struct vm_mem_domain *vmem_domain)
 {
     int ret = 0;
@@ -432,17 +420,19 @@ static bool check_vm_add_partition(struct k_mem_domain *domain,
 }
 
 static int vm_mem_domain_partition_add(struct vm_mem_domain *vmem_dm,
-			        struct k_mem_partition *part, struct vm_mem_partition *vpart)
+                             struct vm_mem_partition *vpart)
 {
 	int p_idx;
 	int ret = 0;
     uintptr_t phys_start;
     struct k_mem_domain *domain;
+    struct k_mem_partition *part;
     struct vm *vm;
     k_spinlock_key_t key;
 
     phys_start = vpart->part_hpa_base;
     domain = vmem_dm->vm_mm_domain;
+    part = vpart->vm_mm_partition;
     vm = vmem_dm->vm;
 
 	if (!check_vm_add_partition(domain, part)) {
@@ -463,7 +453,6 @@ static int vm_mem_domain_partition_add(struct vm_mem_domain *vmem_dm,
 		ret = -ENOSPC;
 		goto unlock_out;
 	}
-
 	domain->partitions[p_idx].start = part->start;
 	domain->partitions[p_idx].size = part->size;
 	domain->partitions[p_idx].attr = part->attr;
@@ -507,8 +496,7 @@ static int vm_mem_domain_partition_remove(struct vm_mem_domain *vmem_dm)
     return ret;
 }
 
-/* Add area partition to vm memory struct */
-int vm_mem_apart_add(struct vm_mem_domain *vmem_dm)
+int vm_mem_domain_init(struct vm_mem_domain *vmem_dm)
 {
     int ret = 0;
     k_spinlock_key_t key;
@@ -519,7 +507,7 @@ int vm_mem_apart_add(struct vm_mem_domain *vmem_dm)
     SYS_DLIST_FOR_EACH_NODE_SAFE(&vmem_dm->idle_vpart_list, d_node, ds_node){
         vpart = CONTAINER_OF(d_node, struct vm_mem_partition, vpart_node);
 
-        ret = vm_mem_domain_partition_add(vmem_dm, vpart->vm_mm_partition, vpart);
+        ret = vm_mem_domain_partition_add(vmem_dm, vpart);
         if (ret) {
             k_spin_unlock(&vmem_dm->spin_mmlock, key);
             return ret;
@@ -552,8 +540,8 @@ int vm_mem_apart_remove(struct vm_mem_domain *vmem_dm)
         vpart = CONTAINER_OF(d_node, struct vm_mem_partition, vpart_node);
         vmpart = vpart->vm_mm_partition;
     #ifdef CONFIG_VM_DYNAMIC_MEMORY
-        if( (vm->vmid < ZVM_ZEPHYR_VM_NUM && vpart->part_hpa_size == ZEPHYR_VM_MEM_SIZE) ||
-           (vm->vmid >= ZVM_ZEPHYR_VM_NUM && vpart->part_hpa_size == LINUX_VM_MEM_SIZE) ){
+        if( (vm->vmid < ZVM_ZEPHYR_VM_NUM && vpart->part_hpa_size == ZEPHYR_VMSYS_SIZE) ||
+           (vm->vmid >= ZVM_ZEPHYR_VM_NUM && vpart->part_hpa_size == LINUX_VMSYS_SIZE) ){
                 k_free((void *)vpart->part_kpa_base);
            }
     #endif
@@ -613,9 +601,6 @@ int vm_dynmem_apart_add(struct vm_mem_domain *vmem_dm)
     return ret;
 }
 
-/**
- * @brief init vm mm struct for this vm.
- */
 int vm_mem_domain_create(struct vm *vm)
 {
     int ret;
@@ -649,16 +634,13 @@ int vm_mem_domain_create(struct vm *vm)
     vmem_dm->vm = vm;
     vm->vmem_domain = vmem_dm;
 
-    /* add spin_lock for vmm_area list */
     key = k_spin_lock(&vmem_dm->spin_mmlock);
-
     ret = vm_init_mem_create(vmem_dm);
     if (ret) {
         ZVM_LOG_WARN("Init vm areas failed! \n");
         k_spin_unlock(&vmem_dm->spin_mmlock, key);
         return ret;
     }
-
     k_spin_unlock(&vmem_dm->spin_mmlock, key);
 
     return 0;

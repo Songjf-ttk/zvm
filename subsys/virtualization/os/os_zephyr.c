@@ -14,11 +14,13 @@
 
 static atomic_t zvm_zephyr_image_map_init = ATOMIC_INIT(0);
 static uint64_t zvm_zephyr_image_map_phys = 0;
+
+
 /**
- * @brief Establish a mapping between the linux image addresses
- *      and virtual addresses
+ * @brief Establish a mapping between the zephyr image physical
+ * addresses and virtual addresses.
  */
-static uint64_t zvm_mapped_zephyr_image()
+static uint64_t zvm_mapped_zephyr_image(void)
 {
     uint8_t *ptr;
     uintptr_t phys;
@@ -28,14 +30,13 @@ static uint64_t zvm_mapped_zephyr_image()
         return zvm_zephyr_image_map_phys;
     }
 
-    phys = ZEPHYR_VM_MEM_BASE;
-    size = ZEPHYR_VM_IMG_SIZE;
+    phys = ZEPHYR_VM_IMAGE_BASE;
+    size = ZEPHYR_VM_IMAGE_SIZE;
     flags = K_MEM_CACHE_NONE | K_MEM_PERM_RW | K_MEM_PERM_EXEC;
     z_phys_map(&ptr,phys,size,flags);
     zvm_zephyr_image_map_phys = (uint64_t)ptr;
     return zvm_zephyr_image_map_phys;
 }
-
 
 int load_zephyr_image(struct vm_mem_domain *vmem_domain)
 {
@@ -56,10 +57,9 @@ int load_zephyr_image(struct vm_mem_domain *vmem_domain)
     return ret;
 #endif /* CONFIG_VM_DYNAMIC_MEMORY */
 
-    /*Find the zephyr image base_addr and it size here */
-    zbase_size = ZEPHYR_VM_MEM_SIZE;
+    zbase_size = ZEPHYR_VMSYS_SIZE;
     zimage_base = zvm_mapped_zephyr_image();
-    zimage_size = ZEPHYR_VM_IMG_SIZE;
+    zimage_size = ZEPHYR_VM_IMAGE_SIZE;
     SYS_DLIST_FOR_EACH_NODE_SAFE(&vmem_domain->mapped_vpart_list,d_node,ds_node){
         vpart = CONTAINER_OF(d_node,struct vm_mem_partition,vpart_node);
         if(vpart->part_hpa_size == zbase_size){
@@ -69,5 +69,4 @@ int load_zephyr_image(struct vm_mem_domain *vmem_domain)
     }
 
     return ret;
-
 }

@@ -75,7 +75,6 @@ int zvm_new_guest(size_t argc, char **argv)
 		return ret;
 	}
 
-	/* Allocate memory and build mapping */
    	ret = vm_mem_init(new_vm);
 	if(ret < 0){
 		return ret;
@@ -93,11 +92,11 @@ int zvm_new_guest(size_t argc, char **argv)
 	switch (new_vm->os->type) {
 	case OS_TYPE_LINUX:
 		ZVM_LOG_INFO("|******\t VMEM SIZE: \t %d(M) \t******| \n",
-		LINUX_VM_MEM_SIZE/(1024*1024));
+		LINUX_VMSYS_SIZE/(1024*1024));
 		break;
 	case OS_TYPE_ZEPHYR:
 		ZVM_LOG_INFO("|******\t VMEM SIZE:  \t %d(M) \t\t******| \n",
-		ZEPHYR_VM_MEM_SIZE/(1024*1024));
+		ZEPHYR_VMSYS_SIZE/(1024*1024));
 		break;
 	default:
 		ZVM_LOG_INFO("|******\t OTHER VM, NO MEMORY MSG \t\t******| \n");

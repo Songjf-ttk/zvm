@@ -9,15 +9,19 @@
 
 #include <zephyr.h>
 #include <stdint.h>
-
 #include <virtualization/zvm.h>
 #include <virtualization/arm/mm.h>
 #include "os.h"
 
-#define LINUX_VM_MEM_BASE  DT_REG_ADDR(DT_NODELABEL(linux_ddr))
-#define LINUX_VM_MEM_SIZE  DT_REG_SIZE(DT_NODELABEL(linux_ddr))
-#define LINUX_VMSYS_ENTRY  DT_PROP(DT_NODELABEL(linux_ddr), vm_reg)
-#define LINUX_VM_IMG_SIZE  DT_PROP(DT_NODELABEL(linux_ddr), img_sz)
+/**
+ * LINUX_VM_IMAGE_BASE presents that the linux image base
+ * in the ddr(@TODO: In the disk better). And LINUX_VM_IMAGE_SIZE
+ * presents the linux image size in the ddr.
+*/
+#define LINUX_VM_IMAGE_BASE     DT_REG_ADDR(DT_NODELABEL(linux_ddr))
+#define LINUX_VM_IMAGE_SIZE     DT_REG_SIZE(DT_NODELABEL(linux_ddr))
+#define LINUX_VMSYS_BASE        DT_PROP(DT_NODELABEL(linux_ddr), vm_reg_base)
+#define LINUX_VMSYS_SIZE        DT_PROP(DT_NODELABEL(linux_ddr), vm_reg_size)
 
 #ifdef CONFIG_DTB_FILE_INPUT
 #define LINUX_DTB_MEM_BASE        DT_PROP(DT_INST(0, linux_vm), dtb_address)

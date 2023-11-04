@@ -76,7 +76,7 @@ static void z_list_vm_info(uint16_t vmid)
     default:
         ZVM_LOG_WARN("This vm status is invalid!\n");
         return;
-	}	
+	}
 
     mem_size = vm->os->os_mem_size / (1024*1024);
     printk("|***%d  %s\t%d\t%d \t%s ***| \n", vm->vmid,
@@ -84,13 +84,9 @@ static void z_list_vm_info(uint16_t vmid)
 
 }
 
-/**
- * @brief list all vm's info.
- */
 static void z_list_all_vms_info(void)
 {
     uint16_t i;
-
 
     printk("\n|******************** All VMS INFO *******************|\n");
     printk("|***vmid name \t    vcpus    vmem(M)\tstatus ***|\n");
@@ -98,12 +94,8 @@ static void z_list_all_vms_info(void)
         if(BIT(i) & zvm_overall_info->alloced_vmid)
             z_list_vm_info(i);
     }
-
 }
 
-/**
- * @brief Process vm exit for pause or delete vm now.
- */
 int vm_ipi_handler(struct vm *vm)
 {
     int ret;
@@ -128,27 +120,17 @@ int vm_ipi_handler(struct vm *vm)
     return ret;
 }
 
-/**
- * @brief Init vm memory manager, this stage just allocate one type of memory.
- */
 int vm_mem_init(struct vm *vm)
 {
     int ret = 0;
     struct vm_mem_domain *vmem_dm = vm->vmem_domain;
-    struct _dnode *d_node,*ds_node;
-    struct vm_mem_partition *vpart;
-    uint64_t hpa_base;
-    ARG_UNUSED(hpa_base);
-    ARG_UNUSED(vpart);
-    ARG_UNUSED(ds_node);
-    ARG_UNUSED(d_node);
 
     if (vmem_dm->is_init) {
-        ZVM_LOG_WARN("Vm mem has been init before! \n");
+        ZVM_LOG_WARN("VM's mem has been init before! \n");
         return -EMMAO;
     }
 
-    ret = vm_mem_apart_add(vmem_dm);
+    ret = vm_mem_domain_init(vmem_dm);
     if (ret) {
         ZVM_LOG_WARN("Add partition to domain failed!, Code: %d \n", ret);
         return ret;
@@ -186,7 +168,6 @@ int vm_create(struct z_vm_info *vm_info, struct vm *new_vm)
         return -EOVERFLOW;
     }
 
-    /* allocate vm's os struct */
     vm->os = (struct os *)k_malloc(sizeof(struct os));
 	if (!vm->os) {
 		ZVM_LOG_WARN("Allocate memory for os error! \n");

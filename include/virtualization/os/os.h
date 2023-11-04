@@ -29,10 +29,6 @@ enum {
     OS_TYPE_MAX = 3,
 };
 
-/**
- * @brief A descriptor of os
- *
- */
 struct os {
     char *name;
     uint16_t type;
@@ -41,13 +37,10 @@ struct os {
     uint16_t area_num;
     uint64_t vm_virt_base;
 
-    /* vm image's code entry */
+    /* os's code entry */
     uint64_t code_entry_point;
 
-    /* vm image's base address */
-    uint64_t os_mem_base;
-
-    /* vm image's size */
+    /* os's memory size of template */
     uint64_t os_mem_size;
 };
 

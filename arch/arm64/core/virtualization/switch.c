@@ -191,6 +191,7 @@ int arch_vcpu_run(struct vcpu *vcpu)
 {
     int ret;
     uint64_t exit_type;
+    uint64_t exit_code, fault_addr;
     struct zvm_vcpu_context *h_ctxt;
 
     /* mask all interrupt here to disable interrupt */
@@ -231,7 +232,10 @@ int arch_vcpu_run(struct vcpu *vcpu)
 	case ARM_VM_EXCEPTION_SERROR:
         arch_vm_serror_trap(vcpu, exit_type);
 	default:
+        exit_code = read_esr_el2();
+        fault_addr = read_far_el2();
 		ZVM_LOG_WARN("Unsupported exception type in this stage....\n");
+        ZVM_LOG_WARN("Exit code: 0x%08x \t fault addr: 0x%08x  ....\n", exit_code, fault_addr);
 		return -ESRCH;
         break;
 	}

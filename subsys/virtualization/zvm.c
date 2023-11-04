@@ -27,25 +27,25 @@ struct zvm_manage_info *zvm_overall_info;       /*@TODO,This may need to replace
 /* overall dev list in zvm system */
 struct zvm_dev_lists  zvm_overall_dev_lists;
 
-/* All default vm infomation */
+/**
+ * Template of zephyr and linux os.
+*/
 z_vm_info_t z_overall_vm_infos[] = {
-    /* vm0: default zephyr os*/
     {
-        .entry_point = ZEPHYR_VMSYS_ENTRY,
-        .vm_virt_base = ZEPHYR_VMSYS_ENTRY,
-        .vm_image_base = ZEPHYR_VM_MEM_BASE,
-        .vm_image_size = ZEPHYR_VM_MEM_SIZE,
-        .vm_image_imsz = ZEPHYR_VM_IMG_SIZE,
+        .entry_point = ZEPHYR_VMSYS_BASE,
+        .vm_virt_base = ZEPHYR_VMSYS_BASE,
+        .vm_sys_size = ZEPHYR_VMSYS_SIZE,
+        .vm_image_base = ZEPHYR_VM_IMAGE_BASE,
+        .vm_image_size = ZEPHYR_VM_IMAGE_SIZE,
         .vcpu_num = VM_DEFAULT_VCPU_NUM,
         .vm_os_type = OS_TYPE_ZEPHYR,
     },
-    /* vm1: init linux os */
     {
-        .entry_point = LINUX_VMSYS_ENTRY,
-        .vm_virt_base = LINUX_VMSYS_ENTRY,
-        .vm_image_base = LINUX_VM_MEM_BASE,
-        .vm_image_size = LINUX_VM_MEM_SIZE,
-        .vm_image_imsz = LINUX_VM_IMG_SIZE,
+        .entry_point = LINUX_VMSYS_BASE,
+        .vm_virt_base = LINUX_VMSYS_BASE,
+        .vm_sys_size = LINUX_VMSYS_SIZE,
+        .vm_image_base = LINUX_VM_IMAGE_BASE,
+        .vm_image_size = LINUX_VM_IMAGE_SIZE,
         .vcpu_num = VM_DEFAULT_VCPU_NUM,
         .vm_os_type = OS_TYPE_LINUX,
     },

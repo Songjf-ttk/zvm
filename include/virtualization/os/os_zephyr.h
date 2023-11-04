@@ -11,14 +11,17 @@
 #include <stdint.h>
 #include <virtualization/arm/mm.h>
 
-#define ZEPHYR_VM_MEM_BASE  DT_REG_ADDR(DT_NODELABEL(zephyr_ddr))
-#define ZEPHYR_VM_MEM_SIZE  DT_REG_SIZE(DT_NODELABEL(zephyr_ddr))
-#define ZEPHYR_VMSYS_ENTRY  DT_PROP(DT_NODELABEL(zephyr_ddr), vm_reg)
-#define ZEPHYR_VM_IMG_SIZE  DT_PROP(DT_NODELABEL(zephyr_ddr), img_sz)
-
 /**
- * @brief load zephyr image from other memory address to allocated address
- */
+ * ZEPHYR_VM_IMAGE_BASE presents that the zephyr image base
+ * in the ddr(@TODO: In the disk better). And ZEPHYR_VM_IMAGE_SIZE
+ * presents the zephyr image size in the ddr.
+*/
+#define ZEPHYR_VM_IMAGE_BASE    DT_REG_ADDR(DT_NODELABEL(zephyr_ddr))
+#define ZEPHYR_VM_IMAGE_SIZE    DT_REG_SIZE(DT_NODELABEL(zephyr_ddr))
+#define ZEPHYR_VMSYS_BASE       DT_PROP(DT_NODELABEL(zephyr_ddr), vm_reg_base)
+#define ZEPHYR_VMSYS_SIZE       DT_PROP(DT_NODELABEL(zephyr_ddr), vm_reg_size)
+
+
 int load_zephyr_image(struct vm_mem_domain *vmem_domain);
 
 #endif /* __ZVM_OS_ZEPHYR_H_ */

@@ -15,26 +15,10 @@
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
-/* find linux memory address's base and size */
-static int get_vm_mem_info(uint32_t *base, uint32_t *size, uint64_t virt_base)
-{
-    switch (virt_base){
-    case LINUX_VMSYS_ENTRY:
-        *base = LINUX_VM_MEM_BASE;
-        *size = LINUX_VM_MEM_SIZE;
-        break;
-    default:
-        break;
-    }
-
-    return 0;
-}
-
 
 /**
  * @brief Initialize OS basic information of a virtual machine
  */
-
 int vm_os_create(struct vm* vm, struct z_vm_info *vm_info)
 {
     struct os* os = vm->os;
@@ -57,11 +41,9 @@ int vm_os_create(struct vm* vm, struct z_vm_info *vm_info)
     }
     os->vm_virt_base = vm_info->vm_virt_base;
     os->code_entry_point = vm_info->entry_point;
-    os->os_mem_base = vm_info->vm_image_base;
-    os->os_mem_size = vm_info->vm_image_size;
+    os->os_mem_size = vm_info->vm_sys_size;
 
     return 0;
-
 }
 
 char *strlwr(char *s){
@@ -185,7 +167,6 @@ out:
 	vm_info->vcpu_num = tmp_vm_info.vcpu_num;
     vm_info->vm_image_base = tmp_vm_info.vm_image_base;
 	vm_info->vm_image_size = tmp_vm_info.vm_image_size;
-    vm_info->vm_image_imsz = tmp_vm_info.vm_image_imsz;
     vm_info->vm_virt_base = tmp_vm_info.vm_virt_base;
 	vm_info->vm_os_type = tmp_vm_info.vm_os_type;
 
@@ -205,7 +186,6 @@ out:
     return ret;
 }
 
-
 /**
  * @brief Get the os image info by type object.
  */
@@ -214,11 +194,12 @@ int get_vm_mem_info_by_type(uint32_t *base, uint32_t *size,
 {
     switch (type){
     case OS_TYPE_LINUX:
-        get_vm_mem_info(base, size, virt_base);
+        base[0] = LINUX_VM_IMAGE_BASE;
+        size[0] = LINUX_VM_IMAGE_SIZE;
         break;
     case OS_TYPE_ZEPHYR:
-        base[0] = ZEPHYR_VM_MEM_BASE;
-        size[0] = ZEPHYR_VM_MEM_SIZE;
+        base[0] = ZEPHYR_VM_IMAGE_BASE;
+        size[0] = ZEPHYR_VMSYS_SIZE;
         break;
     default:
         return -EVMOS;

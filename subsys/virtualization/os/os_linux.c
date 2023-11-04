@@ -11,15 +11,14 @@
 #include <virtualization/os/os_linux.h>
 
 
-
 static atomic_t zvm_linux_image_map_init = ATOMIC_INIT(0);
 static uint64_t zvm_linux_image_map_phys = 0;
 
 /**
- * @brief Establish a mapping between the zephyr image addresses 
- *      and virtual addresses
+ * @brief Establish a mapping between the linux image physical
+ * addresses and virtual addresses.
  */
-static uint64_t zvm_mapped_linux_image()
+static uint64_t zvm_mapped_linux_image(void)
 {
     uint8_t *ptr;
     uintptr_t phys;
@@ -29,18 +28,14 @@ static uint64_t zvm_mapped_linux_image()
         return zvm_linux_image_map_phys;
     }
 
-    phys = LINUX_VM_MEM_BASE;
-    size = LINUX_VM_IMG_SIZE;
+    phys = LINUX_VM_IMAGE_BASE;
+    size = LINUX_VM_IMAGE_SIZE;
     flags = K_MEM_CACHE_NONE | K_MEM_PERM_RW | K_MEM_PERM_EXEC;
     z_phys_map(&ptr,phys,size,flags);
     zvm_linux_image_map_phys = (uint64_t)ptr;
     return zvm_linux_image_map_phys;
 }
 
-
-/**
- * @brief load linux image from other memory address to allocated address
- */
 int load_linux_image(struct vm_mem_domain *vmem_domain)
 {
     char *dbuf, *sbuf;
@@ -60,14 +55,13 @@ int load_linux_image(struct vm_mem_domain *vmem_domain)
     return ret;
 #endif /* CONFIG_VM_DYNAMIC_MEMORY */
 
-    /*Find the zephyr image base_addr and it size here */
-    lbase_size =  LINUX_VM_MEM_SIZE;
+    lbase_size =  LINUX_VMSYS_SIZE;
     limage_base = zvm_mapped_linux_image();
-    limage_size = LINUX_VM_IMG_SIZE;
+    limage_size = LINUX_VM_IMAGE_SIZE;
     SYS_DLIST_FOR_EACH_NODE_SAFE(&vmem_domain->mapped_vpart_list,d_node,ds_node){
         vpart = CONTAINER_OF(d_node,struct vm_mem_partition,vpart_node);
         if(vpart->part_hpa_size == lbase_size){
-            memcpy((void *)vpart->part_hpa_base,(const void *)limage_base,limage_size);
+            memcpy((void *)vpart->part_hpa_base, (const void *)limage_base, limage_size);
             break;
         }
     }

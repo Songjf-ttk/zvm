@@ -142,7 +142,7 @@ static uint64_t *vm_new_table(uint32_t vmid)
 			}
 		}
 	}
-	
+
 	return NULL;
 }
 

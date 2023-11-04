@@ -28,9 +28,10 @@
 #define ZEPHYR_VM_BLOCK_SIZE    (1UL << ZEPHYR_BLK_MEM_SHIFT)    //64K
 #define LINUX_VM_BLOCK_SIZE     (1UL << LINUX_BLK_MEM_SHIFT)     //2M
 
-/* The max vmid is CONFIG_MAX_VM_NUM 
- * Zephyr's ID is placed in the first half 
- * Linux's ID is placed in the second half 
+/**
+ * The max vmid is CONFIG_MAX_VM_NUM
+ * Zephyr's ID is placed in the first half
+ * Linux's ID is placed in the second half
  */
 #define ZVM_ZEPHYR_VM_NUM (CONFIG_MAX_VM_NUM/2 + CONFIG_MAX_VM_NUM%2)
 #define ZVM_LINUX_VM_NUM  (CONFIG_MAX_VM_NUM/2)
@@ -60,9 +61,15 @@ struct vm_mem_block{
  */
 struct vm_mem_partition {
 
-    /* memory partition of vm*/
+    /* Virtual memory info for this vpart. */
     struct k_mem_partition *vm_mm_partition;
 
+    /**
+     * Store the physical memory info for
+     * this vpart. It is not the image's base
+     * and size, but the physical memory allocate
+     * to vm.
+    */
     uint64_t part_hpa_base;
     uint64_t part_hpa_size;
 
@@ -91,8 +98,10 @@ struct vm_mem_domain{
     struct k_mem_domain *vm_mm_domain;
     uint64_t    pgd_addr;
 
-    /* vm_mem_partition list for mapped and idle list, some dev that used will
-        in mapped list, otherwise in idle list.  */
+    /**
+     * vm_mem_partition list for mapped and idle list,
+     * some dev that used will in mapped list, otherwise in idle list.
+    */
     sys_dlist_t idle_vpart_list;
     sys_dlist_t mapped_vpart_list;
 
@@ -142,7 +151,7 @@ int vm_mem_domain_create(struct vm *vm);
 int vm_dynmem_apart_add(struct vm_mem_domain *vmem_dm);
 
 /* Add area partition to vm memory struct */
-int vm_mem_apart_add(struct vm_mem_domain *vmem_dm);
+int vm_mem_domain_init(struct vm_mem_domain *vmem_dm);
 
 /* Remove area partition from the vm memory struct */
 int vm_mem_apart_remove(struct vm_mem_domain *vmem_dm);

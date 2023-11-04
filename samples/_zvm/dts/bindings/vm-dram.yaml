@@ -20,16 +20,20 @@ properties:
         vm domain memory type.
       required: true
 
-    vm_reg:
+    vm_reg_base:
       type: int
       description: |
-        vm virtual base address.
+        Guset VM's physical memory base,
+        which equal to the common `memory reg base`
+        in the dts.
       required: true
 
-    img_sz:
+    vm_reg_size:
       type: int
       description: |
-        vm image size
+        Guset VM's physical memory size,
+        which equal to the common `memory reg size`
+        in the dts.
       required: true
 
     address_type:
