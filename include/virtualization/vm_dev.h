@@ -28,16 +28,13 @@ typedef int (*vm_vdev_write_t)(struct virt_dev *vdev, arch_commom_regs_t *regs, 
 typedef int (*vm_vdev_read_t)(struct virt_dev *vdev, arch_commom_regs_t *regs, uint64_t addr, uint64_t *value);
 
 struct virt_dev {
-
-    struct device *dev;
-
+    /* name of virtual device */
 	char name[VIRT_DEV_NAME_LENGTH];
 
     /* Is this dev pass-through device? */
     bool dev_pt_flag;
     bool shareable;
 
-    uint16_t vdev_id;
     uint32_t hirq;
     uint32_t virq;
 
@@ -73,7 +70,6 @@ struct device_descriptor {
     uint32_t device_addr_size;
     uint16_t device_irq;
 };
-
 
 int vm_virt_dev_add(struct vm *vm, struct virt_dev *vdev, char *vdev_name, uint32_t pbase,
                         uint32_t vbase, uint32_t size);

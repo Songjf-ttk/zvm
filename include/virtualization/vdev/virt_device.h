@@ -15,6 +15,10 @@
 
 #define CONFIG_VIRT_DEVICE_INTERRUPT_DRIVEN 1
 
+#define VM_DEVICE_INIT_RES      (0xFF)
+#define VM_DEVICE_INVALID_BASE  (0xFFFFFFFF)
+#define VM_DEVICE_INVALID_VIRQ  (0xFF)
+
 typedef void (*virt_device_irq_callback_user_data_set_t)(const struct device *dev,
                                     void *cb, void *user_data);
 

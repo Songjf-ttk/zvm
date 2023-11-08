@@ -18,11 +18,15 @@
 #include <virtualization/arm/cpu.h>
 #include <virtualization/vdev/uart.h>
 #include <virtualization/vm_dev.h>
+#include <virtualization/vdev/virt_device.h>
 
 LOG_MODULE_REGISTER(ZVM_MODULE_NAME);
 
+extern const struct device __device_start[];
+extern const struct device __device_end[];
+
 struct zvm_manage_info *zvm_overall_info;       /*@TODO,This may need to replace by macro later*/
-struct zvm_dev_lists  zvm_overall_dev_lists;
+static struct zvm_dev_lists  zvm_overall_dev_lists;
 
 /**
  * Template of zephyr and linux os.
@@ -186,28 +190,62 @@ static int zvm_overall_init(void)
     return ret;
 }
 
-static int zvm_add_overall_devs(struct zvm_dev_lists *dev_list)
+/**
+ * @brief Add all the passthrough device to the zvm_overaa_list.
+*/
+int zvm_init_idle_device(const struct device *dev, struct virt_dev *vdev,
+                            struct zvm_dev_lists *dev_list)
 {
+    struct virt_dev *vm_dev = vdev;
 
+    vm_dev->dev_pt_flag = false;
+    vm_dev->shareable = false;
+
+    strcpy(vm_dev->name, dev->name);
+    vm_dev->vm_vdev_paddr = ((struct virt_device_config *)dev->config)->reg_base;
+    vm_dev->vm_vdev_vaddr = VM_DEVICE_INVALID_BASE;
+    vm_dev->vm_vdev_size = ((struct virt_device_config *)dev->config)->reg_size;
+    vm_dev->hirq = ((struct virt_device_config *)dev->config)->hirq_num;
+    vm_dev->virq = VM_DEVICE_INVALID_VIRQ;
+    vm_dev->vm = NULL;
+
+    printk("The init zvm device is %s \n", vm_dev->name);
+
+    sys_dnode_init(&vm_dev->vdev_node);
+    sys_dlist_append(&dev_list->dev_idle_list, &vm_dev->vdev_node);
+
+    return 0;
 }
 
 /**
  * @brief Provide physical dev info to zvm system:
- * 1. Find all available devices on the board and get it infomation(eg. address and size);
+ * 1. Find all available devices information on the board;
  * 2. Build a idle dev list for the system;
  * 3. VM init function can get dev info from it.
- * 3. Each list node is a struct that store the dev's info
- * Now it just allocate uart dev for vm.
  * @return int
  */
-static int zvm_dev_list_init(void)
+static int zvm_devices_list_init(void)
 {
+    struct virt_dev *vm_dev;
+    const struct device *dev;
+
     sys_dlist_init(&zvm_overall_dev_lists.dev_idle_list);
     sys_dlist_init(&zvm_overall_dev_lists.dev_used_list);
 
-    zvm_add_overall_devs(&zvm_overall_dev_lists);
-
-//    zvm_add_uart_dev(&zvm_overall_dev_lists);
+    /* scan the host dts and get the device list */
+	for (dev = __device_start; dev != __device_end; dev++) {
+        /**
+         * through the `init_res` to judge whether the device is
+         *  ready to allocate to vm.
+         */
+		if (dev->state->init_res == VM_DEVICE_INIT_RES) {
+            vm_dev = (struct virt_dev*)k_malloc(sizeof(struct virt_dev));
+            if (vm_dev == NULL) {
+                return -ENOMEM;
+            }
+            zvm_init_idle_device(dev, vm_dev, &zvm_overall_dev_lists);
+		}
+	}
 
     return 0;
 }
@@ -235,10 +273,8 @@ static int zvm_init(const struct device *dev)
     int ret = 0;
     void *op = NULL;
 
-    /* Hardware feature check for zvm */
     ret = zvm_arch_init(op);
     if (ret) {
-       /* error code is passed by zvm_arch_init */
        ZVM_LOG_ERR("zvm_arch_init failed here ! \n");
        return ret;
     }
@@ -249,7 +285,7 @@ static int zvm_init(const struct device *dev)
         return ret;
     }
 
-    ret = zvm_dev_list_init();
+    ret = zvm_devices_list_init();
     if (ret) {
         ZVM_LOG_ERR("Init zvm_dev_list struct error. \n ZVM init failed ! \n");
         return ret;

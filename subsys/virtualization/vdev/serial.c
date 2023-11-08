@@ -103,6 +103,7 @@ static const struct virt_device_api virt_serial_api = {
 */
 static int serial_init(const struct device *dev)
 {
+	dev->state->init_res = VM_DEVICE_INIT_RES;
 #ifdef CONFIG_UART_INTERRUPT_DRIVEN
 	((const struct uart_device_config * const)(DEV_CFG(dev)->device_config))->irq_config_func(dev);
 #endif
