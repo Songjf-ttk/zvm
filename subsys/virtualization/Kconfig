@@ -1,6 +1,8 @@
 # Copyright 2021-2022 HNU
 # SPDX-License-Identifier: Apache-2.0
 
+source "subsys/virtualization/vdev/Kconfig"
+
 menuconfig ZVM
 	bool "Zephyr Based Virtualization menu"
 	default n
@@ -52,8 +54,8 @@ config ZVM_EARLYPRINT_MSG
 	bool "ZVM's early consolo for printing system boot message."
 	default n
 	help
-	  For debug hardware system, there must be a early printk mechanism to 
-	  output the system info, which is usefull for development.  
+	  For debug hardware system, there must be a early printk mechanism to
+	  output the system info, which is usefull for development.
 
 config DTB_FILE_INPUT
 	bool "ZVM system pharse dtb file for os like linux"

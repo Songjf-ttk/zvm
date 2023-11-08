@@ -1,6 +1,6 @@
 /*
  * Copyright 2021-2022 HNU
- * 
+ *
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -10,9 +10,7 @@
 #include <zephyr.h>
 #include <kernel.h>
 #include <devicetree.h>
-
 #include <virtualization/zvm.h>
-
 
 #define PL011_UART0_BASE    DT_REG_ADDR_BY_IDX(DT_INST(0, arm_pl011), 0)
 #define PL011_UART0_SIZE    DT_REG_SIZE_BY_IDX(DT_INST(0, arm_pl011), 0)
@@ -138,12 +136,8 @@
 
 /*Device defaule irq num is 0xffff, means not bind to vm*/
 #define ZVM_VM_INVALID_UART_IRQ 0x0000ffff
-
 #define ZVM_VM_UART_PRIO        (0x2)
 
-/**
- * @brief Add idle uart dev info to the zvm total dev list.
- */
 int zvm_add_uart_dev(struct zvm_dev_lists *dev_list);
 
 #endif  /* __ZVM_UART_H_ */

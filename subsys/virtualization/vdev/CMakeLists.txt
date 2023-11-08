@@ -5,4 +5,6 @@
 zephyr_sources_ifdef(
     CONFIG_ZVM
     uart.c
+    serial.c
+    virt_device.c
 )

@@ -5,6 +5,12 @@
  */
 
 /{
+
+	aliases {
+		vmserial1 = "/soc/uart@9001000";
+		vmserial2 = "/soc/uart@9002000";
+	};
+
     soc {
         uart1: uart@9001000 {
 			compatible = "arm,pl011";
@@ -49,7 +55,6 @@
         #address-cells = <2>;
         #size-cells = <2>;
         compatible = "linux-vm";
-        /* dtb_address must locate at some unused place */
         dtb_address = <0xfb000000>;
         dtb_size = <DT_SIZE_M(2)>;
 

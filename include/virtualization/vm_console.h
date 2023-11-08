@@ -1,6 +1,6 @@
 /*
  * Copyright 2021-2022 HNU
- * 
+ *
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -24,10 +24,7 @@
 #define VM_DEFAULT_CONSOLE_IRQ  DEFAULT_VM_UART_IRQ
 #define VM_CONSOLE_IRQ_PRIO     (0x25)
 
-/**
- * @brief Uart handler function.
- */
-void vm_uart_callback(const struct device *dev, void *user_data);
+void vm_uart_callback(const struct device *dev, void *cb, void *user_data);
 
 int vm_debug_console_add(struct vm *vm);
 int vm_debug_console_remove(struct vm *vm, struct virt_dev *r_dev);

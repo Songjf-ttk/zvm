@@ -12,27 +12,30 @@
 #include <device.h>
 #include <kernel_structs.h>
 #include <arch/cpu.h>
-
 #include <virtualization/zvm.h>
 #include <virtualization/arm/cpu.h>
 #include <virtualization/vdev/uart.h>
 
 #define VIRT_DEV_NAME_LENGTH    (32)
 
+#define DEV_TYPE_EMULATE_ALL_DEVICE (0x01)
+#define DEV_TYPE_VIRTIO_DEVICE      (0x02)
+#define DEV_TYPE_PASSTHROUGH_DEVICE (0x03)
+
 struct virt_dev;
 
 typedef int (*vm_vdev_write_t)(struct virt_dev *vdev, arch_commom_regs_t *regs, uint64_t addr, uint64_t *value);
 typedef int (*vm_vdev_read_t)(struct virt_dev *vdev, arch_commom_regs_t *regs, uint64_t addr, uint64_t *value);
 
-/**
- * @brief virtual device struct.
- */
 struct virt_dev {
-	char name[VIRT_DEV_NAME_LENGTH];
-    bool shareable;
 
-    /* Is this dev pass through */
+    struct device *dev;
+
+	char name[VIRT_DEV_NAME_LENGTH];
+
+    /* Is this dev pass-through device? */
     bool dev_pt_flag;
+    bool shareable;
 
     uint16_t vdev_id;
     uint32_t hirq;
@@ -59,6 +62,16 @@ struct zvm_dev_lists{
     sys_dlist_t dev_idle_list;
     sys_dlist_t dev_used_list;
     /*TODO: Add smp lock here*/
+};
+
+/**
+ * @brief emulate the device node that that
+ * get from dts.
+*/
+struct device_descriptor {
+    uint32_t device_addr_base;
+    uint32_t device_addr_size;
+    uint16_t device_irq;
 };
 
 

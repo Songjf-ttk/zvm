@@ -24,7 +24,7 @@ static const struct arm_mmu_region mmu_regions[] = {
 			      DT_REG_SIZE(DT_NODELABEL(uart0)),
 			      MT_DEVICE_nGnRnE | MT_P_RW_U_RW | MT_NS),
 
-#if defined(CONFIG_SOC_RK3568) && defined(CONFIG_ZVM)
+#if defined(CONFIG_ZVM)
 	MMU_REGION_FLAT_ENTRY("UART1",
 			      DT_REG_ADDR(DT_NODELABEL(uart1)),
 			      DT_REG_SIZE(DT_NODELABEL(uart1)),

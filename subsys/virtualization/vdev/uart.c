@@ -6,7 +6,6 @@
 
 #include <kernel.h>
 #include <drivers/uart.h>
-
 #include <virtualization/vm_console.h>
 #include <virtualization/vm_dev.h>
 #include <virtualization/zvm.h>
@@ -62,7 +61,6 @@ int zvm_add_uart_dev(struct zvm_dev_lists *dev_list)
         return -ENOMEM;
     }
 
-    /* get the address info from dts */
     dev_info->vm_vdev_paddr = ZVM_VM_UART1_BASE;
     dev_info->vm_vdev_size = ZVM_VM_UART1_SIZE;
     dev_info->vm_vdev_vaddr = get_vm_console_base();

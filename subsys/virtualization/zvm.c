@@ -10,7 +10,6 @@
 #include <sys/printk.h>
 #include <init.h>
 #include <logging/log.h>
-
 #include <virtualization/zvm.h>
 #include <virtualization/os/os.h>
 #include <virtualization/os/os_zephyr.h>
@@ -23,8 +22,6 @@
 LOG_MODULE_REGISTER(ZVM_MODULE_NAME);
 
 struct zvm_manage_info *zvm_overall_info;       /*@TODO,This may need to replace by macro later*/
-
-/* overall dev list in zvm system */
 struct zvm_dev_lists  zvm_overall_dev_lists;
 
 /**
@@ -189,6 +186,11 @@ static int zvm_overall_init(void)
     return ret;
 }
 
+static int zvm_add_overall_devs(struct zvm_dev_lists *dev_list)
+{
+
+}
+
 /**
  * @brief Provide physical dev info to zvm system:
  * 1. Find all available devices on the board and get it infomation(eg. address and size);
@@ -203,8 +205,9 @@ static int zvm_dev_list_init(void)
     sys_dlist_init(&zvm_overall_dev_lists.dev_idle_list);
     sys_dlist_init(&zvm_overall_dev_lists.dev_used_list);
 
-    /* init uart dev */
-    zvm_add_uart_dev(&zvm_overall_dev_lists);
+    zvm_add_overall_devs(&zvm_overall_dev_lists);
+
+//    zvm_add_uart_dev(&zvm_overall_dev_lists);
 
     return 0;
 }

@@ -190,6 +190,8 @@ struct vm {
     /* bind the vm and the os type ops */
     struct zvm_ops *ops;
     struct vm_arch *arch;
+
+    /* store the vm's dev list */
     sys_dlist_t vdev_list;
     struct vm_vcpu_num vm_vcpu_id;
 

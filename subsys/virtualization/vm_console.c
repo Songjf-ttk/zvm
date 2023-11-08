@@ -8,7 +8,6 @@
 #include <kernel.h>
 #include <drivers/uart.h>
 #include <kernel_arch_interface.h>
-
 #include <virtualization/vm_console.h>
 #include <virtualization/zvm.h>
 #include <virtualization/arm/mm.h>
@@ -19,10 +18,11 @@
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
-
-void vm_uart_callback(const struct device *dev, void *user_data)
+void vm_uart_callback(const struct device *dev, void *cb,
+                void *user_data)
 {
     uint32_t virq, pirq;
+    ARG_UNUSED(cb);
     ARG_UNUSED(pirq);
     int err = 0;
     const struct virt_dev *vdev = (const struct virt_dev *)user_data;

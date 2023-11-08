@@ -183,10 +183,6 @@ void get_zvm_host_context(void)
     );
 }
 
-/**
- * @brief run the virtual machine on the specified vcpu.
- */
-
 int arch_vcpu_run(struct vcpu *vcpu)
 {
     int ret;
@@ -210,6 +206,7 @@ int arch_vcpu_run(struct vcpu *vcpu)
     write_tpidrro_el0(vcpu->arch->ctxt.sys_regs[VCPU_TPIDRRO_EL0]);
     vm_sysreg_load(&vcpu->arch->ctxt);
 
+    /* Jump the fire too! */
     exit_type = guest_vm_entry(vcpu, h_ctxt);
 
     vcpu->arch->ctxt.sys_regs[VCPU_TPIDRRO_EL0] = read_tpidrro_el0();
@@ -235,7 +232,7 @@ int arch_vcpu_run(struct vcpu *vcpu)
         exit_code = read_esr_el2();
         fault_addr = read_far_el2();
 		ZVM_LOG_WARN("Unsupported exception type in this stage....\n");
-        ZVM_LOG_WARN("Exit code: 0x%08x \t fault addr: 0x%08x  ....\n", exit_code, fault_addr);
+        ZVM_LOG_WARN("Exit code: 0x%08llx \t fault addr: 0x%08llx  ....\n", exit_code, fault_addr);
 		return -ESRCH;
         break;
 	}

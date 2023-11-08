@@ -1,0 +1,22 @@
+# Copyright 2023 HNU-ESNL
+# Copyright 2023 openEuler SIG-Zephyr
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# Now, we init each device for vm, and each device is
+# described by dts file, and bind to aliases.
+menuconfig ZVM_DEVICE_SUPPORT
+	bool "Zephyr Based Virtualization device menu"
+	default n
+	help
+	  Zephyr virtualization support.
+
+config VM_SERIAL1
+	bool "VM serial1 that get from vm."
+	help
+	  This configuration is used for building serial1 that get from overlay.
+
+config VM_SERIAL2
+	bool "VM serial2 that support vm."
+	help
+	  This configuration is used for building serial2 that get from overlay.

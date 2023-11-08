@@ -118,31 +118,31 @@ static int vm_ram_mem_create(struct vm_mem_domain *vmem_domain)
     case OS_TYPE_LINUX:
         va_base = LINUX_VMSYS_BASE;
         size = LINUX_VMSYS_SIZE;
-#ifndef CONFIG_VM_DYNAMIC_MEMORY
-        ARG_UNUSED(kpa_base);
-        pa_base = LINUX_VM_IMAGE_BASE;
-#else
+#ifdef CONFIG_VM_DYNAMIC_MEMORY
         kpa_base = (uint64_t)k_malloc(size + CONFIG_MMU_PAGE_SIZE);
         if(kpa_base == 0){
             ZVM_LOG_ERR("The heap memory is not enough\n");
             return -EMMAO;
         }
         pa_base = z_mem_phys_addr((void *)ROUND_UP(kpa_base, CONFIG_MMU_PAGE_SIZE));
+#else
+        ARG_UNUSED(kpa_base);
+        pa_base = LINUX_VM_IMAGE_BASE;
 #endif
         break;
     case OS_TYPE_ZEPHYR:
         va_base = ZEPHYR_VMSYS_BASE;
         size = ZEPHYR_VMSYS_SIZE;
-#ifndef CONFIG_VM_DYNAMIC_MEMORY
-        ARG_UNUSED(kpa_base);
-        pa_base = ZEPHYR_VM_IMAGE_BASE;
-#else
+#ifdef CONFIG_VM_DYNAMIC_MEMORY
         kpa_base = (uint64_t)k_malloc(size + CONFIG_MMU_PAGE_SIZE);
         if(kpa_base == 0){
             ZVM_LOG_ERR("The heap memory is not enough\n");
             return -EMMAO;
         }
         pa_base = z_mem_phys_addr((void *)ROUND_UP(kpa_base, CONFIG_MMU_PAGE_SIZE));
+#else
+        ARG_UNUSED(kpa_base);
+        pa_base = ZEPHYR_VM_IMAGE_BASE;
 #endif
         break;
     default:
@@ -363,13 +363,11 @@ static int vm_domain_init(struct k_mem_domain *domain, uint8_t num_parts,
 	}
 
 	key = k_spin_lock(&z_vm_domain_lock);
-
 	domain->num_partitions = 0U;
 	(void)memset(domain->partitions, 0, sizeof(domain->partitions));
 	sys_dlist_init(&domain->mem_domain_q);
 
     ret = arch_vm_mem_domain_init(domain, vmid);
-
 	k_spin_unlock(&z_vm_domain_lock, key);
 
 out:
@@ -379,7 +377,6 @@ out:
 static bool check_vm_add_partition(struct k_mem_domain *domain,
 				struct k_mem_partition *part)
 {
-
 	int i;
 	uintptr_t pstart, pend, dstart, dend;
 
