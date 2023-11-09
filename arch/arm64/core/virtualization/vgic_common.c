@@ -392,7 +392,7 @@ int vgic_vdev_mem_read(struct virt_dev *vdev, arch_commom_regs_t *regs,
     int i;
 	int type = TYPE_GIC_INVAILD;
 	struct vcpu *vcpu = _current_vcpu;
-	struct vgicv3_dev *vgic = CONTAINER_OF(vdev, struct vgicv3_dev, v_dev);
+	struct vgicv3_dev *vgic = (struct vgicv3_dev *)vdev->priv_data;
 	struct virt_gic_gicd *gicd = &vgic->gicd;
 	struct virt_gic_gicr *gicr = vgic->gicr[vcpu->vcpu_id];
 
@@ -447,7 +447,7 @@ int vgic_vdev_mem_write(struct virt_dev *vdev, arch_commom_regs_t *regs,
     int i;
 	int type = TYPE_GIC_INVAILD;
 	struct vcpu *vcpu = _current_vcpu;
-	struct vgicv3_dev *vgic = CONTAINER_OF(vdev, struct vgicv3_dev, v_dev);
+	struct vgicv3_dev *vgic = (struct vgicv3_dev *)vdev->priv_data;
 	struct virt_gic_gicd *gicd = &vgic->gicd;
 	struct virt_gic_gicr *gicr = vgic->gicr[vcpu->vcpu_id];
 

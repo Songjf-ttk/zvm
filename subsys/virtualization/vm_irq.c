@@ -16,6 +16,25 @@
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
+void vm_device_irq_init(struct vm *vm, struct virt_dev *vm_dev)
+{
+    bool *bit_addr;
+    struct virt_irq_desc *desc;
+
+	/* Init virq desc for this irq */
+	desc = get_virt_irq_desc(vm->vcpus[DEFAULT_VCPU], vm_dev->virq);
+    desc->virq_flags |= VIRT_IRQ_HW;
+    desc->id = VM_VIRT_CONSOLE_IRQ;
+    desc->pirq_num = vm_dev->hirq;
+    desc->virq_num = vm_dev->virq;
+
+	/* set vm's uart irq bit */
+	bit_addr = VGIC_DATA_IBP(vm->vm_irq_block_data);
+	bit_addr[vm_dev->hirq] = true;
+
+    return 0;
+}
+
 int vm_virq_block_desc_init(struct vm *vm, void *args)
 {
     ARG_UNUSED(args);

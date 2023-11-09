@@ -14,7 +14,6 @@
 #include <arch/cpu.h>
 #include <virtualization/zvm.h>
 #include <virtualization/arm/cpu.h>
-#include <virtualization/vdev/uart.h>
 
 #define VIRT_DEV_NAME_LENGTH    (32)
 
@@ -44,6 +43,13 @@ struct virt_dev {
 
 	struct _dnode vdev_node;
 	struct vm *vm;
+    /**
+     * the device private data may be usefull,
+     * For full virtual device, it may store the emulated device.
+     * For passthrough, it store the hardware instance.
+    */
+    /* the device private data may be usefull */
+    void *priv_data;
 
     vm_vdev_write_t vm_vdev_write;
     vm_vdev_read_t  vm_vdev_read;
@@ -62,17 +68,12 @@ struct zvm_dev_lists{
 };
 
 /**
- * @brief emulate the device node that that
- * get from dts.
+ * @brief According to the device info, create a vm device for the para @vm,
+ *
 */
-struct device_descriptor {
-    uint32_t device_addr_base;
-    uint32_t device_addr_size;
-    uint16_t device_irq;
-};
-
-int vm_virt_dev_add(struct vm *vm, struct virt_dev *vdev, char *vdev_name, uint32_t pbase,
-                        uint32_t vbase, uint32_t size);
+struct virt_dev *vm_virt_dev_add(struct vm *vm, char *dev_name, bool pt_flag,
+                bool shareable, uint32_t dev_pbase, uint32_t dev_vbase,
+                    uint32_t dev_size, uint32_t dev_hirq, uint32_t dev_virq);
 
 /**
  * @brief write or read vdev for VM operation....
@@ -85,10 +86,7 @@ int vdev_mmio_abort(arch_commom_regs_t *regs, int write, uint64_t addr, uint64_t
 int vm_unmap_ptdev(struct virt_dev *vdev, uint64_t vm_dev_base,
          uint64_t vm_dev_size, struct vm *vm);
 
-int vm_monopoly_vdev_create(struct vm *vm);
-int delete_vm_monopoly_vdev(struct vm *vm, struct virt_dev *dev_info);
-
 int vm_vdev_pause(struct vcpu *vcpu);
-int vm_vdevs_init(struct vm *vm);
+int vm_device_init(struct vm *vm);
 
 #endif /* ZEPHYR_INCLUDE_ZVM_VM_DEV_H_ */

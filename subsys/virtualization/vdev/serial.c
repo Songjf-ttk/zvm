@@ -16,6 +16,7 @@
 #include <virtualization/vdev/virt_device.h>
 #include <virtualization/arm/vgic_v3.h>
 #include <virtualization/arm/vgic_common.h>
+#include <virtualization/vm_irq.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
@@ -35,37 +36,15 @@ static void vm_serial_init(const struct device *dev, struct vm *vm, struct virt_
 	struct virt_irq_desc *desc;
 	struct virt_dev_list *dev_lists;
 
-	vdev = (struct virt_dev *)k_malloc(sizeof(struct virt_dev));
-	if (!vdev) {
-        ZVM_LOG_ERR("Allocate memory for dgconsole error!\n");
-        return -EMMAO;
-    }
-
-	vdev->dev_pt_flag = true;
-	vdev->shareable = false;
-
-	ret = vm_virt_dev_add(vm, vdev, dev->name,
-		DEV_CFG(dev)->reg_base, vdev_desc->vm_vdev_paddr,
-		DEV_CFG(dev)->reg_size);
-	if(ret){
-		ZVM_LOG_WARN("Init virt dev error\n");
-        return -ENOVDEV;
+	vdev = vm_virt_dev_add(vm, dev->name, true, false, DEV_CFG(dev)->reg_base,
+					vdev_desc->vm_vdev_paddr, DEV_CFG(dev)->reg_size,
+					DEV_CFG(dev)->hirq_num, vdev_desc->virq);
+	if(!vdev){
+		ZVM_LOG_WARN("Init virt serial device error\n");
+        return;
 	}
-	/* We should find the default irq info from VM'dts later @TODO */
-    vdev->virq = vdev_desc->virq;
-    vdev->vm = vm;
-	vdev->hirq = DEV_CFG(dev)->hirq_num;
 
-	/* Init virq desc for this irq */
-	desc = get_virt_irq_desc(vm->vcpus[DEFAULT_VCPU], vdev->virq);
-    desc->virq_flags |= VIRT_IRQ_HW;
-    desc->id = VM_VIRT_CONSOLE_IRQ;
-    desc->pirq_num = vdev->hirq;
-    desc->virq_num = vdev->virq;
-
-	/* set vm's uart irq bit */
-	bit_addr = VGIC_DATA_IBP(vm->vm_irq_block_data);
-	bit_addr[vdev->hirq] = true;
+	vm_device_irq_init(vm, vdev);
 
 	vdev_irq_callback_user_data_set(dev, vm_uart_callback, vdev);
 

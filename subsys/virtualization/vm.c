@@ -423,7 +423,8 @@ int vm_delete(struct vm *vm)
     SYS_DLIST_FOR_EACH_NODE_SAFE(dev_list, d_node, ds_node){
         vdev = CONTAINER_OF(d_node, struct virt_dev, vdev_node);
         if (vdev->dev_pt_flag) {
-            ret = delete_vm_monopoly_vdev(vm, vdev);
+            /* remove vdev from vm. */
+            /////ret = delete_vm_monopoly_vdev(vm, vdev);
             /* @TODO: May need to record the pass through's count*/
             vdev->dev_pt_flag = false;
         }

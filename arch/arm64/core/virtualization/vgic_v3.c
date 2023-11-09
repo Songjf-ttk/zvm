@@ -310,9 +310,6 @@ int vgic_gicrrd_mem_write(struct vcpu *vcpu, struct virt_gic_gicr *gicr, uint32_
 	return 0;
 }
 
-/**
- * @brief Get gicr address type.
- */
 int get_vcpu_gicr_type(struct virt_gic_gicr *gicr,
 		uint32_t addr, uint32_t *offset)
 {
@@ -453,13 +450,14 @@ struct vgicv3_dev *vgicv3_dev_init(struct vm *vm)
         return NULL;
     }
 
-	gicv3_vdev->v_dev.dev_pt_flag=false;
-	gicv3_vdev->v_dev.shareable=false;
-    ret = vm_virt_dev_add(vm, &gicv3_vdev->v_dev, "vgic_v3_device", gicd_base, gicd_base, gicd_size+gicr_size);
-    if (ret) {
-        ZVM_LOG_ERR("Init virt dev error \n");
+	gicv3_vdev->v_dev = vm_virt_dev_add(vm, "vm_vgic_v3", false, false, gicd_base,
+					gicd_base, gicd_size+gicr_size, 0, 0);
+	if (!gicv3_vdev->v_dev) {
+        ZVM_LOG_ERR("Init gicv3 virt dev error! \n");
         return NULL;
     }
+	/* get the private data for this device */
+	gicv3_vdev->v_dev->priv_data = gicv3_vdev;
 
     ret = vdev_gicv3_init(vm, gicv3_vdev, gicd_base, gicd_size, gicr_base, gicr_size);
     if(ret){
@@ -467,8 +465,8 @@ struct vgicv3_dev *vgicv3_dev_init(struct vm *vm)
         return NULL;
     }
 
-    gicv3_vdev->v_dev.vm_vdev_read = vgic_vdev_mem_read;
-    gicv3_vdev->v_dev.vm_vdev_write = vgic_vdev_mem_write;
+    gicv3_vdev->v_dev->vm_vdev_read = vgic_vdev_mem_read;
+    gicv3_vdev->v_dev->vm_vdev_write = vgic_vdev_mem_write;
 	return gicv3_vdev;
 }
 

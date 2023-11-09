@@ -1,6 +1,6 @@
 /*
  * Copyright 2021-2022 HNU
- * 
+ *
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -10,9 +10,9 @@
 #include <stdint.h>
 #include <sys/dlist.h>
 #include <arch/arm64/lib_helpers.h>
-
 #include <virtualization/zvm.h>
 #include <virtualization/arm/trap_handler.h>
+#include <virtualization/vm_dev.h>
 
 /* Software irq flag */
 #define VIRQ_PENDING_FLAG		BIT(0)
@@ -72,6 +72,11 @@ struct virq_struct{
 
     struct k_spinlock spinlock;
 };
+
+/**
+ * @brief init the irq desc when add @vm_dev.
+*/
+void vm_device_irq_init(struct vm *vm, struct virt_dev *vm_dev);
 
 /**
  * @brief Get virq control block.

@@ -15,8 +15,6 @@
 #include <virtualization/os/os_zephyr.h>
 #include <virtualization/os/os_linux.h>
 #include <virtualization/vm.h>
-#include <virtualization/arm/cpu.h>
-#include <virtualization/vdev/uart.h>
 #include <virtualization/vm_dev.h>
 #include <virtualization/vdev/virt_device.h>
 
@@ -208,6 +206,8 @@ int zvm_init_idle_device(const struct device *dev, struct virt_dev *vdev,
     vm_dev->hirq = ((struct virt_device_config *)dev->config)->hirq_num;
     vm_dev->virq = VM_DEVICE_INVALID_VIRQ;
     vm_dev->vm = NULL;
+
+    vm_dev->priv_data = dev;
 
     printk("The init zvm device is %s \n", vm_dev->name);
 

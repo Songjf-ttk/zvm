@@ -64,3 +64,6 @@ todo
 
 # shell file
 *.sh
+
+# ignore Image
+zvm_config/qemu_platform/hub/*

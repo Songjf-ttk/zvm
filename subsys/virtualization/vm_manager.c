@@ -69,7 +69,7 @@ int zvm_new_guest(size_t argc, char **argv)
         return  ret;
     }
 
-	ret = vm_vdevs_init(new_vm);
+	ret = vm_device_init(new_vm);
 	if (ret) {
 		ZVM_LOG_WARN(" Init vm's virtual device error! \n");
 		return ret;

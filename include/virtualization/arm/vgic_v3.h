@@ -132,7 +132,7 @@ struct arch_gicv3_info {
  * @brief vgicv3 virtual device struct, for emulate device.
  */
 struct vgicv3_dev {
-	struct virt_dev v_dev;
+	struct virt_dev *v_dev;
 	struct virt_gic_gicd gicd;
 	struct virt_gic_gicr *gicr[CONFIG_MAX_VCPU_PER_VM];
 	int nr_lrs;
