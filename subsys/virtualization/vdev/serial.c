@@ -26,27 +26,23 @@ LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 	((struct virt_device_data *)(dev)->data)
 
 /**
- * @brief init virt device for the vm.
+ * @brief init vm serial device for the vm. Including:
+ * 1. Allocating virt device to vm, and build map.
+ * 2. Setting the device's irq for binding virt interrupt with hardware interrupt.
 */
 static void vm_serial_init(const struct device *dev, struct vm *vm, struct virt_dev *vdev_desc)
 {
 	bool *bit_addr;
 	int ret;
 	struct virt_dev *vdev;
-	struct virt_irq_desc *desc;
-	struct virt_dev_list *dev_lists;
 
-	vdev = vm_virt_dev_add(vm, dev->name, true, false, DEV_CFG(dev)->reg_base,
-					vdev_desc->vm_vdev_paddr, DEV_CFG(dev)->reg_size,
-					DEV_CFG(dev)->hirq_num, vdev_desc->virq);
+    vdev = allocate_device_to_vm(dev, vm, vdev_desc, true, false);
 	if(!vdev){
 		ZVM_LOG_WARN("Init virt serial device error\n");
         return;
 	}
 
-	vm_device_irq_init(vm, vdev);
-
-	vdev_irq_callback_user_data_set(dev, vm_uart_callback, vdev);
+	vdev_irq_callback_user_data_set(dev, vm_device_callback_func, vdev);
 
 	return 0;
 }
@@ -71,12 +67,12 @@ static const struct virt_device_api virt_serial_api = {
     .virt_irq_callback_set = virt_serial_irq_callback_set,
 #endif
 #ifdef CONFIG_UART_PORT1
-	.device_driver_api = &serial_driver_api;
+	.device_driver_api = &serial_driver_api,
 #endif
 };
 
 /**
- * The init function of serial, what will not init
+ * @brief The init function of serial, what will not init
  * the hardware device, but get the device config for
  * zvm system.
 */
@@ -97,6 +93,7 @@ void virt_serial_isr(const struct device *dev)
 
 	/* Verify if the callback has been registered */
 	if (data->irq_cb) {
+		uart_irq_update(dev);
 		data->irq_cb(dev, data->irq_cb, data->irq_cb_data);
 	}
 }

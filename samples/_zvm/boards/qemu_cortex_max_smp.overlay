@@ -8,6 +8,23 @@
 	aliases {
 		vmserial1 = "/soc/uart@9001000";
 		vmserial2 = "/soc/uart@9002000";
+        vmplatform = "/soc/platform@c000000";
+        vmfw = "/soc/fw-cfg@9020000";
+        vmvirtio1 = "/soc/virtio_mmio@a000000";
+        vmvirtio2 = "/soc/virtio_mmio@a000200";
+        vmvirtio3 = "/soc/virtio_mmio@a000400";
+        vmvirtio4 = "/soc/virtio_mmio@a000600";
+        vmvirtio5 = "/soc/virtio_mmio@a000800";
+        vmvirtio6 = "/soc/virtio_mmio@a000a00";
+        vmvirtio7 = "/soc/virtio_mmio@a000c00";
+        vmvirtio8 = "/soc/virtio_mmio@a000e00";
+        vmvirtio9 = "/soc/virtio_mmio@a001000";
+        vmvirtio10 = "/soc/virtio_mmio@a001200";
+        vmgpioctrl = "/soc/pl061@9030000";
+//        vmpcie = "/soc/pcie@10000000";
+        vmrtc = "/soc/pl031@9010000";
+        vmpmu = "/soc/pmu";
+        vmflash = "/soc/flash@0";
 	};
 
     soc {
@@ -18,6 +35,7 @@
 			interrupts = <GIC_SPI 10 IRQ_TYPE_EDGE 0>;
 			interrupt-names = "irq_0";
 			clocks = <&uartclk>;
+            status = "okay";
             current-speed = <115200>;
 			label = "UART_1";
 		};
@@ -28,12 +46,143 @@
 			interrupts = <GIC_SPI 11 IRQ_TYPE_EDGE 0>;
 			interrupt-names = "irq_0";
 			clocks = <&uartclk>;
+            status = "okay";
             current-speed = <115200>;
 			label = "UART_2";
 		};
+
+        platform@c000000 {
+            interrupt-parent = <0x8005>;
+            ranges = <0x00 0x00 0xc000000 0x2000000>;
+            #address-cells = <0x01>;
+            #size-cells = <0x01>;
+            compatible = "qemu,platform\0simple-bus";
+        };
+
+        fw-cfg@9020000 {
+            dma-coherent;
+            reg = <0x00 0x9020000 0x00 0x18>;
+            compatible = "qemu,fw-cfg-mmio";
+        };
+
+        virtio_mmio@a000000 {
+            dma-coherent;
+            interrupts = <GIC_SPI 0x10 IRQ_TYPE_EDGE 0>;
+            reg = <0x00 0xa000000 0x00 0x200>;
+            compatible = "virtio,mmio";
+        };
+
+        virtio_mmio@a000200 {
+            dma-coherent;
+            interrupts = <GIC_SPI 0x11 IRQ_TYPE_EDGE 0>;
+            reg = <0x00 0xa000200 0x00 0x200>;
+            compatible = "virtio,mmio";
+        };
+
+        virtio_mmio@a000400 {
+            dma-coherent;
+            interrupts = <GIC_SPI 0x12 IRQ_TYPE_EDGE 0>;
+            reg = <0x00 0xa000400 0x00 0x200>;
+            compatible = "virtio,mmio";
+        };
+
+        virtio_mmio@a000600 {
+            dma-coherent;
+            interrupts = <GIC_SPI 0x13 IRQ_TYPE_EDGE 0>;
+            reg = <0x00 0xa000600 0x00 0x200>;
+            compatible = "virtio,mmio";
+        };
+
+        virtio_mmio@a000800 {
+            dma-coherent;
+            interrupts = <GIC_SPI 0x14 IRQ_TYPE_EDGE 0>;
+            reg = <0x00 0xa000800 0x00 0x200>;
+            compatible = "virtio,mmio";
+        };
+
+        virtio_mmio@a000a00 {
+            dma-coherent;
+            interrupts = <GIC_SPI 0x15 IRQ_TYPE_EDGE 0>;
+            reg = <0x00 0xa000a00 0x00 0x200>;
+            compatible = "virtio,mmio";
+        };
+
+        virtio_mmio@a000c00 {
+            dma-coherent;
+            interrupts = <GIC_SPI 0x16 IRQ_TYPE_EDGE 0>;
+            reg = <0x00 0xa000c00 0x00 0x200>;
+            compatible = "virtio,mmio";
+        };
+
+        virtio_mmio@a000e00 {
+            dma-coherent;
+            interrupts = <GIC_SPI 0x17 IRQ_TYPE_EDGE 0>;
+            reg = <0x00 0xa000e00 0x00 0x200>;
+            compatible = "virtio,mmio";
+        };
+
+        virtio_mmio@a001000 {
+            dma-coherent;
+            interrupts = <GIC_SPI 0x18 IRQ_TYPE_EDGE 0>;
+            reg = <0x00 0xa001000 0x00 0x200>;
+            compatible = "virtio,mmio";
+        };
+
+        virtio_mmio@a001200 {
+            dma-coherent;
+            interrupts = <GIC_SPI 0x19 IRQ_TYPE_EDGE 0>;
+            reg = <0x00 0xa001200 0x00 0x200>;
+            compatible = "virtio,mmio";
+        };
+
+        pl061@9030000 {
+            phandle = <0x8007>;
+            clock-names = "apb_pclk";
+            clocks = <0x8000>;
+            interrupts = <GIC_SPI 0x07 IRQ_TYPE_LEVEL 0>;
+            gpio-controller;
+            #gpio-cells = <0x02>;
+            compatible = "arm,pl061\0arm,primecell";
+            reg = <0x00 0x9030000 0x00 0x1000>;
+        };
+/*
+        pcie@10000000 {
+            interrupt-map-mask = <0x1800 0x00 0x00 0x07>;
+            interrupt-map = <0x00 0x00 0x00 0x01 0x8005 0x00 0x00 0x00 0x03 0x04 0x00 0x00 0x00 0x02 0x8005 0x00 0x00 0x00 0x04 0x04 0x00 0x00 0x00 0x03 0x8005 0x00 0x00 0x00 0x05 0x04 0x00 0x00 0x00 0x04 0x8005 0x00 0x00 0x00 0x06 0x04 0x800 0x00 0x00 0x01 0x8005 0x00 0x00 0x00 0x04 0x04 0x800 0x00 0x00 0x02 0x8005 0x00 0x00 0x00 0x05 0x04 0x800 0x00 0x00 0x03 0x8005 0x00 0x00 0x00 0x06 0x04 0x800 0x00 0x00 0x04 0x8005 0x00 0x00 0x00 0x03 0x04 0x1000 0x00 0x00 0x01 0x8005 0x00 0x00 0x00 0x05 0x04 0x1000 0x00 0x00 0x02 0x8005 0x00 0x00 0x00 0x06 0x04 0x1000 0x00 0x00 0x03 0x8005 0x00 0x00 0x00 0x03 0x04 0x1000 0x00 0x00 0x04 0x8005 0x00 0x00 0x00 0x04 0x04 0x1800 0x00 0x00 0x01 0x8005 0x00 0x00 0x00 0x06 0x04 0x1800 0x00 0x00 0x02 0x8005 0x00 0x00 0x00 0x03 0x04 0x1800 0x00 0x00 0x03 0x8005 0x00 0x00 0x00 0x04 0x04 0x1800 0x00 0x00 0x04 0x8005 0x00 0x00 0x00 0x05 0x04>;
+            #interrupt-cells = <0x01>;
+            ranges = <0x1000000 0x00 0x00 0x00 0x3eff0000 0x00 0x10000 0x2000000 0x00 0x10000000 0x00 0x10000000 0x00 0x2eff0000 0x3000000 0x80 0x00 0x80 0x00 0x80 0x00>;
+            reg = <0x40 0x10000000 0x00 0x10000000>;
+            msi-parent = <&gic_ist>;
+            dma-coherent;
+            bus-range = <0x00 0xff>;
+            linux,pci-domain = <0x00>;
+            #size-cells = <0x02>;
+            #address-cells = <0x03>;
+            device_type = "pci";
+            compatible = "pci-host-ecam-generic";
+        };
+*/
+        pl031@9010000 {
+            clock-names = "apb_pclk";
+            clocks = <0x8000>;
+            interrupts = <GIC_SPI 0x02 IRQ_TYPE_LEVEL 0>;
+            reg = <0x00 0x9010000 0x00 0x1000>;
+            compatible = "arm,pl031\0arm,primecell";
+        };
+
+        pmu {
+            interrupts = <GIC_PPI 0x07 IRQ_TYPE_LEVEL 0>;
+            compatible = "arm,armv8-pmuv3";
+        };
+
+        flash@0 {
+            bank-width = <0x04>;
+            reg = <0x00 0x00 0x00 0x4000000 0x00 0x4000000 0x00 0x4000000>;
+            compatible = "cfi-flash";
+        };
+
     };
 
-    /*TODO: The device that used by vm will be added below. */
     vm_zephyr_space {
         #address-cells = <2>;
         #size-cells = <2>;
@@ -69,12 +218,4 @@
             label = "VM1_MEM";
         };
     };
-};
-
-&uart1 {
-//	status = "okay";
-};
-
-&uart2 {
-//	status = "okay";
 };

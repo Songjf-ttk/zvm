@@ -9,14 +9,36 @@ menuconfig ZVM_DEVICE_SUPPORT
 	bool "Zephyr Based Virtualization device menu"
 	default n
 	help
-	  Zephyr virtualization support.
+	  	Zephyr device virtualization support.
 
 config VM_SERIAL1
 	bool "VM serial1 that get from vm."
 	help
-	  This configuration is used for building serial1 that get from overlay.
+	  	This option is used for building serial1 that get from overlay.
 
 config VM_SERIAL2
 	bool "VM serial2 that support vm."
 	help
-	  This configuration is used for building serial2 that get from overlay.
+	  	This option is used for building serial2 that get from overlay.
+
+config VM_VIRTIO_MMIO
+	bool "VM virtio_mmio block for vm."
+	help
+		This option is selected by any subsystem which implements the virtio
+	  	mmio.
+
+if VM_VIRTIO_MMIO
+
+config VIRTIO_INTERRUPT_DRIVEN
+	bool "VM virtio interrupt driver."
+	default y
+	help
+		Enable it if system need virtio mmio interrupt.
+
+config VIRTIO_MMIO_INIT_PRIORITY
+	int "VM virtio mmio init priority."
+	default 60
+	help
+		When virtio is init, it judge the initialization priority in POST_KERNLE.
+
+endif

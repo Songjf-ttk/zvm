@@ -28,9 +28,9 @@
 #define VM_VIRT_CONSOLE_IRQ (0x02)
 #define VIRT_IRQ_INVALID_ID	(0xFF)
 
-/* For clear warning for unknow reason */
 struct vm;
 struct vcpu;
+struct virt_dev;
 
 /**
  * @brief Description for each virt irq.

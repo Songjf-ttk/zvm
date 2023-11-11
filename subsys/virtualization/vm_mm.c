@@ -126,6 +126,7 @@ static int vm_ram_mem_create(struct vm_mem_domain *vmem_domain)
         }
         pa_base = z_mem_phys_addr((void *)ROUND_UP(kpa_base, CONFIG_MMU_PAGE_SIZE));
 #else
+        ARG_UNUSED(vpart);
         ARG_UNUSED(kpa_base);
         pa_base = LINUX_VM_IMAGE_BASE;
 #endif
@@ -141,6 +142,7 @@ static int vm_ram_mem_create(struct vm_mem_domain *vmem_domain)
         }
         pa_base = z_mem_phys_addr((void *)ROUND_UP(kpa_base, CONFIG_MMU_PAGE_SIZE));
 #else
+        ARG_UNUSED(vpart);
         ARG_UNUSED(kpa_base);
         pa_base = ZEPHYR_VM_IMAGE_BASE;
 #endif

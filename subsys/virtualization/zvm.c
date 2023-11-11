@@ -209,7 +209,7 @@ int zvm_init_idle_device(const struct device *dev, struct virt_dev *vdev,
 
     vm_dev->priv_data = dev;
 
-    printk("The init zvm device is %s \n", vm_dev->name);
+    printk("Init passthrough device %s successful! \n", vm_dev->name);
 
     sys_dnode_init(&vm_dev->vdev_node);
     sys_dlist_append(&dev_list->dev_idle_list, &vm_dev->vdev_node);

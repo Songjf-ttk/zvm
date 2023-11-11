@@ -18,33 +18,6 @@
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
-void vm_uart_callback(const struct device *dev, void *cb,
-                void *user_data)
-{
-    uint32_t virq, pirq;
-    ARG_UNUSED(cb);
-    ARG_UNUSED(pirq);
-    int err = 0;
-    const struct virt_dev *vdev = (const struct virt_dev *)user_data;
-
-    uart_irq_update(dev);
-    virq = vdev->virq;
-
-    if (virq == VM_DEVICE_INVALID_VIRQ) {
-        ZVM_LOG_WARN("Invalid interrupt occur! \n");
-        return;
-    }
-    if (!vdev->vm) {
-        ZVM_LOG_WARN("VM struct not exit here!");
-        return;
-    }
-
-    err = set_virq_to_vm(vdev->vm, virq);
-    if (err < 0) {
-        ZVM_LOG_WARN("Send virq to vm error!");
-    }
-}
-
 int vm_console_create(struct vm *vm)
 {
     bool chosen_flag=false;
@@ -79,7 +52,7 @@ int vm_console_create(struct vm *vm)
         vm_device_irq_init(vm, chosen_dev);
 
         dev = (struct device *)vm_dev->priv_data;
-        vdev_irq_callback_user_data_set(dev, vm_uart_callback, chosen_dev);
+        vdev_irq_callback_user_data_set(dev, vm_device_callback_func, chosen_dev);
     }
     return 0;
 }

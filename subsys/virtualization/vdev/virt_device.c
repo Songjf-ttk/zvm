@@ -11,6 +11,7 @@
 #include <devicetree.h>
 #include <virtualization/vdev/virt_device.h>
 
+LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
 /**
  * A virt device sample that for zvm system.
@@ -42,3 +43,51 @@ DEVICE_DT_DEFINE(DT_ALIAS(serial1),
             CONFIG_SERIAL_INIT_PRIORITY,
             &serial_driver_api);
 */
+
+#define DEV_CFG(dev) \
+	((const struct virt_device_config * const)(dev)->config)
+#define DEV_DATA(dev) \
+	((struct virt_device_data *)(dev)->data)
+
+struct virt_dev *allocate_device_to_vm(const struct device *dev, struct vm *vm,
+                        struct virt_dev *vdev_desc, bool pt_flag, bool shareable)
+{
+    struct virt_dev *vdev;
+
+    vdev = vm_virt_dev_add(vm, dev->name, true, false, DEV_CFG(dev)->reg_base,
+					vdev_desc->vm_vdev_paddr, DEV_CFG(dev)->reg_size,
+					DEV_CFG(dev)->hirq_num, vdev_desc->virq);
+    if(!vdev){
+        return NULL;
+    }
+
+    vm_device_irq_init(vm, vdev);
+
+    return vdev;
+}
+
+void vm_device_callback_func(const struct device *dev, void *cb,
+                void *user_data)
+{
+    uint32_t virq, pirq;
+    ARG_UNUSED(cb);
+    ARG_UNUSED(pirq);
+    int err = 0;
+    const struct virt_dev *vdev = (const struct virt_dev *)user_data;
+
+    virq = vdev->virq;
+    if (virq == VM_DEVICE_INVALID_VIRQ) {
+        ZVM_LOG_WARN("Invalid interrupt occur! \n");
+        return;
+    }
+    if (!vdev->vm) {
+        ZVM_LOG_WARN("VM struct not exit here!");
+        return;
+    }
+
+    err = set_virq_to_vm(vdev->vm, virq);
+    if (err < 0) {
+        ZVM_LOG_WARN("Send virq to vm error!");
+    }
+
+}

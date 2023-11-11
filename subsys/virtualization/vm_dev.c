@@ -33,7 +33,7 @@ static int vm_vdev_mem_add(struct vm *vm, struct virt_dev *vdev)
 
 }
 
-struct virt_dev *vm_virt_dev_add(struct vm *vm, char *dev_name, bool pt_flag,
+struct virt_dev *vm_virt_dev_add(struct vm *vm, const char *dev_name, bool pt_flag,
                 bool shareable, uint32_t dev_pbase, uint32_t dev_vbase,
                     uint32_t dev_size, uint32_t dev_hirq, uint32_t dev_virq)
 {

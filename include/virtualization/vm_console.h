@@ -22,8 +22,6 @@
 #define VM_DEFAULT_CONSOLE_NAME     "UART"
 #define VM_DEFAULT_CONSOLE_NAME_LEN (4)
 
-void vm_uart_callback(const struct device *dev, void *cb, void *user_data);
-
 int vm_console_create(struct vm *vm);
 
 #endif /* ZEPHYR_INCLUDE_ZVM_VM_CONSOLE_H_ */

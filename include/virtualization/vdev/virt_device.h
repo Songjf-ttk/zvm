@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HNU
+ * Copyright 2023 HNU-ESNL
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -83,5 +83,21 @@ static inline void vdev_irq_callback_user_data_set(const struct device *dev,
 	}
 #endif
 }
+
+/**
+ * @brief Allocate device to vm, it will be called when device that will be
+ * allocated to vm. Then, Set the device's irq for binding virt interrupt
+ * with hardware interrupt.
+ *
+ * @return const device instance.
+*/
+struct virt_dev *allocate_device_to_vm(const struct device *dev, struct vm *vm,
+                        struct virt_dev *vdev_desc, bool pt_flag, bool shareable);
+
+/**
+ * @brief vm virt device call back function, which will be called when the device
+ * that allocated to vm is triggerd.
+*/
+void vm_device_callback_func(const struct device *dev, void *cb, void *user_data);
 
 #endif /* ZEPHYR_INCLUDE_ZVM_VDEV_VIRT_DEVICE_H_ */

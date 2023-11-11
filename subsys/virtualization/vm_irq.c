@@ -32,7 +32,6 @@ void vm_device_irq_init(struct vm *vm, struct virt_dev *vm_dev)
 	bit_addr = VGIC_DATA_IBP(vm->vm_irq_block_data);
 	bit_addr[vm_dev->hirq] = true;
 
-    return 0;
 }
 
 int vm_virq_block_desc_init(struct vm *vm, void *args)

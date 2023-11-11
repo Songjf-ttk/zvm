@@ -49,7 +49,7 @@ struct virt_dev {
      * For passthrough, it store the hardware instance.
     */
     /* the device private data may be usefull */
-    void *priv_data;
+    const void *priv_data;
 
     vm_vdev_write_t vm_vdev_write;
     vm_vdev_read_t  vm_vdev_read;
@@ -71,7 +71,7 @@ struct zvm_dev_lists{
  * @brief According to the device info, create a vm device for the para @vm,
  *
 */
-struct virt_dev *vm_virt_dev_add(struct vm *vm, char *dev_name, bool pt_flag,
+struct virt_dev *vm_virt_dev_add(struct vm *vm, const char *dev_name, bool pt_flag,
                 bool shareable, uint32_t dev_pbase, uint32_t dev_vbase,
                     uint32_t dev_size, uint32_t dev_hirq, uint32_t dev_virq);
 
