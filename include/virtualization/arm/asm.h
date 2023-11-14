@@ -11,7 +11,6 @@
 #define ARM_VM_EXCEPTION_IRQ	    BIT(1)
 #define ARM_VM_EXCEPTION_SERROR     BIT(2)
 
-/** Fault DFSC description */
 #define DFSC_FT_TRANS_L0            (0x04)
 #define DFSC_FT_TRANS_L1            (0x05)
 #define DFSC_FT_TRANS_L2            (0x06)
@@ -24,7 +23,6 @@
 #define DFSC_FT_PERM_L1             (0x0D)
 #define DFSC_FT_PERM_L2             (0x0E)
 #define DFSC_FT_PERM_L3             (0x0F)
-
 
 #define ARM_VM_SERROR_PENDING(x)	  !!((x) & (1U << 31))
 

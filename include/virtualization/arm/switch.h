@@ -10,19 +10,8 @@
 #include <kernel.h>
 #include <zephyr.h>
 #include <stdint.h>
-
 #include <virtualization/arm/cpu.h>
 #include <virtualization/vm.h>
-
-
-#define GET_HOST_LR ({	      uint64_t val;				\
-	__asm__ volatile ("mov %0 , lr"	:"=r" (val) : : );	\
-    val;                                 })
-
-
-#define SET_HOST_LR(val)  ({									\
-	__asm__ volatile ("mov x30, %0"	 :: "r" (val) : "memory");	\
-})
 
 /**
  * @brief Get the zvm host context object for context switch

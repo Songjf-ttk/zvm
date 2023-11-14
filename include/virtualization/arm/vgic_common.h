@@ -10,6 +10,8 @@
 #include <zephyr.h>
 #include <kernel.h>
 #include <devicetree.h>
+#include <virtualization/vm.h>
+#include <virtualization/arm/trap_handler.h>
 
 struct virt_dev;
 struct vm_vgic_block;

@@ -175,12 +175,6 @@
             compatible = "arm,armv8-pmuv3";
         };
 
-        flash@0 {
-            bank-width = <0x04>;
-            reg = <0x00 0x00 0x00 0x4000000 0x00 0x4000000 0x00 0x4000000>;
-            compatible = "cfi-flash";
-        };
-
     };
 
     vm_zephyr_space {

@@ -5,14 +5,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <zephyr.h>
 #include <kernel.h>
 #include <device.h>
+#include <sys/dlist.h>
 #include <drivers/uart.h>
-#include <virtualization/vm_console.h>
-#include <virtualization/vm_dev.h>
 #include <virtualization/zvm.h>
+#include <virtualization/vm_dev.h>
 #include <virtualization/vm_mm.h>
 #include <virtualization/arm/vgic_v3.h>
+#include <virtualization/vm_console.h>
 #include <virtualization/vdev/virt_device.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
@@ -83,7 +85,6 @@ int vdev_mmio_abort(arch_commom_regs_t *regs, int write, uint64_t addr,
     SYS_DLIST_FOR_EACH_NODE_SAFE(&vm->vdev_list, d_node, ds_node){
         vdev = CONTAINER_OF(d_node, struct virt_dev, vdev_node);
 
-        /* Find the addr on which vdev */
         if ((addr >= vdev->vm_vdev_paddr) && (addr < vdev->vm_vdev_paddr +
             vdev->vm_vdev_size)) {
             if (write) {
@@ -124,6 +125,49 @@ int vm_vdev_pause(struct vcpu *vcpu)
 {
     ARG_UNUSED(vcpu);
     return 0;
+}
+
+int handle_vm_device_emulate(struct vm *vm, uint64_t pa_addr)
+{
+    bool chosen_flag=false;
+    struct virt_dev *vm_dev, *chosen_dev=NULL;
+    struct zvm_dev_lists *vdev_list;
+    struct  _dnode *d_node, *ds_node;
+    const struct device *dev;
+
+    vdev_list = get_zvm_dev_lists();
+    SYS_DLIST_FOR_EACH_NODE_SAFE(&vdev_list->dev_idle_list, d_node, ds_node){
+        vm_dev = CONTAINER_OF(d_node, struct virt_dev, vdev_node);
+        /* Match the memory address ? */
+        if(pa_addr >= vm_dev->vm_vdev_paddr && pa_addr < (vm_dev->vm_vdev_paddr+vm_dev->vm_vdev_size)){
+//            printk(" \n Emulate device: %s, bass_addr: 0x%08x size: 0x%08x", vm_dev->name,
+//                    vm_dev->vm_vdev_paddr, vm_dev->vm_vdev_size);
+            chosen_flag = true;
+            break;
+        }
+    }
+
+    if(chosen_flag){
+        chosen_dev = vm_virt_dev_add(vm, vm_dev->name, true, false,
+                            vm_dev->vm_vdev_paddr, vm_dev->vm_vdev_paddr,
+                            vm_dev->vm_vdev_size, vm_dev->hirq, vm_dev->hirq);
+        if(!chosen_dev){
+            ZVM_LOG_WARN("there are no idle device %s for vm!", vm_dev->name);
+            return -ENODEV;
+        }
+        /* move device to used node! */
+        sys_dlist_remove(&vm_dev->vdev_node);
+        sys_dlist_append(&vdev_list->dev_used_list, &vm_dev->vdev_node);
+
+        vm_device_irq_init(vm, chosen_dev);
+
+        dev = (struct device *)vm_dev->priv_data;
+        vdev_irq_callback_user_data_set(dev, vm_device_callback_func, chosen_dev);
+
+        return 0;
+    }
+
+    return -ENODEV;
 }
 
 int vm_device_init(struct vm *vm)

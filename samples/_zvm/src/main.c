@@ -15,11 +15,9 @@
 #include <timing/timing.h>
 #include <sys/time_units.h>
 
-
 /* For test time slice vm change */
 int main(int argc, char **argv)
 {
-
 	printk("--Init zvm successful! --\n");
 	printk("--Ready to input shell cmd to create and build vm!--\n");
 

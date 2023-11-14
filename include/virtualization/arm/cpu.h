@@ -203,7 +203,8 @@ struct vcpu_arch {
 };
 typedef struct vcpu_arch vcpu_arch_t;
 
-/* hyp_vector function */
+/* vector and hyp_vector function */
+extern void *_vector_table[];
 extern void _hyp_vector_table(void);
 
 /**

@@ -15,19 +15,6 @@
 _ASM_FILE_PROLOGUE
 
 /*
- * Four types of exceptions:
- * - synchronous: aborts from MMU, SP/CP alignment checking, unallocated
- *   instructions, SVCs/SMCs/HVCs, ...)
- * - IRQ: group 1 (normal) interrupts
- * - FIQ: group 0 or secure interrupts
- * - SError: fatal system errors
- *
- * Four different contexts:
- * - from same exception level, when using the SP_EL0 stack pointer
- * - from same exception level, when using the SP_ELx stack pointer
- * - from lower exception level, when this is AArch64
- * - from lower exception level, when this is AArch32
- *
  * +------------------+------------------+-------------------------+
  * |     Address      |  Exception type  |       Description       |
  * +------------------+------------------+-------------------------+
@@ -55,22 +42,18 @@ _ASM_FILE_PROLOGUE
 
 GDATA(_hyp_vector_table)
 SECTION_SUBSEC_FUNC(hyp_vector_table,_vector_table_section,_hyp_vector_table)
-
 	/* The whole table must be 2K aligned */
 	.align 11
 
 	/* Current EL with SP0 / Synchronous */
 	.align 7
 	b	.
-
 	/* Current EL with SP0 / IRQ */
 	.align 7
 	b	.
-
 	/* Current EL with SP0 / FIQ */
 	.align 7
 	b 	.
-
 	/* Current EL with SP0 / SError */
 	.align 7
 	b	.
@@ -78,15 +61,12 @@ SECTION_SUBSEC_FUNC(hyp_vector_table,_vector_table_section,_hyp_vector_table)
     /* Current EL with SPx / Synchronous */
 	.align 7
 	b	z_arm64_hyp_sync_exc
-
 	/* Current EL with SPx / IRQ */
 	.align 7
 	b	z_arm64_hyp_irq_exc
-
 	/* Current EL with SPx / FIQ */
 	.align 7
 	b 	.
-
 	/* Current EL with SPx / SError */
 	.align 7
 	b	.
@@ -94,15 +74,12 @@ SECTION_SUBSEC_FUNC(hyp_vector_table,_vector_table_section,_hyp_vector_table)
 	/* Lower EL using AArch64 / Synchronous */
 	.align 7
 	b	z_arm64_hyp_sync_exc
-
 	/* Lower EL using AArch64 / IRQ */
 	.align 7
 	b	z_arm64_hyp_irq_exc
-
 	/* Lower EL using AArch64 / FIQ */
 	.align 7
 	b	.
-
 	/* Lower EL using AArch64 / SError */
 	.align 7
 	b	.
@@ -110,21 +87,20 @@ SECTION_SUBSEC_FUNC(hyp_vector_table,_vector_table_section,_hyp_vector_table)
 	/* Lower EL using AArch32 / Synchronous */
 	.align 7
 	b	.
-
 	/* Lower EL using AArch32 / IRQ */
 	.align 7
 	b	.
-
 	/* Lower EL using AArch32 / FIQ */
 	.align 7
 	b	.
-
 	/* Lower EL using AArch32 / SError */
 	.align 7
 	b	.
 
+
 GTEXT(z_arm64_hyp_sync_exc)
 SECTION_FUNC(TEXT, z_arm64_hyp_sync_exc)
+	/* using x0,x1,x18,x30 for store useful value. */
 	stp	x0, x1, [sp, #-16]!
 	stp	x18, x30, [sp, #-16]!
 
@@ -155,5 +131,4 @@ SECTION_FUNC(TEXT, z_arm64_hyp_irq_exc)
 	bl z_vm_lower_irq_handler
 
 	mov x1, #ARM_VM_EXCEPTION_IRQ
-
 	b guest_vm_exit

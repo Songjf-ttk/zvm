@@ -46,11 +46,10 @@ elif [ "$OPS" = "$ops_debug" ]; then
         -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/zephyr.bin,addr=0xf2000000,force-raw=on \
         -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/Image,addr=0xf3000000,force-raw=on \
         -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/linux-qemu-virt.dtb,addr=0xfb000000 \
-        -kernel $(pwd)/build/zephyr/zvm_host.elf -s -S
+        -kernel $(pwd)/build/zephyr/zvm_host.elf
 
-### using gdb to connect it:  ###
+### using gdb to connect it:
 # gdb-multiarch -q -ex 'file ./build/zephyr/zvm_host.elf' -ex 'target remote localhost:1234'
-
     elif [ "$PLAT" = "$plat_fvp" ]; then
 #        /opt/arm/developmentstudio-2021.2/bin/FVP_Base_Cortex-A55x4+Cortex-A75x2 	\
         /path-to/FVP_Base_RevC-2xAEMvA \

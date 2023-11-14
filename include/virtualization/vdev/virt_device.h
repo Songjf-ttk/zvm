@@ -56,7 +56,7 @@ struct virt_device_api {
     void (*virt_irq_callback_set)(const struct device *dev, void *cb, void *user_data);
 #endif
     /* Get the device driver api, if the device driver is initialed in host */
-    void *device_driver_api;
+    const void *device_driver_api;
 };
 
 /**

@@ -21,13 +21,13 @@ void vcpu_sysreg_load(struct vcpu *vcpu);
 void vcpu_sysreg_save(struct vcpu *vcpu);
 
 /**
- * @brief vm_sysreg_load aim to load guest sysreg.
+ * @brief Load guest system register.
 */
-void vm_sysreg_load(struct zvm_vcpu_context *context);
+void switch_to_guest_sysreg(struct vcpu *vcpu);
 
 /**
- * @brief vm_sysreg_save aim to save guest sysreg before exit.
+ * @brief switch_to_host_sysreg aim to save guest sysreg before exit.
  */
-void vm_sysreg_save(struct zvm_vcpu_context *context);
+void switch_to_host_sysreg(struct vcpu *vcpu);
 
 #endif /* ZEPHYR_INCLUDE_ZVM_ARM_SYSREG_H__ */

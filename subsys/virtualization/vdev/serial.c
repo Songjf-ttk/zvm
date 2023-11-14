@@ -30,16 +30,14 @@ LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
  * 1. Allocating virt device to vm, and build map.
  * 2. Setting the device's irq for binding virt interrupt with hardware interrupt.
 */
-static void vm_serial_init(const struct device *dev, struct vm *vm, struct virt_dev *vdev_desc)
+static int vm_serial_init(const struct device *dev, struct vm *vm, struct virt_dev *vdev_desc)
 {
-	bool *bit_addr;
-	int ret;
 	struct virt_dev *vdev;
 
     vdev = allocate_device_to_vm(dev, vm, vdev_desc, true, false);
 	if(!vdev){
 		ZVM_LOG_WARN("Init virt serial device error\n");
-        return;
+        return -ENODEV;
 	}
 
 	vdev_irq_callback_user_data_set(dev, vm_device_callback_func, vdev);
@@ -63,11 +61,9 @@ static const struct uart_driver_api serial_driver_api;
 
 static const struct virt_device_api virt_serial_api = {
 	.init_fn = vm_serial_init,
+	.device_driver_api = &serial_driver_api,
 #ifdef CONFIG_UART_INTERRUPT_DRIVEN
     .virt_irq_callback_set = virt_serial_irq_callback_set,
-#endif
-#ifdef CONFIG_UART_PORT1
-	.device_driver_api = &serial_driver_api,
 #endif
 };
 

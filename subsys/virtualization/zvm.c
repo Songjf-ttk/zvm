@@ -189,7 +189,7 @@ static int zvm_overall_init(void)
 }
 
 /**
- * @brief Add all the passthrough device to the zvm_overaa_list.
+ * @brief Add all the passthrough device to the zvm_overall_list.
 */
 int zvm_init_idle_device(const struct device *dev, struct virt_dev *vdev,
                             struct zvm_dev_lists *dev_list)

@@ -9,6 +9,7 @@
 #include <init.h>
 #include <device.h>
 #include <devicetree.h>
+#include <virtualization/arm/vgic_common.h>
 #include <virtualization/vdev/virt_device.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);

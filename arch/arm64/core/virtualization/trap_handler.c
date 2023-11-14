@@ -7,7 +7,6 @@
 #include <zephyr.h>
 #include <init.h>
 #include <device.h>
-
 #include <virtualization/zvm.h>
 #include <virtualization/vm_dev.h>
 #include <virtualization/arm/mm.h>
@@ -19,12 +18,8 @@
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
-
 static uint64_t wzr_reg = 0;
 
-/**
- * @brief Gets the value of the register.
- */
 static inline uint64_t* find_index_reg(uint16_t index, arch_commom_regs_t *regs)
 {
     uint64_t *value;
@@ -43,15 +38,27 @@ static int handle_ftrans_desc(int iss_dfsc, uint64_t pa_addr,
             struct esr_dabt_area *dabt, arch_commom_regs_t *regs)
 {
     int ret = 0;
+    struct vcpu *vcpu = _current_vcpu;
+
 #ifdef CONFIG_VM_DYNAMIC_MEMORY
     /* TODO: Add dynamic memory allocate. */
 #else
     uint16_t reg_index = dabt->srt;
     uint64_t *reg_value;
-    ret = -ENOVDEV;
-    ZVM_LOG_WARN("Do not support DYNAMIC MEMORY,VM's mem abort addr: %llx ! \n", pa_addr);
-    reg_value = find_index_reg(reg_index, regs);
-    *reg_value = 0xfefefefefefefefe;
+
+    /* check that if it is a device memory fault */
+    ret = handle_vm_device_emulate(vcpu->vm, pa_addr);
+    if(ret){
+        reg_value = find_index_reg(reg_index, regs);
+        *reg_value = 0xfefefefefefefefe;
+        ZVM_LOG_INFO("VM's mem abort addr: %llx ! \n", pa_addr);
+        /**
+         * if the device is allocated, whether it can be emulated
+         * by virtIO?
+        */
+    }else{
+        vcpu->arch->ctxt.regs.pc -= AARCH64_INST_ADJUST;
+    }
 #endif
     return ret;
 }
@@ -349,14 +356,10 @@ handler_failed:
 void* z_vm_lower_sync_handler(uint64_t esr_elx)
 {
     struct vcpu *vcpu = _current_vcpu;
-
-    /* May be we should update virq signal here@TODO */
     if (vcpu == NULL) {
-        /* error process here */
         ZVM_LOG_WARN("Get vcpu struct failed ");
     }
 
-	/* Get esr_elx from reg */
 	vcpu->arch->fault.esr_el2 = esr_elx;
     return (void*)vcpu;
 }
@@ -364,13 +367,10 @@ void* z_vm_lower_sync_handler(uint64_t esr_elx)
 void* z_vm_lower_irq_handler(z_arch_esf_t *esf_ctxt)
 {
     ARG_UNUSED(esf_ctxt);
-    struct vcpu *vcpu;
-
-    vcpu = _current->vcpu_struct;
+    struct vcpu *vcpu = _current_vcpu;
     if (vcpu == NULL) {
-        /* error process here */
         ZVM_LOG_WARN("Get vcpu struct failed ");
     }
 
-    return vcpu;
+    return (void *)vcpu;
 }

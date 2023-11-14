@@ -144,6 +144,8 @@ static int vm_ram_mem_create(struct vm_mem_domain *vmem_domain)
 #else
         ARG_UNUSED(vpart);
         ARG_UNUSED(kpa_base);
+        ARG_UNUSED(d_node);
+        ARG_UNUSED(ds_node);
         pa_base = ZEPHYR_VM_IMAGE_BASE;
 #endif
         break;

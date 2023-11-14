@@ -251,8 +251,8 @@ void arm_gic_eoi(unsigned int intid)
 
 #ifdef CONFIG_ZVM
 	/* For processing el2 hw timer schduler */
-	if(intid == 0x1A || intid == 0x0)
-		write_sysreg(intid, ICC_DIR_EL1);
+//	if(intid == 0x1A || intid == 0x0)
+//		write_sysreg(intid, ICC_DIR_EL1);
 #endif
 
 }
@@ -274,9 +274,11 @@ void gic_raise_sgi(unsigned int sgi_id, uint64_t target_aff,
 				   SGIR_IRM_TO_AFF, target_list);
 
 	__DSB();
-	/* In this stage, we call all the cpu except itself @TODO try to figure out why the 
-	affx cannot work well , I guess it may need to find the differece affx mechanism 
-	between qemu and fvp*/
+	/**
+	 * In this stage, we call all the cpu except itself @TODO try to figure out why the
+	 * affx cannot work well , I guess it may need to find the differece affx mechanism
+	 * between qemu and fvp.
+	*/
 	sgi_val |= BIT(40);
 	write_sysreg(sgi_val, ICC_SGI1R);
 	__ISB();

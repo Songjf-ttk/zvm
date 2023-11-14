@@ -27,43 +27,6 @@ LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 /* VM entry point */
 extern int guest_vm_entry(struct vcpu *vcpu,struct zvm_vcpu_context *context);
 
-static char *get_vhe_vector()
-{
-    extern void _vector_table();
-
-    void *_vector_addr = _vector_table;
-
-    return _vector_addr;
-}
-
-static void active_hyp_trap(struct vcpu *vcpu)
-{
-    uint64_t val;
-
-    write_hcr_el2(vcpu->arch->hcr_el2);
-    val = read_cpacr_el1();
-    val |= CPACR_EL1_TTA;
-    val &= ~CPACR_EL1_ZEN;
-    val |= CPTR_EL2_TAM;
-    val |= CPACR_EL1_FPEN_NOTRAP;
-
-    write_cpacr_el1(val);
-    write_vbar_el2((uint64_t)_hyp_vector_table);
-}
-
-static void inactive_hyp_trap(struct vcpu *vcpu)
-{
-    char* vector = NULL;
-
-    if (vcpu->arch->hcr_el2 & HCR_VSE_BIT) {
-        vcpu->arch->hcr_el2 = read_hcr_el2();
-    }
-
-    write_hcr_el2(HCR_VHE_FLAGS);
-    vector = get_vhe_vector();
-    write_vbar_el2((uint64_t)vector);
-}
-
 static void vm_disable_daif(void)
 {
     disable_debug_exceptions();
@@ -91,13 +54,11 @@ static void save_host_context(struct zvm_vcpu_context *h_ctxt, struct vcpu *vcpu
 
     /* for debugging. */
     h_ctxt->sys_regs[VCPU_MDSCR_EL1] = read_mdscr_el1();
-    h_ctxt->regs.callee_saved_regs.sp_el0 = read_sp_el0();
 }
 
 static void load_host_context(struct zvm_vcpu_context *h_ctxt)
 {
     write_mdscr_el1(h_ctxt->sys_regs[VCPU_MDSCR_EL1]);
-    write_sp_el0(h_ctxt->regs.callee_saved_regs.sp_el0);
 
     write_spsr_el1(h_ctxt->sys_regs[VCPU_SPSR_EL1]);
 }
@@ -166,10 +127,6 @@ static void arch_vm_serror_trap(struct vcpu *vcpu, int exit_code)
     }
 }
 
-/**
- * @brief Get the zvm host context object for context switch
- */
-
 void get_zvm_host_context(void)
 {
     uint64_t hostctxt_addr ;
@@ -198,23 +155,15 @@ int arch_vcpu_run(struct vcpu *vcpu)
     }
 
     h_ctxt = &vcpu->arch->host_ctxt;
-    h_ctxt->regs.lr = GET_HOST_LR;
     save_host_context(h_ctxt, vcpu);
     vm_load_pgd(vcpu->vm->arch);
-    active_hyp_trap(vcpu);
-    vcpu->arch->host_ctxt.sys_regs[VCPU_TPIDRRO_EL0] = read_tpidrro_el0();
-    write_tpidrro_el0(vcpu->arch->ctxt.sys_regs[VCPU_TPIDRRO_EL0]);
-    vm_sysreg_load(&vcpu->arch->ctxt);
+    switch_to_guest_sysreg(vcpu);
 
-    /* Jump the fire too! */
+    /* Jump to the fire too! */
     exit_type = guest_vm_entry(vcpu, h_ctxt);
 
-    vcpu->arch->ctxt.sys_regs[VCPU_TPIDRRO_EL0] = read_tpidrro_el0();
-    write_tpidrro_el0(vcpu->arch->host_ctxt.sys_regs[VCPU_TPIDRRO_EL0]);
-    vm_sysreg_save(&vcpu->arch->ctxt);
-    inactive_hyp_trap(vcpu);
+    switch_to_host_sysreg(vcpu);
     vm_save_pgd(vcpu->vm->arch);
-
     h_ctxt = &vcpu->arch->host_ctxt;
     load_host_context(h_ctxt);
 
@@ -243,9 +192,6 @@ int arch_vcpu_run(struct vcpu *vcpu)
     return ret;
 }
 
-/**
- * @brief Check before irq interrupt
- */
 void z_vm_switch_handle_pre(uint32_t irq)
 {
     bool *bit_addr;

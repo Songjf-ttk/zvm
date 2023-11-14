@@ -68,8 +68,7 @@ struct zvm_dev_lists{
 };
 
 /**
- * @brief According to the device info, create a vm device for the para @vm,
- *
+ * @brief According to the device info, create a vm device for the para @vm.
 */
 struct virt_dev *vm_virt_dev_add(struct vm *vm, const char *dev_name, bool pt_flag,
                 bool shareable, uint32_t dev_pbase, uint32_t dev_vbase,
@@ -87,6 +86,16 @@ int vm_unmap_ptdev(struct virt_dev *vdev, uint64_t vm_dev_base,
          uint64_t vm_dev_size, struct vm *vm);
 
 int vm_vdev_pause(struct vcpu *vcpu);
+
+/**
+ * @brief Handle VM's device memory access. When @pa_addr is
+ * located at a idle device, something need to do:
+ * 1. Building a stage-2 translation table for this vm, which
+ * can directly access this memory later.
+ * 2. Rerun the fault code and access the physical device memory.
+*/
+int handle_vm_device_emulate(struct vm *vm, uint64_t pa_addr);
+
 int vm_device_init(struct vm *vm);
 
 #endif /* ZEPHYR_INCLUDE_ZVM_VM_DEV_H_ */

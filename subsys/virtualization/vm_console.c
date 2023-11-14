@@ -1,5 +1,6 @@
 /*
- * Copyright 2021-2022 HNU
+ * Copyright 2021-2022 HNU-ESNL
+ * Copyright 2023 openEuler SIG-Zephyr
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -53,6 +54,8 @@ int vm_console_create(struct vm *vm)
 
         dev = (struct device *)vm_dev->priv_data;
         vdev_irq_callback_user_data_set(dev, vm_device_callback_func, chosen_dev);
+
+        return 0;
     }
-    return 0;
+    return -ENODEV;
 }
