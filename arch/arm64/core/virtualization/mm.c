@@ -435,6 +435,8 @@ static int vm_add_map(struct arm_mmu_ptables *ptables, const char *name,
 
 	key = k_spin_lock(&vm_xlat_lock);
 
+	/* size aligned to page size */
+	size = ALIGN_TO_PAGE(size);
 	__ASSERT(((virt | phys | size) & (CONFIG_MMU_PAGE_SIZE - 1)) == 0,
 		 "address/size are not page aligned\n");
 	ret = vm_set_mapping(ptables, virt, size, desc, may_overwrite, vmid);

@@ -497,7 +497,7 @@ static int vm_mem_domain_partition_remove(struct vm_mem_domain *vmem_dm)
     return ret;
 }
 
-int vm_mem_domain_init(struct vm_mem_domain *vmem_dm)
+int vm_mem_domain_partitions_add(struct vm_mem_domain *vmem_dm)
 {
     int ret = 0;
     k_spinlock_key_t key;

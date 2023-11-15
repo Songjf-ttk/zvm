@@ -177,6 +177,8 @@ int arch_vcpu_run(struct vcpu *vcpu)
         break;
 	case ARM_VM_EXCEPTION_SERROR:
         arch_vm_serror_trap(vcpu, exit_type);
+        ZVM_LOG_WARN("SError exception type in this stage....\n");
+        break;
 	default:
         exit_code = read_esr_el2();
         fault_addr = read_far_el2();

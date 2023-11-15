@@ -130,7 +130,7 @@ int vm_mem_init(struct vm *vm)
         return -EMMAO;
     }
 
-    ret = vm_mem_domain_init(vmem_dm);
+    ret = vm_mem_domain_partitions_add(vmem_dm);
     if (ret) {
         ZVM_LOG_WARN("Add partition to domain failed!, Code: %d \n", ret);
         return ret;

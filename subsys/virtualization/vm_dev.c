@@ -140,8 +140,6 @@ int handle_vm_device_emulate(struct vm *vm, uint64_t pa_addr)
         vm_dev = CONTAINER_OF(d_node, struct virt_dev, vdev_node);
         /* Match the memory address ? */
         if(pa_addr >= vm_dev->vm_vdev_paddr && pa_addr < (vm_dev->vm_vdev_paddr+vm_dev->vm_vdev_size)){
-//            printk(" \n Emulate device: %s, bass_addr: 0x%08x size: 0x%08x", vm_dev->name,
-//                    vm_dev->vm_vdev_paddr, vm_dev->vm_vdev_size);
             chosen_flag = true;
             break;
         }

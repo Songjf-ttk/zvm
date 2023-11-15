@@ -57,6 +57,7 @@ static int handle_ftrans_desc(int iss_dfsc, uint64_t pa_addr,
          * by virtIO?
         */
     }else{
+        vm_mem_domain_partitions_add(vcpu->vm->vmem_domain);
         vcpu->arch->ctxt.regs.pc -= AARCH64_INST_ADJUST;
     }
 #endif

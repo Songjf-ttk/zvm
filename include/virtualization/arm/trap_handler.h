@@ -26,7 +26,7 @@
 /* HPFAR_EL2 addr mask */
 #define HPFAR_EL2_MASK			GENMASK(39,4)
 #define HPFAR_EL2_SHIFT			(4)
-#define HPFAR_EL2_PAGE_MASK   	GENMASK(12,0)
+#define HPFAR_EL2_PAGE_MASK   	GENMASK(11,0)
 #define HPFAR_EL2_PAGE_SHIFT	(12)
 
 struct vcpu;

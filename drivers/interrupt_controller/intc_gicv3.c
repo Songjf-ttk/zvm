@@ -249,12 +249,6 @@ void arm_gic_eoi(unsigned int intid)
 	write_sysreg(intid, ICC_EOIR1_EL1);
 	isb();
 
-#ifdef CONFIG_ZVM
-	/* For processing el2 hw timer schduler */
-//	if(intid == 0x1A || intid == 0x0)
-//		write_sysreg(intid, ICC_DIR_EL1);
-#endif
-
 }
 
 void gic_raise_sgi(unsigned int sgi_id, uint64_t target_aff,

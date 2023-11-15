@@ -83,6 +83,9 @@
 #define S2_PTE_BLOCK_DESC_PU_XN			(2ULL << 53)
 #define S2_PTE_BLOCK_DESC_U_XN			(3ULL << 53)
 
+/* aliged memeory size to page */
+#define ALIGN_TO_PAGE(size)				(((size) + (CONFIG_MMU_PAGE_SIZE - 1)) & ~(CONFIG_MMU_PAGE_SIZE - 1))
+
 /**
  * @brief Mapping vpart to physical block address.
  */

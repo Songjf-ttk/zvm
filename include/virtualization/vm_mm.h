@@ -150,8 +150,8 @@ int vm_mem_domain_create(struct vm *vm);
  */
 int vm_dynmem_apart_add(struct vm_mem_domain *vmem_dm);
 
-/* Add area partition to vm memory struct */
-int vm_mem_domain_init(struct vm_mem_domain *vmem_dm);
+/* Add area partitions to vm memory domain */
+int vm_mem_domain_partitions_add(struct vm_mem_domain *vmem_dm);
 
 /* Remove area partition from the vm memory struct */
 int vm_mem_apart_remove(struct vm_mem_domain *vmem_dm);
