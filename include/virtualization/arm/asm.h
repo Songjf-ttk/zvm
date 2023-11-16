@@ -7,9 +7,10 @@
 #ifndef ZEPHYR_INCLUDE_ZVM_ARM_ASM_H_
 #define ZEPHYR_INCLUDE_ZVM_ARM_ASM_H_
 
-#define ARM_VM_EXCEPTION_SYNC	    BIT(0)
-#define ARM_VM_EXCEPTION_IRQ	    BIT(1)
-#define ARM_VM_EXCEPTION_SERROR     BIT(2)
+#define ARM_VM_EXCEPTION_SYNC	        (0x1)
+#define ARM_VM_EXCEPTION_IRQ	        (0x2)
+#define ARM_VM_EXCEPTION_SERROR         (0x3)
+#define ARM_VM_EXCEPTION_IRQ_IN_SYNC    (0x4)
 
 #define DFSC_FT_TRANS_L0            (0x04)
 #define DFSC_FT_TRANS_L1            (0x05)

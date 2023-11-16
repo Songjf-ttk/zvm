@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 HNU
+ * Copyright 2021-2022 HNU-ESNL
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -9,7 +9,6 @@
 #include <linker/sections.h>
 #include <offsets.h>
 #include <arch/cpu.h>
-
 #include <virtualization/arm/asm.h>
 
 _ASM_FILE_PROLOGUE

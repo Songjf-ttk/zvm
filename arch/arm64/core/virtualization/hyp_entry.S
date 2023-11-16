@@ -1,10 +1,11 @@
 /*
- * Copyright 2021-2022 HNU
+ * Copyright 2021-2022 HNU-ESNL
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 #include <toolchain.h>
 #include <linker/sections.h>
+#include <virtualization/arm/asm.h>
 
 #include "../include/zvm_offsets_short_arch.h"
 #include "../core/macro_priv.inc"
@@ -138,6 +139,11 @@ no_irq_exit:
 no_timing_process:
 #endif
 
+    /* If there are irq that need to process when sync occur! */
+    mrs	x0, isr_el1
+	cbz	x0, vm_isr_in_sync
+	mov x1, #ARM_VM_EXCEPTION_IRQ_IN_SYNC
+vm_isr_in_sync:
 	/* Save the vcpu info for next usage */
 	mov x0, x1
 	stp	x0, x1, [sp, #-16]!
