@@ -13,7 +13,7 @@
 #include <virtualization/os/os_zephyr.h>
 #include <virtualization/os/os_linux.h>
 #include <virtualization/zvm.h>
-#include <virtualization/arm/vgic_v3.h>
+#include <virtualization/vdev/vgic_v3.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
@@ -51,9 +51,9 @@ int zvm_new_guest(size_t argc, char **argv)
 		return ret;
 	}
 
-	ret = vm_irq_block_create(new_vm);
+	ret = vm_irq_block_init(new_vm);
 	if (ret < 0) {
-        ZVM_LOG_WARN(" Init vm's vm_irq_block_data error!\n");
+        ZVM_LOG_WARN(" Init vm's irq block error!\n");
         return ret;
     }
 
@@ -62,12 +62,6 @@ int zvm_new_guest(size_t argc, char **argv)
 		ZVM_LOG_WARN("create vcpu error! \n");
 		return -ENXIO;
 	}
-
-	ret = vm_virq_block_desc_init(new_vm, NULL);
-    if (ret) {
-        ZVM_LOG_WARN("Init vm's vm_irq_block_data error \n");
-        return  ret;
-    }
 
 	ret = vm_device_init(new_vm);
 	if (ret) {

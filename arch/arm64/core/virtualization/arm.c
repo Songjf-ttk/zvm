@@ -21,7 +21,7 @@
 #include <virtualization/arm/sysreg.h>
 #include <virtualization/arm/switch.h>
 #include <virtualization/arm/cpu.h>
-#include <virtualization/arm/vgic_v3.h>
+#include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/arm/vtimer.h>
 #include <virtualization/os/os_linux.h>
 
@@ -50,20 +50,21 @@ static bool is_basic_hardware_support(void)
     }
 }
 
-static int vcpu_vgicv3_init(struct vcpu *vcpu)
+static int vcpu_virq_init(struct vcpu *vcpu)
 {
-    struct vcpu_arch *vcpu_arch;
-    vcpu_arch = vcpu->arch;
+    struct gicv3_vcpuif_ctxt *ctxt;
 
     /* init vgicv3 context */
-    vcpu_arch->vgicv3_context = (struct gicv3_vcpuif_ctxt *)k_malloc(sizeof(struct gicv3_vcpuif_ctxt));
-    if(!vcpu->arch->vgicv3_context) {
-        ZVM_LOG_ERR("Init vcpu_arch->vgic failed");
+    ctxt = (struct gicv3_vcpuif_ctxt *)k_malloc(sizeof(struct gicv3_vcpuif_ctxt));
+    if(!ctxt) {
+        ZVM_LOG_ERR("Init vcpu context failed");
         return -ENXIO;
     }
-    memset(vcpu_arch->vgicv3_context, 0, sizeof(struct gicv3_vcpuif_ctxt));
+    memset(ctxt, 0, sizeof(struct gicv3_vcpuif_ctxt));
 
-    vcpu_gicv3_init(vcpu->arch->vgicv3_context);
+    vcpu_gicv3_init(ctxt);
+    vcpu->arch->virq_data = ctxt;
+
     return 0;
 }
 
@@ -85,14 +86,12 @@ static int vcpu_vtimer_init(struct vcpu *vcpu)
 
 static void vcpu_vgic_save(struct vcpu *vcpu)
 {
-    struct gicv3_vcpuif_ctxt *gic_ctxt = vcpu->arch->vgicv3_context;
-    vgicv3_state_save(vcpu, gic_ctxt);
+    vgicv3_state_save(vcpu, (struct gicv3_vcpuif_ctxt *)vcpu->arch->virq_data);
 }
 
 static void vcpu_vgic_load(struct vcpu *vcpu)
 {
-    struct gicv3_vcpuif_ctxt *gic_ctxt = vcpu->arch->vgicv3_context;
-    vgicv3_state_load(vcpu, gic_ctxt);
+    vgicv3_state_load(vcpu, (struct gicv3_vcpuif_ctxt *)vcpu->arch->virq_data);
 }
 
 static void vcpu_vtimer_save(struct vcpu *vcpu)
@@ -228,12 +227,6 @@ void arch_vcpu_context_load(struct vcpu *vcpu)
 #endif
 }
 
-/**
- * @brief init vcpu arch related struct here. call by vm_cpu_init
- * @param vcpu : vcpu struct
- * @return int : error code.
- */
-
 int arch_vcpu_init(struct vcpu *vcpu)
 {
     int ret = 0;
@@ -261,7 +254,7 @@ int arch_vcpu_init(struct vcpu *vcpu)
     arch_vcpu_sys_regs_init(vcpu);
     arch_vcpu_fp_regs_init(vcpu);
 
-    ret = vcpu_vgicv3_init(vcpu);
+    ret = vcpu_virq_init(vcpu);
     if(ret) {
         return ret;
     }
@@ -294,7 +287,6 @@ int zvm_arch_init(void *op)
         return -EVMODE;
     }
 
-    /* init vgicv3 system */
     ret = zvm_arch_vgic_init(op);
     if(ret) {
         ZVM_LOG_ERR("No gicv3 subsystem supported! \n");

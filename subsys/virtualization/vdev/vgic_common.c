@@ -1,5 +1,6 @@
 /*
- * Copyright 2021-2022 HNU
+ * Copyright 2021-2022 HNU-ESNL
+ * Copyright 2023 openEuler SIG-Zephyr
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -17,8 +18,8 @@
 #include <logging/log.h>
 #include <../drivers/interrupt_controller/intc_gicv3_priv.h>
 #include <virtualization/arm/cpu.h>
-#include <virtualization/arm/vgic_v3.h>
-#include <virtualization/arm/vgic_common.h>
+#include <virtualization/vdev/vgic_v3.h>
+#include <virtualization/vdev/vgic_common.h>
 #include <virtualization/zvm.h>
 #include <virtualization/vm_irq.h>
 #include <virtualization/vm_console.h>
@@ -31,12 +32,12 @@ static struct virt_irq_desc *vgic_get_virt_irq_desc(struct vcpu *vcpu, uint32_t 
 
     /* sgi virq num */
 	if (virq < VM_LOCAL_VIRQ_NR) {
-        return &vcpu->virq_struct->vcpu_virt_irq_desc[virq];
+        return &vcpu->virq_block.vcpu_virt_irq_desc[virq];
     }
 
     /* spi virq num */
     if((virq >= VM_LOCAL_VIRQ_NR) && (virq < VM_SPI_VIRQ_NR + VM_LOCAL_VIRQ_NR)) {
-        return &VGIC_DATA_VID(vm->vm_irq_block_data)[virq - VM_LOCAL_VIRQ_NR];
+		return &vm->vm_irq_block.vm_virt_irq_desc[virq - VM_LOCAL_VIRQ_NR];
     }
 
 	return NULL;
@@ -52,9 +53,8 @@ static int vgic_irq_enable(struct vcpu *vcpu, uint32_t virt_irq)
     }
 
     desc->virq_flags |= VIRT_IRQ_ENABLED;
-
 	if (virt_irq > VM_LOCAL_VIRQ_NR) {
-		if (desc->virq_flags & VIRT_IRQ_HW) {
+		if (desc->virq_flags & VIRQ_FLAG_HW) {
             if (desc->pirq_num > VM_LOCAL_VIRQ_NR)
                 irq_enable(desc->pirq_num);
             else {
@@ -79,9 +79,8 @@ static int vgic_irq_disable(struct vcpu *vcpu, uint32_t virt_irq)
 	}
 
 	desc->virq_flags &= ~VIRT_IRQ_ENABLED;
-
 	if (virt_irq > VM_LOCAL_VIRQ_NR) {
-		if (desc->virq_flags & VIRT_IRQ_HW) {
+		if (desc->virq_flags & VIRQ_FLAG_HW) {
             if (desc->pirq_num > VM_LOCAL_VIRQ_NR) {
 				irq_disable(desc->pirq_num);
 			} else {
@@ -106,7 +105,7 @@ static int virt_irq_set_type(struct vcpu *vcpu, uint32_t virt_irq, int value)
 
 	if (desc->type != value) {
 		desc->type = value;
-		if (desc->virq_flags & VIRT_IRQ_HW) {
+		if (desc->virq_flags & VIRQ_FLAG_HW) {
 			if (value) {
 				value = IRQ_TYPE_EDGE;
 			} else {
@@ -120,7 +119,6 @@ static int virt_irq_set_type(struct vcpu *vcpu, uint32_t virt_irq, int value)
 /**
  * @brief Set priority for specific virtual interrupt requests
  */
-
 static int virt_irq_set_priority(struct vcpu *vcpu, uint32_t virt_irq, int prio)
 {
 	struct virt_irq_desc *desc;
@@ -137,7 +135,7 @@ static int virt_irq_set_priority(struct vcpu *vcpu, uint32_t virt_irq, int prio)
 static int set_virt_irq(struct vcpu *vcpu, struct virt_irq_desc *desc)
 {
     k_spinlock_key_t key;
-    struct virq_struct *virq_struct = vcpu->virq_struct;
+    struct vcpu_virt_irq_block *vb = &vcpu->virq_block;
 
     if (!is_vm_irq_valid(vcpu->vm, desc->virq_flags)) {
         ZVM_LOG_WARN("VM can not recieve virq signal, \
@@ -145,18 +143,18 @@ static int set_virt_irq(struct vcpu *vcpu, struct virt_irq_desc *desc)
         return -EVIRQ;
     }
 
-    key = k_spin_lock(&virq_struct->spinlock);
+    key = k_spin_lock(&vb->spinlock);
     if (!(desc->virq_flags & VIRQ_PENDING_FLAG)) {
         desc->virq_flags |= VIRQ_PENDING_FLAG;
         if (!sys_dnode_is_linked(&desc->desc_node)) {
-            sys_dlist_append(&virq_struct->pending_irqs, &desc->desc_node);
-            virq_struct->virq_act_counts++;
+            sys_dlist_append(&vb->pending_irqs, &desc->desc_node);
+            vb->virq_act_counts++;
         }
         if (desc->virq_num < VM_LOCAL_VIRQ_NR) {
             desc->src_cpu = get_current_vcpu_id();
         }
     }
-    k_spin_unlock(&virq_struct->spinlock, key);
+    k_spin_unlock(&vb->spinlock, key);
 
 	/**
 	 * @Bug: Occur bug here: without judgement, wakeup_target_vcpu
@@ -514,10 +512,9 @@ int set_virq_to_vm(struct vm *vm, uint32_t virq_num)
     vcpu = vm->vcpus[DEFAULT_VCPU];
 
     if (virq_num < VM_LOCAL_VIRQ_NR) {
-        desc = &vcpu->virq_struct->vcpu_virt_irq_desc[virq_num];
+        desc = &vcpu->virq_block.vcpu_virt_irq_desc[virq_num];
     } else if (virq_num <= VM_SPI_VIRQ_NR + VM_LOCAL_VIRQ_NR) {
-        desc = VGIC_DATA_VID(vm->vm_irq_block_data);
-        desc = &desc[virq_num - VM_LOCAL_VIRQ_NR];
+        desc = &vm->vm_irq_block.vm_virt_irq_desc[virq_num - VM_LOCAL_VIRQ_NR];
     } else {
         ZVM_LOG_WARN("The spi num that ready to allocate is too big.");
         return -ENODEV;
@@ -534,39 +531,39 @@ int set_virq_to_vm(struct vm *vm, uint32_t virq_num)
 
 int virt_irq_sync_vgic(struct vcpu *vcpu)
 {
-	uint8_t lr_status;
+	uint8_t lr_state;
 	k_spinlock_key_t key;
 	struct virt_irq_desc *desc;
     struct _dnode *d_node, *ds_node;
-	struct virq_struct *virq_struct = vcpu->virq_struct;
+	struct vcpu_virt_irq_block *vb = &vcpu->virq_block;
 
-	key = k_spin_lock(&virq_struct->spinlock);
-	if (virq_struct->virq_act_counts == 0) {
-		k_spin_unlock(&virq_struct->spinlock, key);
+	key = k_spin_lock(&vb->spinlock);
+	if (vb->virq_act_counts == 0) {
+		k_spin_unlock(&vb->spinlock, key);
 		return 0;
 	}
 
-    SYS_DLIST_FOR_EACH_NODE_SAFE(&virq_struct->active_irqs, d_node, ds_node) {
+    SYS_DLIST_FOR_EACH_NODE_SAFE(&vb->active_irqs, d_node, ds_node) {
         desc = CONTAINER_OF(d_node, struct virt_irq_desc, desc_node);
-        lr_status = gicv3_get_lr_state(vcpu, desc);
+        lr_state = gicv3_get_lr_state(vcpu, desc);
 
-		if (lr_status == VIRT_IRQ_STATE_INACTIVE) {
+		if (lr_state == VIRQ_STATE_INVALID) {
 			if (desc->virq_flags & VIRQ_PENDING_FLAG) {
 				gicv3_update_lr(vcpu, desc, ACTION_CLEAR_VIRQ);
 				sys_dlist_remove(&desc->desc_node);
-				sys_dlist_append(&virq_struct->pending_irqs, &desc->desc_node);
+				sys_dlist_append(&vb->pending_irqs, &desc->desc_node);
 			} else {
 				gicv3_update_lr(vcpu, desc, ACTION_CLEAR_VIRQ);
-				desc->virq_states = VIRT_IRQ_STATE_INACTIVE;
+				desc->virq_states = VIRQ_STATE_INVALID;
 				desc->id = VIRT_IRQ_INVALID_ID;
 				sys_dlist_remove(&desc->desc_node);
-				virq_struct->virq_act_counts--;
+				vb->virq_act_counts--;
 			}
 		} else {
-			desc->virq_states = lr_status;
+			desc->virq_states = lr_state;
 		}
     }
-	k_spin_unlock(&virq_struct->spinlock, key);
+	k_spin_unlock(&vb->spinlock, key);
 
 	return 0;
 }
@@ -577,14 +574,14 @@ int virt_irq_flush_vgic(struct vcpu *vcpu)
 	k_spinlock_key_t key;
 	struct virt_irq_desc *desc;
     struct _dnode *d_node, *ds_node;
-	struct virq_struct *virq_struct = vcpu->virq_struct;
+	struct vcpu_virt_irq_block *vb = &vcpu->virq_block;
 
-	key = k_spin_lock(&virq_struct->spinlock);
-	if (virq_struct->virq_act_counts == 0) {
-		k_spin_unlock(&virq_struct->spinlock, key);
+	key = k_spin_lock(&vb->spinlock);
+	if (vb->virq_act_counts == 0) {
+		k_spin_unlock(&vb->spinlock, key);
 		return 0;
 	}
-    SYS_DLIST_FOR_EACH_NODE_SAFE(&virq_struct->pending_irqs, d_node, ds_node) {
+    SYS_DLIST_FOR_EACH_NODE_SAFE(&vb->pending_irqs, d_node, ds_node) {
         desc = CONTAINER_OF(d_node, struct virt_irq_desc, desc_node);
 
         if (desc->virq_flags & VIRQ_PENDING_FLAG) {
@@ -604,10 +601,10 @@ int virt_irq_flush_vgic(struct vcpu *vcpu)
             if (ret) {
                 return ret;
             }
-            desc->virq_states = VIRT_IRQ_STATE_PENDING;
+            desc->virq_states = VIRQ_STATE_PENDING;
             desc->virq_flags &= (uint32_t)~VIRQ_PENDING_FLAG;
             sys_dlist_remove(&desc->desc_node);
-            sys_dlist_append(&virq_struct->active_irqs, &desc->desc_node);
+            sys_dlist_append(&vb->active_irqs, &desc->desc_node);
             continue;
         }
         ZVM_LOG_WARN("Some thing wrong, virq-id %d is not pending but in the list. \n", desc->id);
@@ -615,7 +612,7 @@ int virt_irq_flush_vgic(struct vcpu *vcpu)
 		desc->id = VIRT_IRQ_INVALID_ID;
         sys_dlist_remove(&desc->desc_node);
     }
-	k_spin_unlock(&virq_struct->spinlock, key);
+	k_spin_unlock(&vb->spinlock, key);
 
 	return 0;
 }
@@ -627,37 +624,68 @@ struct virt_irq_desc *get_virt_irq_desc(struct vcpu *vcpu, uint32_t virq)
 
 int vm_irq_ctrlblock_create(struct device *unused, struct vm *vm)
 {
-	return vgicv3_ctrlblock_create(unused, vm);
+    ARG_UNUSED(unused);
+	struct vm_virt_irq_block *vvi_block = &vm->vm_irq_block;
+
+	if (VGIC_TYPER_LR_NUM != 0) {
+		vvi_block->flags = 0;
+		vvi_block->flags |= VIRQ_HW_SUPPORT;
+	} else {
+		ZVM_LOG_ERR("Init gicv3 failed, the hardware do not supporte it. \n");
+		return -ENODEV;
+	}
+
+	vvi_block->enabled = false;
+	vvi_block->cpu_num = CONFIG_MAX_VCPU_PER_VM;
+	vvi_block->irq_num = VM_GLOBAL_VIRQ_NR;
+	memset(vvi_block->ipi_vcpu_source, 0, sizeof(uint32_t)*CONFIG_MP_NUM_CPUS*VM_SGI_VIRQ_NR);
+	memset(vvi_block->irq_bitmap, 0, VM_GLOBAL_VIRQ_NR/0x08);
+
+	return 0;
 }
 
-int vm_virq_desc_init(struct vm *vm, void *args)
+int vm_intctrl_vdev_create(struct vm *vm)
 {
-    ARG_UNUSED(args);
-    int ret = 0;
+	int ret = 0;
+	struct vgicv3_dev *gicv3_vdev;
+
+	gicv3_vdev = vgicv3_dev_init(vm);
+	if (!gicv3_vdev) {
+		ZVM_LOG_ERR("Init gicv3 dev failed. \n");
+		return -ENODEV;
+	}
+	vm->vm_irq_block.virt_priv_date = gicv3_vdev;
+
+	return ret;
+}
+
+int vm_virq_desc_init(struct vm *vm)
+{
     int i;
     struct virt_irq_desc *desc;
 
     for (i = 0; i < VM_SPI_VIRQ_NR; i++) {
-        desc = &VGIC_DATA_VID(vm->vm_irq_block_data)[i];
+		desc = &vm->vm_irq_block.vm_virt_irq_desc[i];
 
         desc->virq_flags = VIRT_IRQ_NOUSED;
+		/* For shared irq, it shared with all cores */
         desc->vcpu_id =  DEFAULT_VCPU;
         desc->vm_id = vm->vmid;
         desc->virq_num = i;
         desc->pirq_num = i;
         desc->id = VIRT_IRQ_INVALID_ID;
-        desc->virq_states = VIRT_IRQ_STATE_INACTIVE;
+        desc->virq_states = VIRQ_STATE_INVALID;
 
         sys_dnode_init(&(desc->desc_node));
     }
 
-    return ret;
+    return 0;
 }
 
 int zvm_arch_vgic_init(void *op)
 {
 #ifdef CONFIG_GIC_V3
-	return arch_vgicv3_init(op);
+	return zvm_vgicv3_init(op);
 #else
 	/*No gicv3 init!*/
 	return -ENODEV;

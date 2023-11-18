@@ -14,7 +14,7 @@
 #include <virtualization/arm/cpu.h>
 #include <virtualization/arm/asm.h>
 #include <virtualization/arm/vtimer.h>
-#include <virtualization/arm/vgic_v3.h>
+#include <virtualization/vdev/vgic_v3.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 

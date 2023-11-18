@@ -50,6 +50,9 @@ elif [ "$OPS" = "$ops_debug" ]; then
 
 ### using gdb to connect it:
 # gdb-multiarch -q -ex 'file ./build/zephyr/zvm_host.elf' -ex 'target remote localhost:1234'
+# -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/Image,addr=0xf3000000,force-raw=on \
+# -device loader,file=/home/xiong/linux_workspace/linux-5.10.200/arch/arm64/boot/Image,addr=0xf3000000,force-raw=on \
+
     elif [ "$PLAT" = "$plat_fvp" ]; then
 #        /opt/arm/developmentstudio-2021.2/bin/FVP_Base_Cortex-A55x4+Cortex-A75x2 	\
         /path-to/FVP_Base_RevC-2xAEMvA \

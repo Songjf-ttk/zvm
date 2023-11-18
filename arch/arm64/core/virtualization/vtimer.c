@@ -11,7 +11,7 @@
 #include <arch/arm64/timer.h>
 
 #include <virtualization/arm/vtimer.h>
-#include <virtualization/arm/vgic_common.h>
+#include <virtualization/vdev/vgic_common.h>
 #include <virtualization/vm.h>
 #include <virtualization/zvm.h>
 #include <virtualization/vm_irq.h>
@@ -247,8 +247,8 @@ void simulate_timer_cntp_ctl(struct vcpu *vcpu, int read, uint64_t *value)
  */
 void arch_vcpu_timer_init(struct vcpu *vcpu)
 {
+	bool *bit_addr;
 	struct virt_timer_context *ctxt;
-	struct vm *vm;
 
 	/* Default vcpu, get the count as offset */
 	if (vcpu->vcpu_id == 0) {
@@ -274,11 +274,8 @@ void arch_vcpu_timer_init(struct vcpu *vcpu)
 	init_virt_timer_timeout(&ctxt->vtimer_timeout, virt_vtimer_expiry);
 	init_virt_timer_timeout(&ctxt->ptimer_timeout, virt_ptimer_expiry);
 
-	vm = vcpu->vm;
-	bool *bit_addr = VGIC_DATA_IBP(vm->vm_irq_block_data);
+	bit_addr = vcpu->vm->vm_irq_block.irq_bitmap;
 	bit_addr[ctxt->virt_virq] = true;
-
-	bit_addr = VGIC_DATA_IBP(vm->vm_irq_block_data);
 	bit_addr[ctxt->virt_pirq] = true;
 }
 

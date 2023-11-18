@@ -1,5 +1,6 @@
 /*
- * Copyright 2021-2022 HNU
+ * Copyright 2021-2022 HNU-ESNL
+ * Copyright 2023 openEuler SIG-Zephyr
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -9,7 +10,7 @@
 #include <init.h>
 #include <device.h>
 #include <devicetree.h>
-#include <virtualization/arm/vgic_common.h>
+#include <virtualization/vdev/vgic_common.h>
 #include <virtualization/vdev/virt_device.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);

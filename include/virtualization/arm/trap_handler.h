@@ -11,17 +11,11 @@
 #include <zephyr.h>
 #include <arch/arm64/exc.h>
 
-
 #define VM_SGI_VIRQ_NR		(16)
 #define VM_PPI_VIRQ_NR		(16)
 #define VM_SPI_VIRQ_NR 		(224)
 
-#define VM_LOCAL_VIRQ_NR	(VM_SGI_VIRQ_NR + VM_PPI_VIRQ_NR)
-#define VM_GLOBAL_VIRQ_NR   (VM_LOCAL_VIRQ_NR + VM_SPI_VIRQ_NR)
-
-
 #define   AARCH64_INST_ADJUST    (0x04)
-
 
 /* HPFAR_EL2 addr mask */
 #define HPFAR_EL2_MASK			GENMASK(39,4)

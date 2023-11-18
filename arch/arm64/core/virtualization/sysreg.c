@@ -11,7 +11,7 @@
 #include <arch/arm64/lib_helpers.h>
 #include <virtualization/arm/cpu.h>
 #include <virtualization/vm.h>
-#include <virtualization/arm/vgic_v3.h>
+#include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/arm/switch.h>
 #include <virtualization/arm/sysreg.h>
 
@@ -84,6 +84,15 @@ void switch_to_guest_sysreg(struct vcpu *vcpu)
     struct zvm_vcpu_context *gcontext = &vcpu->arch->ctxt;
     struct zvm_vcpu_context *hcontext = &vcpu->arch->host_ctxt;
 
+    /* save host context */
+    hcontext->running_vcpu = vcpu;
+    hcontext->sys_regs[VCPU_SPSR_EL1] = read_spsr_el1();
+    hcontext->sys_regs[VCPU_MDSCR_EL1] = read_mdscr_el1();
+
+    /* load stage-2 pgd for vm */
+    write_vtcr_el2(vcpu->vm->arch->vtcr_el2);
+    write_vttbr_el2(vcpu->vm->arch->vttbr);
+
     /* enable hyperviosr trap */
     write_hcr_el2(vcpu->arch->hcr_el2);
     reg_val = read_cpacr_el1();
@@ -98,7 +107,7 @@ void switch_to_guest_sysreg(struct vcpu *vcpu)
     write_elr_el2(gcontext->regs.pc);
     write_spsr_el2(gcontext->regs.pstate);
 
-    reg_val = vcpu->arch->vgicv3_context->icc_ctlr_el1;
+    reg_val = ((struct gicv3_vcpuif_ctxt *)vcpu->arch->virq_data)->icc_ctlr_el1;
     reg_val &= ~(0x02);
     write_sysreg(reg_val, ICC_CTLR_EL1);
 
@@ -117,7 +126,7 @@ void switch_to_host_sysreg(struct vcpu *vcpu)
     gcontext->regs.pc = read_elr_el2();
     gcontext->regs.pstate = read_spsr_el2();
 
-    reg_val = vcpu->arch->vgicv3_context->icc_ctlr_el1;
+    reg_val = ((struct gicv3_vcpuif_ctxt *)vcpu->arch->virq_data)->icc_ctlr_el1;
     reg_val |= (0x02);
     write_sysreg(reg_val, ICC_CTLR_EL1);
 
@@ -130,4 +139,11 @@ void switch_to_host_sysreg(struct vcpu *vcpu)
     write_hcr_el2(HCR_VHE_FLAGS);
     write_vbar_el2((uint64_t)_vector_table);
 
+    /* save vm's stage-2 pgd */
+    vcpu->vm->arch->vtcr_el2 = read_vtcr_el2();
+    vcpu->vm->arch->vttbr = read_vttbr_el2();
+
+    /* load host context */
+    write_mdscr_el1(hcontext->sys_regs[VCPU_MDSCR_EL1]);
+    write_spsr_el1(hcontext->sys_regs[VCPU_SPSR_EL1]);
 }

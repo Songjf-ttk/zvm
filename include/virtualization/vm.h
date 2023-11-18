@@ -12,7 +12,6 @@
 #include <stdint.h>
 #include <kernel/thread.h>
 #include <kernel_structs.h>
-
 #include <virtualization/zvm.h>
 #include <virtualization/os/os.h>
 #include <virtualization/vm_irq.h>
@@ -84,37 +83,33 @@ struct zvm_host_data {
 
 /**
  * @brief Information describes vcpu.
- *
- * version: V1.0:
- *    Just support one vcpu bind to one thread.
- *
  *  @TODO We support SMP later.
  */
 struct vcpu {
     struct vcpu_arch *arch;
     bool resume_signal;
     bool waitq_flag;
-    uint16_t vcpu_id;
 
-    /* corresponding physical cpu */
+    uint16_t vcpu_id;
     uint16_t cpu;
     uint16_t vcpu_state;
-
-    struct vm *vm;
-    struct vcpu_work *work;
 
     /* vcpu timers record*/
     uint32_t hcpu_cycles;
     uint32_t runnig_cycles;
     uint32_t paused_cycles;
 
+    /* virt irq block for this vcpu */
+    struct vcpu_virt_irq_block virq_block;
+
+    struct vcpu *next_vcpu;
+    struct vcpu_work *work;
+    struct vm *vm;
+
     /* vcpu's thread wait queue */
     _wait_q_t *t_wq;
 
-    /* virq struct for this vcpu */
-    struct virq_struct *virq_struct;
-    struct _dnode vcpu_lists;
-    struct vcpu *next_vcpu;
+    sys_dlist_t vcpu_lists;
 };
 typedef struct vcpu vcpu_t;
 
@@ -181,23 +176,22 @@ struct vm {
     uint32_t vm_status;
 	uint32_t vcpu_num;
     uint32_t vtimer_offset;
-    struct vcpu **vcpus;
 
-    /* virtual memory space that allocate to this vm */
+    struct vm_vcpu_num vm_vcpu_id;
+    struct vm_virt_irq_block vm_irq_block;
+
+    struct k_spinlock spinlock;
+
+    struct vcpu **vcpus;
+    struct vm_arch *arch;
     struct vm_mem_domain *vmem_domain;
     struct os *os;
 
     /* bind the vm and the os type ops */
     struct zvm_ops *ops;
-    struct vm_arch *arch;
 
     /* store the vm's dev list */
     sys_dlist_t vdev_list;
-    struct vm_vcpu_num vm_vcpu_id;
-
-    /* vm irq control block */
-    void *vm_irq_block_data;
-    struct k_spinlock spinlock;
 };
 
 int vm_ops_init(struct vm *vm);
@@ -221,7 +215,6 @@ int vm_vcpus_init(struct vm *vm);
 int vm_vcpus_run(struct vm *vm);
 int vm_vcpus_pause(struct vm *vm);
 int vm_vcpus_halt(struct vm *vm);
-int vm_irq_block_create(struct vm *vm);
 int vm_delete(struct vm *vm);
 
 /**

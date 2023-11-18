@@ -13,12 +13,10 @@
 #include <spinlock.h>
 #include <drivers/interrupt_controller/gic.h>
 #include <arch/arm64/sys_io.h>
-
 #include <virtualization/vm_dev.h>
 #include <virtualization/vm_irq.h>
 #include <virtualization/zvm.h>
-#include <virtualization/arm/vgic_common.h>
-
+#include <virtualization/vdev/vgic_common.h>
 
 /* SGI mode */
 #define SGI_SIG_TO_LIST		(0)
@@ -27,13 +25,6 @@
 /* vgic macro here */
 #define VGIC_MAX_VCPU       64
 #define VGIC_UNDEFINE_ADDR  0xFFFFFFFF
-
-/* hardware registr state */
-#define VIRT_IRQ_STATE_INACTIVE		        (0b00)
-#define VIRT_IRQ_STATE_PENDING		        (0b01)
-#define VIRT_IRQ_STATE_ACTIVE		        (0b10)
-#define VIRT_IRQ_STATE_ACTIVE_AND_PENDING	(0b11)
-#define VIRT_IRQ_STATE_MASK                 (0b11)
 
 /* vgic action */
 #define ACTION_CLEAR_VIRQ	    BIT(0)
@@ -53,6 +44,12 @@
 #define GICH_HCR_LRENPIE  		(1 << 2)
 #define GICH_HCR_NPIE     		(1 << 3)
 
+/* list register */
+#define LIST_REG_GTOUP0			(0)
+#define LIST_REG_GROUP1			(1)
+#define LIST_REG_NHW_VIRQ		(0)
+#define LIST_REG_HW_VIRQ		(1)
+
 /* 在枚举中定义常量和标签的宏的名称都是大写的 */
 /* System support list reg count */
 enum {
@@ -68,7 +65,7 @@ enum {
 };
 
 /**
- * @brief vcpu vgicv3 vcpu interface.
+ * @brief vcpu vgicv3 register interface.
  */
 struct gicv3_vcpuif_ctxt {
    	uint64_t ich_lr0_el2;
@@ -95,9 +92,11 @@ struct gicv3_vcpuif_ctxt {
 };
 
 /**
- * @brief gicv3_lr register bit field.
+ * @brief gicv3_list_reg register bit field, which
+ * provides interrupt context information for the virtual
+ * CPU interface.
  */
-struct gicv3_lr{
+struct gicv3_list_reg {
 	uint64_t vINTID 	: 32;
 	uint64_t pINTID 	: 13;
 	uint64_t res0 		: 3;
@@ -107,25 +106,6 @@ struct gicv3_lr{
 	uint64_t group 		: 1;
 	uint64_t hw 		: 1;
 	uint64_t state 		: 2;
-};
-
-/**
- * @brief zvm gic info description
- */
-struct arch_gicv3_info {
-
-	/* number of list rigester array */
-    uint32_t lr_nums;
-
-    /* lowest prio level */
-    uint32_t prio_num;
-
-	/* list register control */
-    uint64_t ich_vtr_el2;
-
-	struct virt_gic_gicd gicd;
-	struct virt_gic_gicr *gicr[CONFIG_MAX_VCPU_PER_VM];
-
 };
 
 /**
@@ -200,25 +180,19 @@ int vgic_gicrrd_mem_write(struct vcpu *vcpu, struct virt_gic_gicr *gicr,
 int get_vcpu_gicr_type(struct virt_gic_gicr *gicr, uint32_t addr, uint32_t *offset);
 
 /**
- * @brief Init vgicv3 when ZVM module init.
- */
-int arch_vgicv3_init(void *op);
-
-
-/**
  * @brief raise a sgi signal to a vcpu.
  */
 int vgicv3_raise_sgi(struct vcpu *vcpu, unsigned long sgi_value);
 
 /**
- * @brief Create vm's interrupt controller.
- */
-int vm_intctrl_vdev_create(struct vm *vm);
+ * @brief init vgicv3 device for the vm.
+*/
+struct vgicv3_dev *vgicv3_dev_init(struct vm *vm);
 
 /**
- * @brief init virq control block for this vm.
+ * @brief Init vgicv3 when ZVM module init.
  */
-int vgicv3_ctrlblock_create(struct device *unused, struct vm *vm);
+int zvm_vgicv3_init(void *op);
 
 
 static ALWAYS_INLINE uint64_t gicv3_read_lr(uint8_t list_register)

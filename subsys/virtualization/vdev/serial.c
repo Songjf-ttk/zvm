@@ -14,8 +14,8 @@
 #include <virtualization/zvm.h>
 #include <virtualization/vm_console.h>
 #include <virtualization/vdev/virt_device.h>
-#include <virtualization/arm/vgic_v3.h>
-#include <virtualization/arm/vgic_common.h>
+#include <virtualization/vdev/vgic_v3.h>
+#include <virtualization/vdev/vgic_common.h>
 #include <virtualization/vm_irq.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);

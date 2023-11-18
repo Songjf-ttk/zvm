@@ -197,9 +197,8 @@ struct vcpu_arch {
     /* Exception information. */
     struct vcpu_fault_info fault;
 
-    struct gicv3_vcpuif_ctxt *vgicv3_context;
     struct virt_timer_context *vtimer_context;
-
+    void *virq_data;
 };
 typedef struct vcpu_arch vcpu_arch_t;
 
@@ -213,7 +212,7 @@ extern void _hyp_vector_table(void);
 int zvm_arch_init(void *op);
 
 /**
- * @brief For init vcpu content before run vcpu.
+ * @brief init vcpu arch related struct here.
  */
 int arch_vcpu_init(struct vcpu *vcpu);
 void arch_vcpu_context_save(struct vcpu *vcpu);

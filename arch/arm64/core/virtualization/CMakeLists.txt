@@ -9,8 +9,6 @@ zephyr_library_sources(
   hyp_vector.S
   arm.c
   mm.c
-  vgic_common.c
-  vgic_v3.c
   vtimer.c
   trap_handler.c
   switch.c

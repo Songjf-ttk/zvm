@@ -16,7 +16,6 @@
 #include <sys/printk.h>
 #include <toolchain/common.h>
 #include <sys/util.h>
-
 #include <virtualization/os/os.h>
 
 
@@ -212,7 +211,6 @@ void zvm_info_print(struct zvm_hwsys_info *sys_info);
 struct zvm_dev_lists* get_zvm_dev_lists(void);
 
 int vm_create(struct z_vm_info *zvi, struct vm *vm);
-int remove_vm_virq_chip(struct vm *vm);
 int load_os_image(struct vm *vm);
 
 static ALWAYS_INLINE int rt_get_idle_cpu(void){

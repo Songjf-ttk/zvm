@@ -15,16 +15,18 @@
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
-
 /**
- * @brief Construct a new vcpu virt desc object
+ * @brief Construct a new vcpu virt irq block. Setting
+ * a default description.
+ * @TODO: all the local irq is inited here, may should be
+ * init when vtimer init.
  */
-static void init_vcpu_virt_irq_desc(struct virq_struct *virq_struct)
+static void init_vcpu_virt_irq_desc(struct vcpu_virt_irq_block *virq_block)
 {
     int i;
     struct virt_irq_desc *desc;
     for(i = 0; i < VM_LOCAL_VIRQ_NR; i++){
-        desc = &virq_struct->vcpu_virt_irq_desc[i];
+        desc = &virq_block->vcpu_virt_irq_desc[i];
         desc->id = 0;
         desc->pirq_num = i;
         desc->virq_num = i;
@@ -328,10 +330,10 @@ int z_vcpu_run(struct vcpu *vcpu)
 int vcpu_irq_exit(struct vcpu *vcpu)
 {
     bool pend, active;
-	struct virq_struct *vs = vcpu->virq_struct;
+	struct vcpu_virt_irq_block *vb = &vcpu->virq_block;
 
-	pend = sys_dlist_is_empty(&vs->pending_irqs);
-	active = sys_dlist_is_empty(&vs->active_irqs);
+	pend = sys_dlist_is_empty(&vb->pending_irqs);
+	active = sys_dlist_is_empty(&vb->active_irqs);
 
 	return !(pend && active);
 }
@@ -341,7 +343,6 @@ static int created_vm_num = 0;
 struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name)
 {
     uint16_t vm_prio;
-    uint64_t tmp_addr;          /* For processing strange bug in init_vcpu_virt_irq_desc() */
     int pcpu_num;
     struct vcpu *vcpu;
     struct vcpu_work *vwork;
@@ -359,27 +360,16 @@ struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name)
         return  NULL;
     }
 
-    vcpu->virq_struct = (struct virq_struct *)\
-            k_malloc(sizeof(struct virq_struct));
-    if (!vcpu->virq_struct) {
-        ZVM_LOG_ERR("Init vcpu->virq_struct failed");
-        k_free(vcpu);
-        return  NULL;
-    }
-    vcpu->virq_struct->virq_act_counts = 0;
-    sys_dlist_init(&vcpu->virq_struct->pending_irqs);
-    sys_dlist_init(&vcpu->virq_struct->active_irqs);
-    ZVM_SPINLOCK_INIT(&vcpu->virq_struct->spinlock);
-
-    /* Bug: we must use tmp_addr to get this address. */
-    tmp_addr = (uint64_t)vcpu->virq_struct;
-    init_vcpu_virt_irq_desc(vcpu->virq_struct);
-    vcpu->virq_struct = (struct virq_struct *)tmp_addr;
+    /* init vcpu irq block. */
+    vcpu->virq_block.virq_act_counts = 0;
+    sys_dlist_init(&vcpu->virq_block.pending_irqs);
+    sys_dlist_init(&vcpu->virq_block.active_irqs);
+    ZVM_SPINLOCK_INIT(&vcpu->virq_block.spinlock);
+    init_vcpu_virt_irq_desc(&vcpu->virq_block);
 
     if (vm->is_rtos) {
         vm_prio = VCPU_RT_PRIO;
-    }
-    else{
+    }else{
         vm_prio = VCPU_NORT_PRIO;
     }
     vcpu->vm = vm;

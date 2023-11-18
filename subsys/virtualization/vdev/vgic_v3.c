@@ -1,5 +1,6 @@
 /*
- * Copyright 2021-2022 HNU
+ * Copyright 2021-2022 HNU-ESNL
+ * Copyright 2023 openEuler SIG-Zephyr
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -15,25 +16,21 @@
 #include <drivers/interrupt_controller/gic.h>
 #include <logging/log.h>
 #include <../drivers/interrupt_controller/intc_gicv3_priv.h>
-
 #include <virtualization/arm/cpu.h>
-#include <virtualization/arm/vgic_v3.h>
-#include <virtualization/arm/vgic_common.h>
+#include <virtualization/vdev/vgic_v3.h>
+#include <virtualization/vdev/vgic_common.h>
 #include <virtualization/zvm.h>
 #include <virtualization/vm_irq.h>
 #include <virtualization/vm_console.h>
 
-
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
-
-static struct arch_gicv3_info overall_gicv3_info;
 
 /**
  * @brief load list register for vcpu interface.
  */
 static void vgicv3_lrs_load(struct gicv3_vcpuif_ctxt *ctxt)
 {
-    uint32_t rg_cout = overall_gicv3_info.lr_nums;
+    uint32_t rg_cout = VGIC_TYPER_LR_NUM;
 
     if (rg_cout > vgicv3_lrs_count) {
         ZVM_LOG_WARN("System list registers do not support! \n");
@@ -65,7 +62,7 @@ static void vgicv3_lrs_load(struct gicv3_vcpuif_ctxt *ctxt)
 
 static void vgicv3_prios_load(struct gicv3_vcpuif_ctxt *ctxt)
 {
-    uint32_t rg_cout = overall_gicv3_info.prio_num;
+    uint32_t rg_cout = VGIC_TYPER_PRIO_NUM;
 
     switch (rg_cout) {
 	case 7:
@@ -94,7 +91,7 @@ static void vgicv3_ctrls_load(struct gicv3_vcpuif_ctxt *ctxt)
 
 static void vgicv3_lrs_save(struct gicv3_vcpuif_ctxt *ctxt)
 {
-	uint32_t rg_cout = overall_gicv3_info.lr_nums;
+	uint32_t rg_cout = VGIC_TYPER_LR_NUM;
 
     if (rg_cout > vgicv3_lrs_count) {
         ZVM_LOG_WARN("System list registers do not support! \n");
@@ -126,7 +123,7 @@ static void vgicv3_lrs_save(struct gicv3_vcpuif_ctxt *ctxt)
 
 static void vgicv3_prios_save(struct gicv3_vcpuif_ctxt *ctxt)
 {
-    uint32_t rg_cout = overall_gicv3_info.prio_num;
+    uint32_t rg_cout = VGIC_TYPER_PRIO_NUM;
 
 	switch (rg_cout) {
 	case 7:
@@ -157,18 +154,19 @@ static void vgicv3_ctrls_save(struct gicv3_vcpuif_ctxt *ctxt)
 int gicv3_inject_virq(struct vcpu *vcpu, struct virt_irq_desc *desc)
 {
 	uint64_t value = 0;
-	struct gicv3_lr *lr = (struct gicv3_lr *)&value;
+	struct gicv3_list_reg *lr = (struct gicv3_list_reg *)&value;
 
-	if (desc->id >= overall_gicv3_info.lr_nums) {
+	if (desc->id >= VGIC_TYPER_LR_NUM) {
 		ZVM_LOG_WARN("invalid virq id %d\n", desc->id);
 		return -EINVAL;
 	}
 	lr->vINTID = desc->virq_num;
 	lr->pINTID = desc->pirq_num;
 	lr->priority = desc->prio;
-	lr->group = 0x01;
-	lr->hw = 0x01;  /* !!(desc->virq_flags & VIRT_IRQ_HW) */
-	lr->state = 0x01;
+//	lr->nmi = 0;
+	lr->group = LIST_REG_GROUP1;
+	lr->hw = LIST_REG_HW_VIRQ;
+	lr->state = VIRQ_STATE_PENDING; //desc->virq_states;
 
 	gicv3_write_lr(desc->id, value);
 	return 0;
@@ -178,7 +176,7 @@ uint8_t gicv3_get_lr_state(struct vcpu *vcpu, struct virt_irq_desc *virq)
 {
 	uint64_t value;
 
-	if (virq->id >=  overall_gicv3_info.lr_nums) {
+	if (virq->id >=  VGIC_TYPER_LR_NUM) {
 		return 0;
 	}
 	value = gicv3_read_lr(virq->id);
@@ -191,7 +189,7 @@ int gicv3_update_lr(struct vcpu *vcpu, struct virt_irq_desc *desc, int action)
 {
 	ARG_UNUSED(vcpu);
 	int ret = 0;
-	if (!desc || desc->id >= overall_gicv3_info.lr_nums) {
+	if (!desc || desc->id >= VGIC_TYPER_LR_NUM) {
 		return -ENODEV;
 	}
 
@@ -363,8 +361,6 @@ int vgicv3_state_save(struct vcpu *vcpu, struct gicv3_vcpuif_ctxt *ctxt)
  */
 int vcpu_gicv3_init(struct gicv3_vcpuif_ctxt *ctxt)
 {
-    int ret = 0;
-    ARG_UNUSED(ret);
 
     ctxt->icc_sre_el1 = 0x07;
 	ctxt->icc_ctlr_el1 = read_sysreg(ICC_CTLR_EL1);
@@ -470,72 +466,8 @@ struct vgicv3_dev *vgicv3_dev_init(struct vm *vm)
 	return gicv3_vdev;
 }
 
-int vgicv3_ctrlblock_create(struct device *unused, struct vm *vm)
-{
-    ARG_UNUSED(unused);
-	uint32_t gic_flags = 0;
-	struct vm_vgic_block *this_block;
-
-	this_block = (struct vm_vgic_block *)k_malloc(sizeof(struct vm_vgic_block));
-	if (!this_block) {
-		ZVM_LOG_ERR("Allocat memory for vm_irq_block error \n");
-        return -ENODEV;
-	}
-
-	if (overall_gicv3_info.lr_nums != 0) {
-		gic_flags |= VIRQ_HW_SUPPORT;
-		this_block->flags = gic_flags;
-	} else {
-		ZVM_LOG_ERR("Init gicv3 failed, the hardware do not supporte it. \n");
-		return -ENODEV;
-	}
-
-	/* allocate virq desc for each spi */
-    this_block->vm_virt_irq_desc = (struct virt_irq_desc *)k_malloc(VM_SPI_VIRQ_NR * sizeof(struct virt_irq_desc));
-    if (this_block->vm_virt_irq_desc == NULL) {
-        ZVM_LOG_WARN("Allocate virt_irq_desc struct error!");
-        return -EMMAO;
-    }
-
-	this_block->enabled = false;
-	this_block->cpu_num = CONFIG_MAX_VCPU_PER_VM;
-	this_block->irq_num = VM_GLOBAL_VIRQ_NR;
-	memset(&this_block->irq_target, 0, sizeof(uint32_t)*VM_SPI_VIRQ_NR);
-	memset(this_block->sgi_vcpu_source, 0, sizeof(uint32_t)*CONFIG_MP_NUM_CPUS*VM_SGI_VIRQ_NR);
-	memset(this_block->irq_bitmap, 0, VM_GLOBAL_VIRQ_NR/0x08);
-
-	vm->vm_irq_block_data = this_block;
-	return 0;
-
-}
-
-int vm_intctrl_vdev_create(struct vm *vm)
-{
-	int ret = 0;
-	struct vgicv3_dev *gicv3_vdev;
-
-	gicv3_vdev = vgicv3_dev_init(vm);
-	if (!gicv3_vdev) {
-		ZVM_LOG_ERR("Init gicv3 dev failed. \n");
-		return -ENODEV;
-	}
-	VGIC_DATA_VGD(vm->vm_irq_block_data) = gicv3_vdev;
-
-	return ret;
-}
-
-/**
- * @brief Init vgicv3 when ZVM module init.
- */
-int arch_vgicv3_init(void *op)
+int zvm_vgicv3_init(void *op)
 {
 	ARG_UNUSED(op);
-	uint64_t ich_vtr_el2;
-
-	ich_vtr_el2 = read_sysreg(ICH_VTR_EL2);
-    overall_gicv3_info.lr_nums = (ich_vtr_el2 & 0x1f) + 1;
-    overall_gicv3_info.prio_num = ((ich_vtr_el2>>29) & 0x7) + 1;
-    overall_gicv3_info.ich_vtr_el2 = ich_vtr_el2;
-
 	return 0;
 }

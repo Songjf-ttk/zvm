@@ -14,7 +14,6 @@
 #include <virtualization/arm/trap_handler.h>
 
 struct virt_dev;
-struct vm_vgic_block;
 
 #define VGIC_CONTROL_BLOCK_ID		vgic_control_block
 #define VGIC_CONTROL_BLOCK_NAME		vm_irq_control_block
@@ -39,14 +38,14 @@ struct vm_vgic_block;
 /* Vgic control block flag */
 #define VIRQ_HW_SUPPORT		BIT(1)
 
-#define VGIC_DATA_IBP(data)		((struct vm_vgic_block *)data)->irq_bitmap
-#define VGIC_DATA_VID(data) 	((struct vm_vgic_block *)data)->vm_virt_irq_desc
-#define VGIC_DATA_VGD(data) 	((struct vm_vgic_block *)data)->vgic_data
-
 #define VGIC_VIRQ_IN_SGI		(0x0)
 #define VGIC_VIRQ_IN_PPI		(0x1)
 #define VGIC_VIRQ_LEVEL_SORT(irq)	((irq)/VM_LOCAL_VIRQ_NR)
 
+/* VGIC Type for virtual interrupt control */
+#define VGIC_TYPER_REGISTER		(read_sysreg(ICH_VTR_EL2))
+#define VGIC_TYPER_LR_NUM 		((VGIC_TYPER_REGISTER & 0x1f) + 1)
+#define VGIC_TYPER_PRIO_NUM		(((VGIC_TYPER_REGISTER >> 29) & 0x07) + 1)
 
 struct virt_gic_gicd {
 	uint32_t gicd_ctlr;
@@ -104,44 +103,13 @@ __subsystem struct vgic_common_api {
 
 };
 
-
 typedef int (*vm_irq_exit_t)(struct device *dev, struct vcpu *vcpu, void *data);
 
 typedef int (*vm_irq_enter_t)(struct device *dev, struct vcpu *vcpu, void *data);
 
-
 __subsystem struct vm_irq_handler_api {
     vm_irq_exit_t irq_exit_from_vm;
     vm_irq_enter_t irq_enter_to_vm;
-};
-
-/**
- * @brief vcpu vgic control block.
- */
-struct vcpu_vgic_block {
-
-};
-
-struct vm_vgic_block {
-
-	bool enabled;
-	bool irq_bitmap[VM_GLOBAL_VIRQ_NR];
-
-	uint32_t irq_num;
-	uint32_t cpu_num;
-
-	/* vgic control block flag */
-	uint32_t flags;
-
-	uint32_t irq_target[VM_GLOBAL_VIRQ_NR];
-	uint32_t sgi_vcpu_source[CONFIG_MP_NUM_CPUS][VM_SGI_VIRQ_NR];
-
-	/* virq description */
-    struct virt_irq_desc *vm_virt_irq_desc;
-
-	/* Bind to vgic device */
-	void *vgic_data;
-
 };
 
 void z_ready_thread(struct k_thread *thread);
@@ -163,10 +131,10 @@ void arch_vdev_irq_enable(struct vcpu *vcpu);
 void arch_vdev_irq_disable(struct vcpu *vcpu);
 
 
-int vgic_vdev_mem_read(struct virt_dev *vdev, arch_commom_regs_t *regs, 
+int vgic_vdev_mem_read(struct virt_dev *vdev, arch_commom_regs_t *regs,
                             uint64_t addr, uint64_t *value);
 
-int vgic_vdev_mem_write(struct virt_dev *vdev, arch_commom_regs_t *regs, 
+int vgic_vdev_mem_write(struct virt_dev *vdev, arch_commom_regs_t *regs,
                             uint64_t addr, uint64_t *value);
 
 /**
@@ -195,9 +163,16 @@ struct virt_irq_desc *get_virt_irq_desc(struct vcpu *vcpu, uint32_t virq);
 int vm_irq_ctrlblock_create(struct device *unused, struct vm *vm);
 
 /**
- * @brief Create and init vm virq object for each vm.
+ * @brief Create vm's interrupt controller.
  */
-int vm_virq_desc_init(struct vm *vm, void *args);
+int vm_intctrl_vdev_create(struct vm *vm);
+
+/**
+ * @brief Init virq descs for each vm. For each vm, it
+ * obtains some device irq which is shared by all cores,
+ * this type of interrupt is inited in this routine.
+ */
+int vm_virq_desc_init(struct vm *vm);
 
 /**
  * @brief vgic init common function.

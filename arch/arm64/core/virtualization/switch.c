@@ -16,7 +16,7 @@
 #include <virtualization/arm/sysreg.h>
 #include <virtualization/arm/switch.h>
 #include <virtualization/arm/trap_handler.h>
-#include <virtualization/arm/vgic_common.h>
+#include <virtualization/vdev/vgic_common.h>
 
 #include <drivers/interrupt_controller/gic.h>
 #include <arch/arm64/cpu.h>
@@ -47,36 +47,6 @@ static void vm_enable_daif(void)
     isb();
 }
 
-static void save_host_context(struct zvm_vcpu_context *h_ctxt, struct vcpu *vcpu)
-{
-    h_ctxt->running_vcpu = vcpu;
-    h_ctxt->sys_regs[VCPU_SPSR_EL1] = read_spsr_el1();
-
-    /* for debugging. */
-    h_ctxt->sys_regs[VCPU_MDSCR_EL1] = read_mdscr_el1();
-}
-
-static void load_host_context(struct zvm_vcpu_context *h_ctxt)
-{
-    write_mdscr_el1(h_ctxt->sys_regs[VCPU_MDSCR_EL1]);
-
-    write_spsr_el1(h_ctxt->sys_regs[VCPU_SPSR_EL1]);
-}
-
-static void vm_save_pgd(struct vm_arch *arch)
-{
-    arch->vtcr_el2 = read_vtcr_el2();
-    arch->vttbr = read_vttbr_el2();
-    isb();
-}
-
-static void vm_load_pgd(struct vm_arch *arch)
-{
-    write_vtcr_el2(arch->vtcr_el2);
-    write_vttbr_el2(arch->vttbr);
-    isb();
-}
-
 static int vm_flush_vgic(struct vcpu *vcpu)
 {
     int ret = 0;
@@ -101,12 +71,6 @@ static int vm_sync_vgic(struct vcpu *vcpu)
 static int arch_vm_irq_trap(struct vcpu *vcpu)
 {
     ARG_UNUSED(vcpu);
-    /* enable all execption */
-#ifdef CONFIG_SOC_QEMU_CORTEX_MAX
-    while(vcpu->vcpu_state == _VCPU_STATE_PAUSED){
-        ;
-    }
-#endif
     vm_enable_daif();
     return 0;
 }
@@ -144,8 +108,6 @@ int arch_vcpu_run(struct vcpu *vcpu)
 {
     int ret;
     uint64_t exit_type;
-    uint64_t exit_code, fault_addr;
-    struct zvm_vcpu_context *h_ctxt;
 
     /* mask all interrupt here to disable interrupt */
     vm_disable_daif();
@@ -153,19 +115,12 @@ int arch_vcpu_run(struct vcpu *vcpu)
     if (ret) {
         return ret;
     }
-
-    h_ctxt = &vcpu->arch->host_ctxt;
-    save_host_context(h_ctxt, vcpu);
-    vm_load_pgd(vcpu->vm->arch);
     switch_to_guest_sysreg(vcpu);
 
     /* Jump to the fire too! */
-    exit_type = guest_vm_entry(vcpu, h_ctxt);
+    exit_type = guest_vm_entry(vcpu, &vcpu->arch->host_ctxt);
 
     switch_to_host_sysreg(vcpu);
-    vm_save_pgd(vcpu->vm->arch);
-    h_ctxt = &vcpu->arch->host_ctxt;
-    load_host_context(h_ctxt);
 
     vm_sync_vgic(vcpu);
     switch (exit_type) {
@@ -183,10 +138,8 @@ int arch_vcpu_run(struct vcpu *vcpu)
         ret = arch_vm_irq_trap(vcpu);
         break;
 	default:
-        exit_code = read_esr_el2();
-        fault_addr = read_far_el2();
 		ZVM_LOG_WARN("Unsupported exception type in this stage....\n");
-        ZVM_LOG_WARN("Exit code: 0x%08llx \t fault addr: 0x%08llx  ....\n", exit_code, fault_addr);
+        ZVM_LOG_WARN("Exit code: 0x%08llx \t exit_type: 0x%08llx  ....\n", read_esr_el2(), exit_type);
 		return -ESRCH;
         break;
 	}
@@ -207,7 +160,7 @@ void z_vm_switch_handle_pre(uint32_t irq)
         return;
     }
 
-    bit_addr = VGIC_DATA_IBP(vcpu->vm->vm_irq_block_data);
+    bit_addr = vcpu->vm->vm_irq_block.irq_bitmap;
     /* If it is a vcpu thread, judge whether the signal is send to it */
     if(!bit_addr[irq]){
         return;

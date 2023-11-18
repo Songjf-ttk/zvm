@@ -23,7 +23,7 @@
 
 #include <virtualization/arm/mm.h>
 #include <virtualization/arm/cpu.h>
-#include <virtualization/arm/vgic_v3.h>
+#include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/vm_mm.h>
 #include <virtualization/zvm.h>
 
@@ -136,24 +136,6 @@ int vm_mem_init(struct vm *vm)
         return ret;
     }
 
-    return 0;
-}
-
-int vm_irq_block_create(struct vm *vm)
-{
-    int ret = 0;
-
-    ret = vm_irq_ctlblock_init(vm);
-    if (ret) {
-        ret =  -ENODEV;
-    }
-
-    return ret;
-}
-
-int remove_vm_virq_chip(struct vm *vm)
-{
-    k_free(vm->vm_irq_block_data);
     return 0;
 }
 
@@ -443,16 +425,10 @@ int vm_delete(struct vm *vm)
         }
 
         k_free(vcpu->arch);
-        k_free(vcpu->virq_struct);
         k_free(vcpu->work);
         k_free(vcpu);
     }
 
-
-    /* remov vm's desc struct */
-    struct virt_irq_desc *desc = VGIC_DATA_VID(vm->vm_irq_block_data);
-    k_free(desc);
-    k_free(vm->vm_irq_block_data);
     k_free(vm->ops);
     k_free(vm->arch);
     k_free(vm->vcpus);

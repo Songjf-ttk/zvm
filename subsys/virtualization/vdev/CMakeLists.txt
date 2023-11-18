@@ -3,6 +3,8 @@
 
 zephyr_sources_ifdef(
     CONFIG_ZVM
+    vgic_common.c
+    vgic_v3.c
     serial.c
     virt_device.c
 )

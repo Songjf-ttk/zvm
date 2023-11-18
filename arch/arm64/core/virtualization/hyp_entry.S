@@ -25,7 +25,7 @@ SECTION_SUBSEC_FUNC(hyp_code, __hyp_section, guest_vm_entry)
     /* If there are some errors that ready to process, return! */
     mrs	x16, isr_el1
 	cbz	x16, no_host_isr
-	mov	x0, #0x0
+	mov	x0, #ARM_VM_EXCEPTION_IRQ
 	ldp	x16, x17, [x1, #_zvm_vcpu_ctxt_arch_regs_to_esf_t_x16_x17]
 	ret
 
@@ -139,6 +139,9 @@ no_irq_exit:
 no_timing_process:
 #endif
 
+	/* irq exit? jump over! */
+	cmp x1, #ARM_VM_EXCEPTION_IRQ
+	b.eq vm_isr_in_sync
     /* If there are irq that need to process when sync occur! */
     mrs	x0, isr_el1
 	cbz	x0, vm_isr_in_sync
@@ -173,5 +176,4 @@ vm_isr_in_sync:
 	ldp	x27, x28, [x1, #_zvm_vcpu_ctxt_arch_regs_to_callee_saved_x27_x28]
 
 	ldp x0, x1,   [sp], #16
-	isb
 	ret

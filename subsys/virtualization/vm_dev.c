@@ -13,7 +13,7 @@
 #include <virtualization/zvm.h>
 #include <virtualization/vm_dev.h>
 #include <virtualization/vm_mm.h>
-#include <virtualization/arm/vgic_v3.h>
+#include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/vm_console.h>
 #include <virtualization/vdev/virt_device.h>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 HNU
+ * Copyright 2021-2022 HNU-ESNL
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -204,11 +204,11 @@ static inline unsigned int vm_table_index(uint64_t *pte, uint32_t vmid)
 		i = (pte - &vm_zephyr_xlat_tables[vmid][0]) / Ln_XLAT_NUM_ENTRIES;
 		__ASSERT(i < CONFIG_ZVM_ZEPHYR_MAX_XLAT_TABLES, "table %p out of range", pte);
 	}
-	else{ 
+	else{
 		i = (pte - &vm_linux_xlat_tables[vmid-ZVM_ZEPHYR_VM_NUM][0]) / Ln_XLAT_NUM_ENTRIES;
 		__ASSERT(i < CONFIG_ZVM_LINUX_MAX_XLAT_TABLES, "table %p out of range", pte);
 	}
-	
+
 	return i;
 }
 
@@ -254,7 +254,8 @@ static uint64_t *vm_expand_to_table(uint64_t *pte, unsigned int level, uint32_t 
 {
 	uint64_t *table;
 
-	__ASSERT(level < XLAT_LAST_LEVEL, "can't expand last level");
+	if(level >= XLAT_LAST_LEVEL)
+		__ASSERT(level < XLAT_LAST_LEVEL, "can't expand last level");
 
 	table = vm_new_table(vmid);
 
