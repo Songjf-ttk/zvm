@@ -20,8 +20,8 @@
 #define VIRT_IRQ_ENABLED		BIT(2)
 #define VIRT_IRQ_SUSPEND		BIT(3)
 #define VIRT_IRQ_REMOVED        BIT(4)
-#define VIRT_IRQ_IS_WAKEUP      BIT(5)
-#define VIRT_IRQ_NOUSED         BIT(6)
+#define VIRQ_FLAG_IS_WAKEUP     BIT(5)
+#define VIRQ_FLAG_NOUSED        BIT(6)
 
 /* hardware irq states */
 #define VIRQ_STATE_INVALID		        (0b00)

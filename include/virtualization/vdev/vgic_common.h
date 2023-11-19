@@ -47,12 +47,20 @@ struct virt_dev;
 #define VGIC_TYPER_LR_NUM 		((VGIC_TYPER_REGISTER & 0x1f) + 1)
 #define VGIC_TYPER_PRIO_NUM		(((VGIC_TYPER_REGISTER >> 29) & 0x07) + 1)
 
+/**
+ * @brief Init a virtual general interrupt controller for each VM.
+*/
 struct virt_gic_gicd {
+	/* gicd base and size */
+	uint32_t addr_base;
+	uint32_t addr_size;
+
+	uint32_t *gicd_regs;
+
 	uint32_t gicd_ctlr;
 	uint32_t gicd_typer;
 	uint32_t gicd_pidr2;
-	uint32_t addr_base;
-	uint32_t addr_size;
+
 	struct k_spinlock gicd_lock;
 };
 
@@ -118,7 +126,7 @@ void z_ready_thread(struct k_thread *thread);
  * @brief test and set vgic bits.
  */
 void vgic_irq_test_and_set_bit(struct vcpu *vcpu, uint32_t spi_nr_count, uint32_t *value,
-						uint32_t bit_size, int enable);
+						uint32_t bit_size, bool enable);
 
 /**
  * @brief Just for enable menopoly irq for vcpu.
@@ -158,26 +166,9 @@ int virt_irq_flush_vgic(struct vcpu *vcpu);
 struct virt_irq_desc *get_virt_irq_desc(struct vcpu *vcpu, uint32_t virq);
 
 /**
- * @brief common call for creating control block.
- */
-int vm_irq_ctrlblock_create(struct device *unused, struct vm *vm);
-
-/**
  * @brief Create vm's interrupt controller.
  */
 int vm_intctrl_vdev_create(struct vm *vm);
-
-/**
- * @brief Init virq descs for each vm. For each vm, it
- * obtains some device irq which is shared by all cores,
- * this type of interrupt is inited in this routine.
- */
-int vm_virq_desc_init(struct vm *vm);
-
-/**
- * @brief vgic init common function.
- */
-int zvm_arch_vgic_init(void *op);
 
 /**
  * @brief When vcpu is loop on idel mode, we must send virq
@@ -200,7 +191,7 @@ static ALWAYS_INLINE bool is_vm_irq_valid(struct vm *vm, uint32_t flag)
 	}
 
     if (vm->vm_status == VM_STATE_PAUSE) {
-        if (flag & VIRT_IRQ_IS_WAKEUP) {
+        if (flag & VIRQ_FLAG_IS_WAKEUP) {
 			return true;
 		} else {
 			return false;

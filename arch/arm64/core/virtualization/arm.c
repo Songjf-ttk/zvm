@@ -50,6 +50,15 @@ static bool is_basic_hardware_support(void)
     }
 }
 
+static bool is_gicv3_device_support(void)
+{
+#if defined(CONFIG_GIC_V3)
+    return true;
+#else
+    return false;
+#endif
+}
+
 static int vcpu_virq_init(struct vcpu *vcpu)
 {
     struct gicv3_vcpuif_ctxt *ctxt;
@@ -283,17 +292,14 @@ int zvm_arch_init(void *op)
     int ret = 0;
 
     /* Is hyp、vhe available? */
-    if(!is_basic_hardware_support()) {
+    if(!is_basic_hardware_support()){
         return -EVMODE;
     }
 
-    ret = zvm_arch_vgic_init(op);
-    if(ret) {
-        ZVM_LOG_ERR("No gicv3 subsystem supported! \n");
-        return ret;
+    if(!is_gicv3_device_support()){
+        return -ENOVDEV;
     }
 
-    /* init vtimer system */
     ret = zvm_arch_vtimer_init(op);
     if(ret) {
         ZVM_LOG_ERR("Vtimer subsystem do not supported! \n");

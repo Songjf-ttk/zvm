@@ -189,12 +189,6 @@ int vgicv3_raise_sgi(struct vcpu *vcpu, unsigned long sgi_value);
 */
 struct vgicv3_dev *vgicv3_dev_init(struct vm *vm);
 
-/**
- * @brief Init vgicv3 when ZVM module init.
- */
-int zvm_vgicv3_init(void *op);
-
-
 static ALWAYS_INLINE uint64_t gicv3_read_lr(uint8_t list_register)
 {
 	switch (list_register) {

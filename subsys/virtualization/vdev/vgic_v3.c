@@ -465,9 +465,3 @@ struct vgicv3_dev *vgicv3_dev_init(struct vm *vm)
     gicv3_vdev->v_dev->vm_vdev_write = vgic_vdev_mem_write;
 	return gicv3_vdev;
 }
-
-int zvm_vgicv3_init(void *op)
-{
-	ARG_UNUSED(op);
-	return 0;
-}

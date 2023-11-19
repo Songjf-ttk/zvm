@@ -11,9 +11,10 @@
 #include <zephyr.h>
 #include <arch/arm64/exc.h>
 
+/* VM interrupt description MACRO */
 #define VM_SGI_VIRQ_NR		(16)
 #define VM_PPI_VIRQ_NR		(16)
-#define VM_SPI_VIRQ_NR 		(224)
+#define VM_SPI_VIRQ_NR 		(256 - VM_SGI_VIRQ_NR - VM_PPI_VIRQ_NR)
 
 #define   AARCH64_INST_ADJUST    (0x04)
 

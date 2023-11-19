@@ -64,7 +64,6 @@ struct virt_dev *allocate_device_to_vm(const struct device *dev, struct vm *vm,
     }
 
     vm_device_irq_init(vm, vdev);
-
     return vdev;
 }
 

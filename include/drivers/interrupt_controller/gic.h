@@ -22,7 +22,6 @@
 
 #define GIC_DIST_BASE	DT_REG_ADDR_BY_IDX(DT_INST(0, arm_gic), 0)
 #define GIC_CPU_BASE	DT_REG_ADDR_BY_IDX(DT_INST(0, arm_gic), 1)
-#define GIC_VCPU_BASE	DT_REG_ADDR_BY_IDX(DT_INST(0, arm_gic), 3)
 
 /*
  * GIC Distributor Interface

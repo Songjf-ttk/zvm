@@ -158,7 +158,6 @@ int handle_vm_device_emulate(struct vm *vm, uint64_t pa_addr)
         sys_dlist_append(&vdev_list->dev_used_list, &vm_dev->vdev_node);
 
         vm_device_irq_init(vm, chosen_dev);
-
         dev = (struct device *)vm_dev->priv_data;
         vdev_irq_callback_user_data_set(dev, vm_device_callback_func, chosen_dev);
 

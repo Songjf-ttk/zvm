@@ -36,7 +36,7 @@ static struct virt_irq_desc *vgic_get_virt_irq_desc(struct vcpu *vcpu, uint32_t 
     }
 
     /* spi virq num */
-    if((virq >= VM_LOCAL_VIRQ_NR) && (virq < VM_SPI_VIRQ_NR + VM_LOCAL_VIRQ_NR)) {
+    if((virq >= VM_LOCAL_VIRQ_NR) && (virq < VM_GLOBAL_VIRQ_NR)) {
 		return &vm->vm_irq_block.vm_virt_irq_desc[virq - VM_LOCAL_VIRQ_NR];
     }
 
@@ -238,7 +238,6 @@ static int vgic_gicd_mem_write(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
     k_spinlock_key_t key;
 
     key = k_spin_lock(&gicd->gicd_lock);
-
 	offset += GIC_DIST_BASE;
 	switch (offset) {
 		case GICD_CTLR:
@@ -258,7 +257,6 @@ static int vgic_gicd_mem_write(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
 			y = x * 32;
 			vgic_irq_test_and_set_bit(vcpu, y, value, 32, 0);
 			break;
-
 		case GICD_IPRIORITYRn...(GIC_DIST_BASE + 0x07f8 - 1):
 			t = *value;
 			x = (offset - GICD_IPRIORITYRn) / 4;
@@ -291,12 +289,12 @@ static int vgic_gicd_mem_write(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
 }
 
 void vgic_irq_test_and_set_bit(struct vcpu *vcpu, uint32_t spi_nr_count, uint32_t *value,
-						uint32_t bit_size, int enable)
+						uint32_t bit_size, bool enable)
 {
 	int bit;
-	uint32_t mem_addr = (uint64_t)value;
+	uint32_t reg_mem_addr = (uint64_t)value;
 	for (bit=0; bit<bit_size; bit++) {
-		if (sys_test_bit(mem_addr, bit)) {
+		if (sys_test_bit(reg_mem_addr, bit)) {
 			if (enable) {
 				vgic_irq_enable(vcpu, spi_nr_count + bit);
 			} else {
@@ -513,7 +511,7 @@ int set_virq_to_vm(struct vm *vm, uint32_t virq_num)
 
     if (virq_num < VM_LOCAL_VIRQ_NR) {
         desc = &vcpu->virq_block.vcpu_virt_irq_desc[virq_num];
-    } else if (virq_num <= VM_SPI_VIRQ_NR + VM_LOCAL_VIRQ_NR) {
+    } else if (virq_num <= VM_GLOBAL_VIRQ_NR) {
         desc = &vm->vm_irq_block.vm_virt_irq_desc[virq_num - VM_LOCAL_VIRQ_NR];
     } else {
         ZVM_LOG_WARN("The spi num that ready to allocate is too big.");
@@ -622,28 +620,6 @@ struct virt_irq_desc *get_virt_irq_desc(struct vcpu *vcpu, uint32_t virq)
 	return vgic_get_virt_irq_desc(vcpu, virq);
 }
 
-int vm_irq_ctrlblock_create(struct device *unused, struct vm *vm)
-{
-    ARG_UNUSED(unused);
-	struct vm_virt_irq_block *vvi_block = &vm->vm_irq_block;
-
-	if (VGIC_TYPER_LR_NUM != 0) {
-		vvi_block->flags = 0;
-		vvi_block->flags |= VIRQ_HW_SUPPORT;
-	} else {
-		ZVM_LOG_ERR("Init gicv3 failed, the hardware do not supporte it. \n");
-		return -ENODEV;
-	}
-
-	vvi_block->enabled = false;
-	vvi_block->cpu_num = CONFIG_MAX_VCPU_PER_VM;
-	vvi_block->irq_num = VM_GLOBAL_VIRQ_NR;
-	memset(vvi_block->ipi_vcpu_source, 0, sizeof(uint32_t)*CONFIG_MP_NUM_CPUS*VM_SGI_VIRQ_NR);
-	memset(vvi_block->irq_bitmap, 0, VM_GLOBAL_VIRQ_NR/0x08);
-
-	return 0;
-}
-
 int vm_intctrl_vdev_create(struct vm *vm)
 {
 	int ret = 0;
@@ -657,37 +633,4 @@ int vm_intctrl_vdev_create(struct vm *vm)
 	vm->vm_irq_block.virt_priv_date = gicv3_vdev;
 
 	return ret;
-}
-
-int vm_virq_desc_init(struct vm *vm)
-{
-    int i;
-    struct virt_irq_desc *desc;
-
-    for (i = 0; i < VM_SPI_VIRQ_NR; i++) {
-		desc = &vm->vm_irq_block.vm_virt_irq_desc[i];
-
-        desc->virq_flags = VIRT_IRQ_NOUSED;
-		/* For shared irq, it shared with all cores */
-        desc->vcpu_id =  DEFAULT_VCPU;
-        desc->vm_id = vm->vmid;
-        desc->virq_num = i;
-        desc->pirq_num = i;
-        desc->id = VIRT_IRQ_INVALID_ID;
-        desc->virq_states = VIRQ_STATE_INVALID;
-
-        sys_dnode_init(&(desc->desc_node));
-    }
-
-    return 0;
-}
-
-int zvm_arch_vgic_init(void *op)
-{
-#ifdef CONFIG_GIC_V3
-	return zvm_vgicv3_init(op);
-#else
-	/*No gicv3 init!*/
-	return -ENODEV;
-#endif
 }
