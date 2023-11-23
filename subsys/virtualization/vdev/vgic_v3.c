@@ -7,6 +7,7 @@
 #include <kernel.h>
 #include <zephyr.h>
 #include <device.h>
+#include <devicetree.h>
 #include <kernel_structs.h>
 #include <init.h>
 #include <arch/cpu.h>
@@ -22,6 +23,8 @@
 #include <virtualization/zvm.h>
 #include <virtualization/vm_irq.h>
 #include <virtualization/vm_console.h>
+#include <virtualization/vm_dev.h>
+#include <virtualization/vdev/virt_device.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
@@ -214,16 +217,19 @@ int vgic_gicrsgi_mem_read(struct vcpu *vcpu, struct virt_gic_gicr *gicr,
 
 	switch (offset) {
 	case GICR_SGI_CTLR:
-		*value = gicr->gicr_ctlr & ~(1 << 31);
+		*value = vgic_sysreg_read32(gicr->gicr_sgi_reg_base, VGICR_CTLR) & ~(1 << 31);
+//		*value = gicr->gicr_ctlr & ~(1 << 31);
 		break;
 	case GICR_SGI_ISENABLER:
-		*value = gicr->gicr_enabler0;
+		*value = vgic_sysreg_read32(gicr->gicr_sgi_reg_base, VGICR_ISENABLER0);
+//		*value = gicr->gicr_enabler0;
 		break;
 	case GICR_SGI_ICENABLER:
-		*value = gicr->gicr_enabler0;
+		*value = vgic_sysreg_read32(gicr->gicr_sgi_reg_base, VGICR_ICENABLER0);
 		break;
 	case GICR_SGI_PENDING:
-		*value = gicr->gicr_ispender;
+		vgic_sysreg_write32(*value, gicr->gicr_sgi_reg_base, VGICR_SGI_PENDING);
+//		*value = gicr->gicr_ispender;
 		break;
 	case GICR_SGI_PIDR2:
 		*value = (0x03 << 4);
@@ -247,7 +253,9 @@ int vgic_gicrsgi_mem_write(struct vcpu *vcpu, struct virt_gic_gicr *gicr, uint32
 		vgic_irq_test_and_set_bit(vcpu, 0, value, 32, 1);
 		for (bit = 0; bit < 32; bit++) {
 			if (sys_test_bit(mem_addr, bit)) {
-				gicr->gicr_enabler0 |= BIT(bit);
+				vgic_sysreg_write32(vgic_sysreg_read32(gicr->gicr_sgi_reg_base, VGICR_ISENABLER0) | BIT(bit),\
+				 gicr->gicr_sgi_reg_base, VGICR_ISENABLER0);
+//				gicr->gicr_enabler0 |= BIT(bit);
 			}
 		}
 		break;
@@ -255,7 +263,9 @@ int vgic_gicrsgi_mem_write(struct vcpu *vcpu, struct virt_gic_gicr *gicr, uint32
 		vgic_irq_test_and_set_bit(vcpu, 0, value, 32, 0);
 		for(bit = 0; bit < 32; bit++) {
 			if (sys_test_bit(mem_addr, bit)) {
-				gicr->gicr_enabler0 &= ~BIT(bit);
+				vgic_sysreg_write32(vgic_sysreg_read32(gicr->gicr_sgi_reg_base, VGICR_ICENABLER0) & ~BIT(bit),\
+				 gicr->gicr_sgi_reg_base, VGICR_ICENABLER0);
+//				gicr->gicr_enabler0 &= ~BIT(bit);
 			}
 		}
 		break;
@@ -264,7 +274,8 @@ int vgic_gicrsgi_mem_write(struct vcpu *vcpu, struct virt_gic_gicr *gicr, uint32
 		for(bit = 0; bit < 32; bit++) {
 			if (sys_test_bit(mem_addr, bit)) {
 				sys_write32(BIT(bit), GIC_RDIST_BASE + GICR_SGI_BASE_OFF + GICR_SGI_PENDING);
-				gicr->gicr_ispender &= ~BIT(bit);
+				vgic_sysreg_write32(~BIT(bit), gicr->gicr_sgi_reg_base, VGICR_SGI_PENDING);
+//				gicr->gicr_ispender &= ~BIT(bit);
 			}
 		}
 		break;
@@ -283,17 +294,22 @@ int vgic_gicrrd_mem_read(struct vcpu *vcpu, struct virt_gic_gicr *gicr, uint32_t
 	/* consider multiple cpu later, Now just return 0 */
 	switch (offset) {
 	case 0xffe8:
-		*value = gicr->gicr_pidr2;
+		*value = vgic_sysreg_read32(gicr->gicr_rd_reg_base, VGICR_PIDR2);
+//		*value = gicr->gicr_pidr2;
 		break;
 	case GICR_CTLR:
-		*value = gicr->gicr_ctlr;
+		vgic_sysreg_write32(*value, gicr->gicr_rd_reg_base, VGICR_CTLR);
+//		*value = gicr->gicr_ctlr;
 		break;
 	case GICR_TYPER:
-		*value = gicr->gicr_typer;
-		*(value+1) = gicr->gicr_typer >> 32;
+		*value = vgic_sysreg_read32(gicr->gicr_rd_reg_base, VGICR_TYPER);
+		*(value+1) = vgic_sysreg_read32(gicr->gicr_rd_reg_base, VGICR_TYPER+0x4);
+//		*value = gicr->gicr_typer;
+//		*(value+1) = gicr->gicr_typer >> 32;
 		break;
 	case 0x000c:
-		*value = gicr->gicr_typer >> 32;
+		*value = vgic_sysreg_read32(gicr->gicr_rd_reg_base, VGICR_TYPER+0x4);
+//		*value = gicr->gicr_typer >> 32;
 		break;
 	default:
 		*value = 0;
@@ -311,28 +327,37 @@ int vgic_gicrrd_mem_write(struct vcpu *vcpu, struct virt_gic_gicr *gicr, uint32_
 int get_vcpu_gicr_type(struct virt_gic_gicr *gicr,
 		uint32_t addr, uint32_t *offset)
 {
+	int i;
+	uint32_t vcpu_id = gicr->vcpu_id;
 
-	if ((addr >= gicr->vlpi_base) &&
-		(addr < (gicr->vlpi_base + (64 * 1024)))) {
+	/* master core can access all the other core's gicr */
+	if(vcpu_id == 0){
+		for(i=0; i<VGIC_RDIST_SIZE/VGIC_RD_SGI_SIZE + 1; i++){
+			if ((addr >= gicr->gicr_sgi_base + i*VGIC_RD_SGI_SIZE) &&
+				(addr < gicr->gicr_sgi_base + i*VGIC_RD_SGI_SIZE + gicr->gicr_sgi_size)) {
+				*offset = addr - (gicr->gicr_sgi_base + i*VGIC_RD_SGI_SIZE);
+				return TYPE_GIC_GICR_SGI;
+			}
 
-		*offset = addr - gicr->vlpi_base;
-		return TYPE_GIC_GICR_VLPI;
+			if ((addr >= gicr->gicr_rd_base + i*VGIC_RD_SGI_SIZE) &&
+				(addr < (gicr->gicr_rd_base +  i*VGIC_RD_SGI_SIZE + gicr->gicr_rd_size))) {
+				*offset = addr - (gicr->gicr_rd_base + i*VGIC_RD_SGI_SIZE);
+				return TYPE_GIC_GICR_RD;
+			}
+		}
+	}else{
+		if ((addr >= gicr->gicr_sgi_base + vcpu_id*VGIC_RD_SGI_SIZE) &&
+			(addr < (gicr->gicr_sgi_base + vcpu_id*VGIC_RD_SGI_SIZE + gicr->gicr_sgi_size))) {
+			*offset = addr - (gicr->gicr_sgi_base + vcpu_id*VGIC_RD_SGI_SIZE);
+			return TYPE_GIC_GICR_SGI;
+		}
+
+		if ((addr >= gicr->gicr_rd_base + vcpu_id*VGIC_RD_SGI_SIZE) &&
+			(addr < (gicr->gicr_rd_base +  vcpu_id*VGIC_RD_SGI_SIZE + gicr->gicr_rd_size))) {
+			*offset = addr - (gicr->gicr_rd_base + vcpu_id*VGIC_RD_SGI_SIZE);
+			return TYPE_GIC_GICR_RD;
+		}
 	}
-
-    if ((addr >= gicr->sgi_base) &&
-		(addr < (gicr->sgi_base + (64 * 1024)))) {
-
-		*offset = addr - gicr->sgi_base;
-		return TYPE_GIC_GICR_SGI;
-	}
-
-    if ((addr >= gicr->raddr_base) &&
-		(addr < (gicr->raddr_base + (64 * 1024)))) {
-
-		*offset = addr - gicr->raddr_base;
-		return TYPE_GIC_GICR_RD;
-	}
-
 	return TYPE_GIC_INVAILD;
 }
 
@@ -375,93 +400,169 @@ int vcpu_gicv3_init(struct gicv3_vcpuif_ctxt *ctxt)
 static int vdev_gicv3_init(struct vm *vm, struct vgicv3_dev *gicv3_vdev, uint32_t gicd_base, uint32_t gicd_size,
                             uint32_t gicr_base, uint32_t gicr_size)
 {
+	int i = 0;
     uint32_t spi_num;
-    int i = 0;
     uint64_t tmp_typer = 0;
     struct virt_gic_gicd *gicd = &gicv3_vdev->gicd;
     struct virt_gic_gicr *gicr;
-    struct vcpu *vcpu;
 
-    if(!gicd){
-		return -ENODEV;
+	ZVM_SPINLOCK_INIT(&gicd->gicd_lock);
+	gicd->gicd_base = gicd_base;
+    gicd->gicd_size = gicd_size;
+	gicd->gicd_regs_base = k_malloc(gicd->gicd_size);
+	if(!gicd->gicd_regs_base){
+		return -EMMAO;
 	}
+	memset(gicd->gicd_regs_base, 0, gicd_size);
+
+	/* GICD PIDR2 */
+	vgic_sysreg_write32(0x3<<4, gicd->gicd_regs_base, VGICD_PIDR2);
+    spi_num = ((VM_GLOBAL_VIRQ_NR + 32) >> 5) - 1;
+	tmp_typer = (vm->vcpu_num << 5) | (9 << 19) | spi_num;
+	vgic_sysreg_write32(tmp_typer, gicd->gicd_regs_base, VGICD_TYPER);
+	/* Init spinlock */
 	ZVM_SPINLOCK_INIT(&gicd->gicd_lock);
 
-    gicd->addr_base = gicd_base;
-    gicd->addr_size = gicd_size;
-    gicd->gicd_ctlr = 0;
-    gicd->gicd_pidr2 = (0x3<<4);
-
-    tmp_typer |= vm->vcpu_num << 5;
-    tmp_typer |= 9 << 19;
-    spi_num = (VM_GLOBAL_VIRQ_NR + 32) >> 5;
-    spi_num -= 1;
-    tmp_typer |= spi_num;
-
-    gicd->gicd_typer = tmp_typer;
-
-    for (i = 0; i < vm->vcpu_num; i++) {
-        vcpu = vm->vcpus[i];
+    for (i = 0; i < VGIC_RDIST_SIZE/VGIC_RD_SGI_SIZE + 1; i++) {
         gicr = (struct virt_gic_gicr *)k_malloc(sizeof(struct virt_gic_gicr));
         if(!gicr){
 			return -EMMAO;
 		}
-        gicr->vcpu_id = vcpu->vcpu_id;
-        gicr_base = gicr_base + (128 * 1024) * vcpu->vcpu_id;
-        gicr->raddr_base = gicr_base;
-        gicr->sgi_base = gicr_base + (64 * 1024);
-        gicr->vlpi_base = 0;
+		/* store the vcpu id for gicr */
+        gicr->vcpu_id = i;
+		/* init redistribute size */
+		gicr->gicr_rd_size = VGIC_RD_BASE_SIZE;
+		gicr->gicr_rd_reg_base = k_malloc(gicr->gicr_rd_size);
+		if(!gicr->gicr_rd_reg_base){
+			ZVM_LOG_ERR("Allocat memory for gicr_rd error! \n");
+        	return -EMMAO;
+		}
+		memset(gicr->gicr_rd_reg_base, 0, gicr->gicr_rd_size);
+		/* init sgi redistribute size */
+		gicr->gicr_sgi_size = VGIC_SGI_BASE_SIZE;
+		gicr->gicr_sgi_reg_base = k_malloc(gicr->gicr_sgi_size);
+		if(!gicr->gicr_sgi_reg_base){
+			ZVM_LOG_ERR("Allocat memory for gicr_sgi error! \n");
+        	return -EMMAO;
+		}
+		memset(gicr->gicr_sgi_reg_base, 0, gicr->gicr_sgi_size);
 
-        gicr->gicr_ctlr = 0;
-        gicr->gicr_ispender = 0;
-        gicr->gicr_typer = (uint64_t)vcpu->vcpu_id << 32;
-        gicr->gicr_pidr2 = 0x3 << 4;
+		gicr->gicr_rd_base = gicr_base + VGIC_RD_SGI_SIZE*i;
+		gicr->gicr_sgi_base = gicr->gicr_rd_base + VGIC_RD_BASE_SIZE;
+		vgic_sysreg_write32(0x3<<4, gicr->gicr_rd_reg_base, VGICR_PIDR2);
+		/* Init spinlock */
+		ZVM_SPINLOCK_INIT(&gicr->gicr_lock);
+
+		if(i >= vm->vcpu_num - 1){
+			/* set last gicr region flag here, means it is the last gicr region */
+			vgic_sysreg_write64(GICR_TYPER_LAST_FLAG, gicr->gicr_rd_reg_base, VGICR_TYPER);
+			vgic_sysreg_write64(GICR_TYPER_LAST_FLAG, gicr->gicr_sgi_reg_base, VGICR_TYPER);
+		}else{
+			vgic_sysreg_write64((uint64_t)i << 32, gicr->gicr_rd_reg_base, VGICR_TYPER);
+			vgic_sysreg_write64((uint64_t)i << 32, gicr->gicr_sgi_reg_base, VGICR_TYPER);
+		}
 
 		gicv3_vdev->gicr[i] = gicr;
     }
-	/* set last gicr region flag here, means it is the last gicr region */
-	gicr->gicr_typer |= GICR_TYPER_LAST_FLAG;
 
 	return 0;
 }
 
-struct vgicv3_dev *vgicv3_dev_init(struct vm *vm)
+#define DEV_CFG(dev) \
+	((const struct virt_device_config * const)(dev)->config)
+#define DEV_DATA(dev) \
+	((struct virt_device_data *)(dev)->data)
+
+#define DEV_VGICV3(dev) \
+	((const struct gicv3_vdevice * const)(DEV_CFG(dev)->device_config))
+
+/**
+ * @brief init vm gic device for each vm. Including:
+ * 1. creating virt device for vm.
+ * 2. building memory map for this device.
+*/
+static int vm_vgicv3_init(const struct device *dev, struct vm *vm, struct virt_dev *vdev_desc)
 {
-	int ret = 0;
-    uint64_t gicd_base, gicd_size, gicr_base, gicr_size;
-    struct vgicv3_dev *gicv3_vdev;
+	int ret;
+	uint32_t gicd_base, gicd_size, gicr_base, gicr_size;
+	struct virt_dev *virt_dev;
+	struct vgicv3_dev *vgicv3;
 
-    gicd_base = VGIC_DIST_BASE;
-    gicd_size = VGIC_DIST_SIZE;
-    gicr_base = VGIC_RDIST_BASE;
-    gicr_size = VGIC_RDIST_SIZE;
-    if (!gicd_base || !gicd_size || !gicr_base || !gicr_size) {
-        ZVM_LOG_ERR("GIC device has some error!");
-        return NULL;
+    gicd_base = DEV_VGICV3(dev)->gicd_base;
+    gicd_size = DEV_VGICV3(dev)->gicd_size;
+    gicr_base = DEV_VGICV3(dev)->gicr_base;
+    gicr_size = DEV_VGICV3(dev)->gicr_size;;
+	/* check gic device */
+	if(!gicd_base || !gicd_size  || !gicr_base  || !gicr_size){
+        ZVM_LOG_ERR("GIC device has init error!");
+        return -ENODEV;
+	}
+
+	/* Init virtual device for vm. */
+	virt_dev = vm_virt_dev_add(vm, dev->name, false, false, gicd_base,
+						gicd_base, gicr_base+gicr_size-gicd_base, 0, 0);
+	if(!virt_dev){
+		ZVM_LOG_WARN("Init virt gic device error\n");
+        return -ENODEV;
+	}
+
+	/* Init virtual gic device for virtual device. */
+	vgicv3 = (struct vgicv3_dev *)k_malloc(sizeof(struct vgicv3_dev));
+    if (!vgicv3) {
+        ZVM_LOG_ERR("Allocat memory for vgicv3 error \n");
+        return -ENODEV;
     }
-
-    gicv3_vdev = (struct vgicv3_dev *)k_malloc(sizeof(struct vgicv3_dev));
-    if (!gicv3_vdev) {
-        ZVM_LOG_ERR("Allocat memory for gicv3 error \n");
-        return NULL;
-    }
-
-	gicv3_vdev->v_dev = vm_virt_dev_add(vm, "vm_vgic_v3", false, false, gicd_base,
-					gicd_base, gicd_size+gicr_size, 0, 0);
-	if (!gicv3_vdev->v_dev) {
-        ZVM_LOG_ERR("Init gicv3 virt dev error! \n");
-        return NULL;
-    }
-	/* get the private data for this device */
-	gicv3_vdev->v_dev->priv_data = gicv3_vdev;
-
-    ret = vdev_gicv3_init(vm, gicv3_vdev, gicd_base, gicd_size, gicr_base, gicr_size);
+    ret = vdev_gicv3_init(vm, vgicv3, gicd_base, gicd_size, gicr_base, gicr_size);
     if(ret){
         ZVM_LOG_ERR("Init virt gicv3 error \n");
-        return NULL;
+        return -ENODEV;
     }
 
-    gicv3_vdev->v_dev->vm_vdev_read = vgic_vdev_mem_read;
-    gicv3_vdev->v_dev->vm_vdev_write = vgic_vdev_mem_write;
-	return gicv3_vdev;
+	/* get the private data for vgicv3 */
+	virt_dev->priv_data = vgicv3;
+	virt_dev->priv_vdev = dev;
+
+	return 0;
 }
+
+/**
+ * @brief The init function of vgic, it provides the
+ * gic hardware device information to ZVM.
+*/
+static int vgicv3_init(const struct device *dev)
+{
+	return 0;
+}
+
+static struct gicv3_vdevice vgicv3_cfg_port = {
+	.gicd_base = VGIC_DIST_BASE,
+	.gicd_size = VGIC_DIST_SIZE,
+	.gicr_base = VGIC_RDIST_BASE,
+	.gicr_size = VGIC_RDIST_SIZE,
+};
+
+static struct virt_device_config virt_gicv3_cfg = {
+	.device_config = &vgicv3_cfg_port,
+};
+
+static struct virt_device_data virt_gicv3_data_port;
+
+/**
+ * @brief vgic device operations api.
+*/
+static const struct virt_device_api virt_gicv3_api = {
+	.init_fn = vm_vgicv3_init,
+	.virt_device_read = vgic_vdev_mem_read,
+	.virt_device_write = vgic_vdev_mem_write,
+};
+
+/**
+ * @brief Define the vgic description for zvm.
+*/
+DEVICE_DT_DEFINE(DT_ALIAS(vmvgic),
+            &vgicv3_init,
+            NULL,
+            &virt_gicv3_data_port,
+            &virt_gicv3_cfg, POST_KERNEL,
+            CONFIG_VM_VGICV3_INIT_PRIORITY,
+            &virt_gicv3_api);

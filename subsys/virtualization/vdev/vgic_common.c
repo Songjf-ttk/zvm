@@ -23,6 +23,8 @@
 #include <virtualization/zvm.h>
 #include <virtualization/vm_irq.h>
 #include <virtualization/vm_console.h>
+#include <virtualization/vm_dev.h>
+#include <virtualization/vdev/virt_device.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
@@ -193,10 +195,12 @@ static int vgic_gicd_mem_read(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
 	offset += GIC_DIST_BASE;
 	switch (offset) {
 		case GICD_CTLR:
-			*value = gicd->gicd_ctlr & ~(1 << 31);
+			*value = vgic_sysreg_read32(gicd->gicd_regs_base, VGICD_CTLR) & ~(1 << 31);
+//			*value = gicd->gicd_ctlr & ~(1 << 31);
 			break;
 		case GICD_TYPER:
-			*value = gicd->gicd_typer;
+			*value = vgic_sysreg_read32(gicd->gicd_regs_base, VGICD_TYPER);
+//			*value = gicd->gicd_typer;
 			break;
 		case GICD_STATUSR:
 			*value = 0;
@@ -208,7 +212,8 @@ static int vgic_gicd_mem_read(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
 			*value = 0;
 			break;
 		case (GIC_DIST_BASE + 0xffe8):
-			*value = gicd->gicd_pidr2;
+			*value = vgic_sysreg_read32(gicd->gicd_regs_base, VGICD_PIDR2);
+//			*value = gicd->gicd_pidr2;
 			break;
 		case GICD_ICFGRn...(GIC_DIST_BASE + 0x0cfc - 1):
 			offset = (GIC_DIST_BASE+offset-GICD_ICFGRn) / 4;
@@ -241,7 +246,8 @@ static int vgic_gicd_mem_write(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
 	offset += GIC_DIST_BASE;
 	switch (offset) {
 		case GICD_CTLR:
-			gicd->gicd_ctlr = *value;
+			vgic_sysreg_write32(*value, gicd->gicd_regs_base, VGICD_CTLR);
+//			gicd->gicd_ctlr = *value;
 			break;
 		case GICD_TYPER:
 			break;
@@ -380,10 +386,8 @@ int vgicv3_raise_sgi(struct vcpu *vcpu, unsigned long sgi_value)
 	return 0;
 }
 
-int vgic_vdev_mem_read(struct virt_dev *vdev, arch_commom_regs_t *regs,
-                            uint64_t addr, uint64_t *value)
+int vgic_vdev_mem_read(struct virt_dev *vdev, uint64_t addr, uint64_t *value)
 {
-	ARG_UNUSED(regs);
 	uint32_t offset;
     int i;
 	int type = TYPE_GIC_INVAILD;
@@ -392,18 +396,19 @@ int vgic_vdev_mem_read(struct virt_dev *vdev, arch_commom_regs_t *regs,
 	struct virt_gic_gicd *gicd = &vgic->gicd;
 	struct virt_gic_gicr *gicr = vgic->gicr[vcpu->vcpu_id];
 
-	if ((addr >= gicd->addr_base) && (addr < gicd->addr_base + gicd->addr_size)) {
+	if ((addr >= gicd->gicd_base) && (addr < gicd->gicd_base + gicd->gicd_size)) {
 		type = TYPE_GIC_GICD;
-		offset = addr - gicd->addr_base;
+		offset = addr - gicd->gicd_base;
 	} else {
 		type = get_vcpu_gicr_type(gicr, addr, &offset);
 		/* master vcpu may access other vcpu's gicr */
-		if (type == TYPE_GIC_INVAILD)
-		for (i = 0; i < vcpu->vm->vcpu_num; i++) {
-			gicr = vgic->gicr[i];
-			type = get_vcpu_gicr_type(gicr, addr, &offset);
-			if (type != TYPE_GIC_INVAILD)
-				break;
+		if (type == TYPE_GIC_INVAILD){
+			for (i = 0; i < vcpu->vm->vcpu_num; i++) {
+				gicr = vgic->gicr[i];
+				type = get_vcpu_gicr_type(gicr, addr, &offset);
+				if (type != TYPE_GIC_INVAILD)
+					break;
+			}
 		}
 	}
 
@@ -425,8 +430,9 @@ int vgic_vdev_mem_read(struct virt_dev *vdev, arch_commom_regs_t *regs,
 	case TYPE_GIC_GICR_SGI:
 			return vgic_gicrsgi_mem_read(vcpu, gicr, offset, value);
 	case TYPE_GIC_GICR_VLPI:
+			/* ignore vlpi register */
 			*value = 0;
-            return 0; 	//ignore on this stage. @TODO
+            return 0;
 	default:
 		ZVM_LOG_WARN("unsupport gic type %d\n", type);
 		return -EINVAL;
@@ -435,10 +441,8 @@ int vgic_vdev_mem_read(struct virt_dev *vdev, arch_commom_regs_t *regs,
 	return 0;
 }
 
-int vgic_vdev_mem_write(struct virt_dev *vdev, arch_commom_regs_t *regs,
-                            uint64_t addr, uint64_t *value)
+int vgic_vdev_mem_write(struct virt_dev *vdev, uint64_t addr, uint64_t *value)
 {
-	ARG_UNUSED(regs);
     uint32_t offset;
     int i;
 	int type = TYPE_GIC_INVAILD;
@@ -447,9 +451,9 @@ int vgic_vdev_mem_write(struct virt_dev *vdev, arch_commom_regs_t *regs,
 	struct virt_gic_gicd *gicd = &vgic->gicd;
 	struct virt_gic_gicr *gicr = vgic->gicr[vcpu->vcpu_id];
 
-    if ((addr >= gicd->addr_base) && (addr < gicd->addr_base + gicd->addr_size)) {
+    if ((addr >= gicd->gicd_base) && (addr < gicd->gicd_base + gicd->gicd_size)) {
 		type = TYPE_GIC_GICD;
-		offset = addr - gicd->addr_base;
+		offset = addr - gicd->gicd_base;
 	} else {
 		type = get_vcpu_gicr_type(gicr, addr, &offset);
 		/* master vcpu may access other vcpu's gicr */
@@ -623,14 +627,14 @@ struct virt_irq_desc *get_virt_irq_desc(struct vcpu *vcpu, uint32_t virq)
 int vm_intctrl_vdev_create(struct vm *vm)
 {
 	int ret = 0;
-	struct vgicv3_dev *gicv3_vdev;
+	const struct device *dev = DEVICE_DT_GET(DT_ALIAS(vmvgic));
 
-	gicv3_vdev = vgicv3_dev_init(vm);
-	if (!gicv3_vdev) {
-		ZVM_LOG_ERR("Init gicv3 dev failed. \n");
+	if(((const struct virt_device_api * const)(dev->api))->init_fn){
+		((const struct virt_device_api * const)(dev->api))->init_fn(dev, vm, NULL);
+	}else{
+		ZVM_LOG_ERR("No gic device api! \n");
 		return -ENODEV;
 	}
-	vm->vm_irq_block.virt_priv_date = gicv3_vdev;
 
 	return ret;
 }

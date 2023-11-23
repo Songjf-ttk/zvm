@@ -21,11 +21,6 @@
 #define DEV_TYPE_VIRTIO_DEVICE      (0x02)
 #define DEV_TYPE_PASSTHROUGH_DEVICE (0x03)
 
-struct virt_dev;
-
-typedef int (*vm_vdev_write_t)(struct virt_dev *vdev, arch_commom_regs_t *regs, uint64_t addr, uint64_t *value);
-typedef int (*vm_vdev_read_t)(struct virt_dev *vdev, arch_commom_regs_t *regs, uint64_t addr, uint64_t *value);
-
 struct virt_dev {
     /* name of virtual device */
 	char name[VIRT_DEV_NAME_LENGTH];
@@ -44,15 +39,16 @@ struct virt_dev {
 	struct _dnode vdev_node;
 	struct vm *vm;
     /**
-     * the device private data may be usefull,
-     * For full virtual device, it may store the emulated device.
-     * For passthrough, it store the hardware instance.
+     * Device private data may be usefull,
+     * For full virtual device, it may store the emulated device private data.
+     * For passthrough, it store the hardware instance data.
     */
-    /* the device private data may be usefull */
     const void *priv_data;
 
-    vm_vdev_write_t vm_vdev_write;
-    vm_vdev_read_t  vm_vdev_read;
+    /**
+     * Binding to full virtual device driver.
+    */
+    const void *priv_vdev;
 };
 typedef struct virt_dev virt_dev_t;
 

@@ -79,6 +79,7 @@ int vdev_mmio_abort(arch_commom_regs_t *regs, int write, uint64_t addr,
     struct vm *vm;
     struct virt_dev *vdev;
     struct  _dnode *d_node, *ds_node;
+    const struct device *dev;
 
     vm = get_current_vm();
 
@@ -87,10 +88,13 @@ int vdev_mmio_abort(arch_commom_regs_t *regs, int write, uint64_t addr,
 
         if ((addr >= vdev->vm_vdev_paddr) && (addr < vdev->vm_vdev_paddr +
             vdev->vm_vdev_size)) {
+            dev = (const struct device* const)vdev->priv_vdev;
             if (write) {
-                return vdev->vm_vdev_write(vdev, regs, addr, reg_value);
+                return ((const struct virt_device_api * \
+                    const)(dev->api))->virt_device_write(vdev, addr, reg_value);
             }else{
-                return vdev->vm_vdev_read(vdev, regs, addr, reg_value);
+                return ((const struct virt_device_api * \
+                    const)(dev->api))->virt_device_read(vdev, addr, reg_value);
             }
         }
     }
@@ -185,22 +189,7 @@ int vm_device_init(struct vm *vm)
         return -EMMAO;
     }
 
-    /* scan the dtb and get the device's node. */
-    // switch(device_type){
-    //     case DEV_TYPE_EMULATE_ALL_DEVICE:
-    //         break;
-    //     case DEV_TYPE_VIRTIO_DEVICE:
-    //         break;
-    //     case DEV_TYPE_PASSTHROUGH_DEVICE:
-    //         /** Address the suitable device init function
-    //          * which will init the device and build the
-    //          * memory map for vm.
-    //         */
-    //         ((const struct virt_device_api * const)(dev)->api)->init_fn(dev, vm, vdev);
-    //         break;
-    //     default:
-    //         ZVM_LOG_WARN("VM's device type error!\n");
-    // }
+    /* @TODO: scan the dtb and get the device's node. */
 
     return 0;
 }

@@ -50,6 +50,19 @@
 #define LIST_REG_NHW_VIRQ		(0)
 #define LIST_REG_HW_VIRQ		(1)
 
+/* GICR registers offset from RDIST_base(n) */
+#define VGICR_CTLR				0x0000
+#define VGICR_IIDR				0x0004
+#define VGICR_TYPER				0x0008
+#define VGICR_STATUSR			0x0010
+#define VGICR_WAKER				0x0014
+#define VGICR_PROPBASER			0x0070
+#define VGICR_PENDBASER			0x0078
+#define VGICR_ISENABLER0		0x0100
+#define VGICR_ICENABLER0		0x0180
+#define VGICR_SGI_PENDING		0x0200
+#define VGICR_PIDR2				0xFFE8
+
 /* 在枚举中定义常量和标签的宏的名称都是大写的 */
 /* System support list reg count */
 enum {
@@ -109,15 +122,48 @@ struct gicv3_list_reg {
 };
 
 /**
+ * @brief Virtual generatic interrupt controller redistributor
+ * struct for each vm's vcpu.
+ * Each Redistributor defines four 64KB frames as follows:
+ * 1. RD_base
+ * 2. SGI_base
+ * 3. VLPI_base
+ * 4. Reserved
+ * @TODO: support vlpi later.
+*/
+struct virt_gic_gicr {
+	uint32_t vcpu_id;
+
+	/* virtual gicr for emulating device for vm. */
+	uint32_t *gicr_rd_reg_base;
+	uint32_t *gicr_sgi_reg_base;
+
+	/* vm's physical gicr address. */
+	uint32_t gicr_rd_base;
+	uint32_t gicr_sgi_base;
+	uint32_t gicr_rd_size;
+	uint32_t gicr_sgi_size;
+
+	struct k_spinlock gicr_lock;
+};
+
+/**
  * @brief vgicv3 virtual device struct, for emulate device.
  */
 struct vgicv3_dev {
-	struct virt_dev *v_dev;
 	struct virt_gic_gicd gicd;
-	struct virt_gic_gicr *gicr[CONFIG_MAX_VCPU_PER_VM];
-	int nr_lrs;
+	struct virt_gic_gicr *gicr[VGIC_RDIST_SIZE/VGIC_RD_SGI_SIZE];
 };
 
+/**
+ * @brief virtual gicv3 device information.
+*/
+struct gicv3_vdevice {
+	uint64_t gicd_base;
+	uint64_t gicd_size;
+	uint64_t gicr_base;
+	uint64_t gicr_size;
+};
 
 /**
  * @brief gic vcpu interface init.

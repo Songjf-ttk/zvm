@@ -11,6 +11,21 @@ menuconfig ZVM_DEVICE_SUPPORT
 	help
 	  	Zephyr device virtualization support.
 
+config VM_VGICV3
+	bool "VM gicv3 device that get from vm."
+	help
+	  	This option is used for building serial1 that get from overlay.
+
+if VM_VGICV3
+
+config VM_VGICV3_INIT_PRIORITY
+	int "VM virtio mmio init priority."
+	default 52
+	help
+		When virtio is init, it judge the initialization priority in POST_KERNLE.
+
+endif
+
 config VM_SERIAL1
 	bool "VM serial1 that get from vm."
 	help

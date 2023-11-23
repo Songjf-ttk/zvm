@@ -51,7 +51,7 @@ static int handle_ftrans_desc(int iss_dfsc, uint64_t pa_addr,
     if(ret){
         reg_value = find_index_reg(reg_index, regs);
         *reg_value = 0xfefefefefefefefe;
-        ZVM_LOG_INFO("VM's mem abort addr: %llx ! \n", pa_addr);
+        ZVM_LOG_INFO("VM's mem abort addr: 0x%llx ! \n", pa_addr);
         /**
          * if the device is allocated, whether it can be emulated
          * by virtIO?
@@ -344,7 +344,6 @@ int arch_vm_trap_sync(struct vcpu *vcpu)
         default:
             goto handler_failed;
 	}
-
     fix_esr_elx = AARCH64_INST_ADJUST;
     vcpu->arch->ctxt.regs.pc += fix_esr_elx;
     return err;

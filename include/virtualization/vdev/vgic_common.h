@@ -35,11 +35,18 @@ struct virt_dev;
 #define VGIC_RDIST_BASE	DT_REG_ADDR_BY_IDX(DT_INST(0, arm_gic), 1)
 #define VGIC_RDIST_SIZE	DT_REG_SIZE_BY_IDX(DT_INST(0, arm_gic), 1)
 
-/* Vgic control block flag */
-#define VIRQ_HW_SUPPORT		BIT(1)
+/* GICD registers offset from DIST_base(n) */
+#define VGICD_CTLR			0x0000
+#define VGICD_TYPER			0x0004
+#define VGICD_IIDR			0x0008
+#define VGICD_STATUSR		0x0010
+#define VGICD_PIDR2			0xFFE8
 
-#define VGIC_VIRQ_IN_SGI		(0x0)
-#define VGIC_VIRQ_IN_PPI		(0x1)
+/* Vgic control block flag */
+#define VIRQ_HW_SUPPORT				BIT(1)
+
+#define VGIC_VIRQ_IN_SGI			(0x0)
+#define VGIC_VIRQ_IN_PPI			(0x1)
 #define VGIC_VIRQ_LEVEL_SORT(irq)	((irq)/VM_LOCAL_VIRQ_NR)
 
 /* VGIC Type for virtual interrupt control */
@@ -47,45 +54,30 @@ struct virt_dev;
 #define VGIC_TYPER_LR_NUM 		((VGIC_TYPER_REGISTER & 0x1f) + 1)
 #define VGIC_TYPER_PRIO_NUM		(((VGIC_TYPER_REGISTER >> 29) & 0x07) + 1)
 
+/* 64k frame */
+#define VGIC_RD_BASE_SIZE		(64 * 1024)
+#define VGIC_SGI_BASE_SIZE		(64 * 1024)
+#define VGIC_RD_SGI_SIZE		(VGIC_RD_BASE_SIZE+VGIC_SGI_BASE_SIZE)
+
+/* virtual gic device register operation */
+#define vgic_sysreg_read32(base, offset)			sys_read32((long unsigned int)(base+((offset)/4)))
+#define vgic_sysreg_write32(data, base, offset)		sys_write32(data, (long unsigned int)(base+((offset)/4)))
+#define vgic_sysreg_read64(data, base, offset)		sys_read64(data, (long unsigned int)(base+((offset)/4)))
+#define vgic_sysreg_write64(data, base, offset)		sys_write64(data, (long unsigned int)(base+((offset)/4)))
+
 /**
- * @brief Init a virtual general interrupt controller for each VM.
+ * @brief Virtual generatic interrupt controller distributor
+ * struct for each vm.
 */
 struct virt_gic_gicd {
-	/* gicd base and size */
-	uint32_t addr_base;
-	uint32_t addr_size;
+	/* gicd address base and size */
+	uint32_t gicd_base;
+	uint32_t gicd_size;
+	/* virtual gicr for emulating device for vm. */
+	uint32_t *gicd_regs_base;
 
-	uint32_t *gicd_regs;
-
-	uint32_t gicd_ctlr;
-	uint32_t gicd_typer;
-	uint32_t gicd_pidr2;
-
+	/* gicd spin lock */
 	struct k_spinlock gicd_lock;
-};
-
-struct virt_gic_gicr {
-	uint32_t gicr_ctlr;
-
-	/* Provides information about the implementer and revision of the Redistributor */
-	uint32_t gicr_iidr;
-	uint32_t gicr_pidr2;
-
-	uint32_t gicr_ispender;
-	uint32_t gicr_enabler0;
-
-	uint32_t raddr_base;
-	uint32_t vcpu_id;
-
-	uint32_t sgi_base;
-	uint32_t vlpi_base;
-
-	/* These must be 64 bits for record */
-	uint64_t gicr_typer;
-
-	sys_dlist_t list;
-
-	struct k_spinlock gicr_lock;
 };
 
 
@@ -139,11 +131,9 @@ void arch_vdev_irq_enable(struct vcpu *vcpu);
 void arch_vdev_irq_disable(struct vcpu *vcpu);
 
 
-int vgic_vdev_mem_read(struct virt_dev *vdev, arch_commom_regs_t *regs,
-                            uint64_t addr, uint64_t *value);
+int vgic_vdev_mem_read(struct virt_dev *vdev, uint64_t addr, uint64_t *value);
 
-int vgic_vdev_mem_write(struct virt_dev *vdev, arch_commom_regs_t *regs,
-                            uint64_t addr, uint64_t *value);
+int vgic_vdev_mem_write(struct virt_dev *vdev, uint64_t addr, uint64_t *value);
 
 /**
  * @brief send a virt irq signal to a vcpu.
