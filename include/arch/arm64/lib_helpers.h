@@ -124,8 +124,8 @@ MAKE_REG_HELPER(prbar_el1);
 MAKE_REG_HELPER(prlar_el1);
 #endif
 
-#if defined(CONFIG_HAS_ARM_VHE_EXTN)
 /* Armv8.1+ VHE register */
+#if defined(CONFIG_HAS_ARM_VHE_EXTN)
 #define	sctlr_el12	s3_5_c1_c0_0
 #define	trfcr_el12	s3_5_c1_c0_1
 #define	cpacr_el12	s3_5_c1_c0_2
@@ -178,7 +178,17 @@ MAKE_REG_HELPER(cntp_cval_el02);
 MAKE_REG_HELPER(cntv_tval_el02);
 MAKE_REG_HELPER(cntv_ctl_el02);
 MAKE_REG_HELPER(cntv_cval_el02);
-#endif
+#endif /* CONFIG_HAS_ARM_VHE_EXTN */
+
+#if defined(CONFIG_GIC_V3)
+
+#define eisr_el2	s3_4_c12_c11_3
+#define elrsr_el2	s3_4_c12_c11_5
+
+MAKE_REG_HELPER(eisr_el2);
+MAKE_REG_HELPER(elrsr_el2);
+
+#endif	/* CONFIG_GIC_V3 */
 
 static ALWAYS_INLINE void enable_debug_exceptions(void)
 {

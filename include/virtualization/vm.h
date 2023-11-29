@@ -93,6 +93,7 @@ struct vcpu {
     uint16_t vcpu_id;
     uint16_t cpu;
     uint16_t vcpu_state;
+    uint16_t exit_type;
 
     /* vcpu timers record*/
     uint32_t hcpu_cycles;

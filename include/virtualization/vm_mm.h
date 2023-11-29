@@ -43,7 +43,7 @@ struct vm;
 /**
  * @brief vm_mem_block record the translation relation of virt addr to phy addr
  */
-struct vm_mem_block{
+struct vm_mem_block {
     uint8_t     *phy_pointer;
 
     /* block num of this vpart */
@@ -91,7 +91,7 @@ struct vm_mem_partition {
 /**
  * @brief vm_mem_domain describe the full virtual address space of the vm.
  */
-struct vm_mem_domain{
+struct vm_mem_domain {
     bool is_init;
 
     /* A vm is bind to a domain */

@@ -56,7 +56,7 @@ typedef struct virt_dev virt_dev_t;
  * @brief Save the overall idle dev list info.
  * Smp condition must be considered here.
  */
-struct zvm_dev_lists{
+struct zvm_dev_lists {
     uint16_t dev_count;
     sys_dlist_t dev_idle_list;
     sys_dlist_t dev_used_list;

@@ -47,11 +47,12 @@ struct virt_dev;
 
 #define VGIC_VIRQ_IN_SGI			(0x0)
 #define VGIC_VIRQ_IN_PPI			(0x1)
-#define VGIC_VIRQ_LEVEL_SORT(irq)	((irq)/VM_LOCAL_VIRQ_NR)
+/* Sorting virt irq to SGI/PPI/SPI */
+#define VGIC_VIRQ_LEVEL_SORT(irq)	((irq)/VM_SGI_VIRQ_NR)
 
 /* VGIC Type for virtual interrupt control */
 #define VGIC_TYPER_REGISTER		(read_sysreg(ICH_VTR_EL2))
-#define VGIC_TYPER_LR_NUM 		((VGIC_TYPER_REGISTER & 0x1f) + 1)
+#define VGIC_TYPER_LR_NUM 		((VGIC_TYPER_REGISTER & 0x1F) + 1)
 #define VGIC_TYPER_PRIO_NUM		(((VGIC_TYPER_REGISTER >> 29) & 0x07) + 1)
 
 /* 64k frame */
@@ -181,7 +182,7 @@ static ALWAYS_INLINE bool is_vm_irq_valid(struct vm *vm, uint32_t flag)
 	}
 
     if (vm->vm_status == VM_STATE_PAUSE) {
-        if (flag & VIRQ_FLAG_IS_WAKEUP) {
+        if (flag & VIRQ_WAKEUP_FLAG) {
 			return true;
 		} else {
 			return false;

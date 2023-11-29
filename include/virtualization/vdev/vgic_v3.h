@@ -63,19 +63,17 @@
 #define VGICR_SGI_PENDING		0x0200
 #define VGICR_PIDR2				0xFFE8
 
-/* 在枚举中定义常量和标签的宏的名称都是大写的 */
-/* System support list reg count */
-enum {
-	vgicv3_lr0,
-	vgicv3_lr1,
-	vgicv3_lr2,
-	vgicv3_lr3,
-	vgicv3_lr4,
-	vgicv3_lr5,
-	vgicv3_lr6,
-	vgicv3_lr7,
-	vgicv3_lrs_count,
-};
+/* list register test and set */
+#define VGIC_LIST_REGS_TEST(id, vcpu)	\
+			((((struct vcpu *)vcpu)->arch->list_regs_map) \
+			& (1 << id))
+#define VGIC_LIST_REGS_UNSET(id, vcpu) ((((struct vcpu *)vcpu)->arch->list_regs_map)\
+			= ((((struct vcpu *)vcpu)->arch->list_regs_map)\
+			& (~(1 << id))))
+#define VGIC_LIST_REGS_SET(id, vcpu) ((((struct vcpu *)vcpu)->arch->list_regs_map)\
+			= ((((struct vcpu *)vcpu)->arch->list_regs_map)\
+			| (1 << id)))
+#define VGIC_ELRSR_REG_TEST(id, elrsr) ((1 << ((id)&0x1F)) & elrsr)
 
 /**
  * @brief vcpu vgicv3 register interface.
@@ -187,16 +185,6 @@ int vgicv3_state_save(struct vcpu *vcpu, struct gicv3_vcpuif_ctxt *ctxt);
 int gicv3_inject_virq(struct vcpu *vcpu, struct virt_irq_desc *desc);
 
 /**
- * @brief Get virq state from register.
- */
-uint8_t gicv3_get_lr_state(struct vcpu *vcpu, struct virt_irq_desc *virq);
-
-/**
- * @brief update virt irq flags aim to reset virq here.
- */
-int gicv3_update_lr(struct vcpu *vcpu, struct virt_irq_desc *desc, int action);
-
-/**
  * @brief gic redistribute vdev mem read.
  */
 int vgic_gicrsgi_mem_read(struct vcpu *vcpu, struct virt_gic_gicr *gicr,
@@ -235,9 +223,9 @@ int vgicv3_raise_sgi(struct vcpu *vcpu, unsigned long sgi_value);
 */
 struct vgicv3_dev *vgicv3_dev_init(struct vm *vm);
 
-static ALWAYS_INLINE uint64_t gicv3_read_lr(uint8_t list_register)
+static ALWAYS_INLINE uint64_t gicv3_read_lr(uint8_t register_id)
 {
-	switch (list_register) {
+	switch (register_id) {
 	case 0:
 		return read_sysreg(ICH_LR0_EL2);
 	case 1:
@@ -259,9 +247,9 @@ static ALWAYS_INLINE uint64_t gicv3_read_lr(uint8_t list_register)
 	}
 }
 
-static ALWAYS_INLINE void gicv3_write_lr(uint8_t list_register, uint64_t value)
+static ALWAYS_INLINE void gicv3_write_lr(uint8_t register_id, uint64_t value)
 {
-	switch (list_register) {
+	switch (register_id) {
 	case 0:
 		write_sysreg(value, ICH_LR0_EL2);
 		break;
@@ -288,6 +276,54 @@ static ALWAYS_INLINE void gicv3_write_lr(uint8_t list_register, uint64_t value)
 		break;
 	default:
 		return;
+	}
+}
+
+/**
+ * @brief Get virq state from register.
+ */
+static ALWAYS_INLINE uint8_t gicv3_get_lr_state(struct vcpu *vcpu, struct virt_irq_desc *desc)
+{
+	uint64_t value;
+
+	if (desc->id >=  VGIC_TYPER_LR_NUM) {
+		return 0;
+	}
+	value = gicv3_read_lr(desc->id);
+	value = (value >> 62) & 0x03;
+
+	return ((uint8_t)value);
+}
+
+/**
+ * @brief Find the idle list register.
+*/
+static ALWAYS_INLINE uint8_t gicv3_get_idle_lr(struct vcpu *vcpu)
+{
+	uint8_t i;
+	for (i=0; i<VGIC_TYPER_LR_NUM; i++) {
+		if (!VGIC_LIST_REGS_TEST(i, vcpu)) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+/**
+ * @brief update virt irq flags aim to reset virq here.
+ */
+static ALWAYS_INLINE void gicv3_update_lr(struct vcpu *vcpu, struct virt_irq_desc *desc,
+								int action, uint64_t value)
+{
+	switch (action) {
+	case ACTION_CLEAR_VIRQ:
+		gicv3_write_lr(desc->id, 0);
+		VGIC_LIST_REGS_UNSET(desc->id, vcpu);
+		break;
+	case ACTION_SET_VIRQ:
+		gicv3_write_lr(desc->id, value);
+		VGIC_LIST_REGS_SET(desc->id, vcpu);
+		break;
 	}
 }
 

@@ -194,6 +194,9 @@ struct vcpu_arch {
     uint64_t host_mdcr_el2;
     uint64_t guest_mdcr_el2;
 
+    /* arm gic list register bitmap for recording used lr */
+    uint64_t list_regs_map;
+
     /* Exception information. */
     struct vcpu_fault_info fault;
 

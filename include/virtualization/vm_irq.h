@@ -14,33 +14,39 @@
 #include <virtualization/arm/trap_handler.h>
 #include <virtualization/vm_dev.h>
 
-/* Software irq flag */
-#define VIRQ_FLAG_HW            BIT(0)
-#define VIRQ_PENDING_FLAG		BIT(1)
-#define VIRT_IRQ_ENABLED		BIT(2)
-#define VIRT_IRQ_SUSPEND		BIT(3)
-#define VIRT_IRQ_REMOVED        BIT(4)
-#define VIRQ_FLAG_IS_WAKEUP     BIT(5)
-#define VIRQ_FLAG_NOUSED        BIT(6)
+/**
+ * Software irq flags, which is used to
+ * set the status of virt irq desc:
+ * @VIRQ_HW_FLAG: this irq desc has a related hardware device,
+ * not a fully emualted interrupt.
+ * @VIRQ_PENDING_FLAG: irq desc is pending, and when eret to
+ * vm, this irq will assert. (1)This flag is set when virt irq is
+ * set to vm or virt irq is not process by vm(but vm exit). (2)This
+ * flag is unset when virt irq is inject to hardware device, which
+ * will assert vm's irq.
+*/
+#define VIRQ_HW_FLAG                BIT(0)
+#define VIRQ_PENDING_FLAG		    BIT(1)
+#define VIRQ_ACTIVED_FLAG           BIT(2)
+#define VIRQ_ENABLED_FLAG		    BIT(3)
+#define VIRQ_WAKEUP_FLAG            BIT(4)
+#define VIRQ_NOUSED_FLAG            BIT(5)
 
-/* hardware irq states */
+/* Hardware irq states */
 #define VIRQ_STATE_INVALID		        (0b00)
 #define VIRQ_STATE_PENDING		        (0b01)
 #define VIRQ_STATE_ACTIVE		        (0b10)
 #define VIRQ_STATE_ACTIVE_AND_PENDING	(0b11)
-#define VIRQ_STATE_MASK                 (0b11)
 
 /* VM's injuct irq num, bind to the register */
-#define VM_VIRT_SGI_IRQ         (0x01)
-#define VM_VIRT_CONSOLE_IRQ     (0x02)
-#define VIRT_IRQ_INVALID_ID	    (0xFF)
+#define VM_INVALID_DESC_ID	            (0xFF)
+
+/* VM's irq prio */
+#define VM_DEFAULT_LOCAL_VIRQ_PRIO      (0x20)
 
 /* irq number for arm64 system. */
 #define VM_LOCAL_VIRQ_NR	(VM_SGI_VIRQ_NR + VM_PPI_VIRQ_NR)
 #define VM_GLOBAL_VIRQ_NR   (VM_LOCAL_VIRQ_NR + VM_SPI_VIRQ_NR)
-
-#define VM_INVALID_PIRQ_VALUE   0xFFFFFFFF
-#define VM_VGIC_SUPPORT_REGS    vgicv3_lrs_count
 
 struct vm;
 struct vcpu;
@@ -50,10 +56,13 @@ struct virt_dev;
  * @brief Description for each virt irq descripetor.
  */
 struct virt_irq_desc {
+    /* Id that describes the irq. */
     uint8_t id;
     uint8_t vcpu_id;
     uint8_t vm_id;
     uint8_t prio;
+    /* software dev trigger level flag */
+    uint8_t vdev_trigger;
 
     /* irq level type */
     uint8_t type;
@@ -79,9 +88,15 @@ struct virt_irq_desc {
  * for vm. In this struct, it called `VM_LOCAL_VIRQ_NR`;
 */
 struct vcpu_virt_irq_block {
-    uint32_t virq_act_counts;
+    /**
+     * record the virt irq counts which is actived,
+     * when a virt irq is sent to vm, zvm should record
+     * it and it means there is a virt irq need to process.
+    */
+    uint32_t virq_pending_counts;
 
     struct virt_irq_desc vcpu_virt_irq_desc[VM_LOCAL_VIRQ_NR];
+
     struct k_spinlock spinlock;
 
     sys_dlist_t active_irqs;

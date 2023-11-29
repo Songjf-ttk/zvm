@@ -18,6 +18,7 @@
 #include <logging/log.h>
 #include <../drivers/interrupt_controller/intc_gicv3_priv.h>
 #include <virtualization/arm/cpu.h>
+#include <virtualization/arm/asm.h>
 #include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/vdev/vgic_common.h>
 #include <virtualization/zvm.h>
@@ -54,9 +55,9 @@ static int vgic_irq_enable(struct vcpu *vcpu, uint32_t virt_irq)
         return -ENOENT;
     }
 
-    desc->virq_flags |= VIRT_IRQ_ENABLED;
+    desc->virq_flags |= VIRQ_ENABLED_FLAG;
 	if (virt_irq > VM_LOCAL_VIRQ_NR) {
-		if (desc->virq_flags & VIRQ_FLAG_HW) {
+		if (desc->virq_flags & VIRQ_HW_FLAG) {
             if (desc->pirq_num > VM_LOCAL_VIRQ_NR)
                 irq_enable(desc->pirq_num);
             else {
@@ -80,9 +81,9 @@ static int vgic_irq_disable(struct vcpu *vcpu, uint32_t virt_irq)
 		return -ENOENT;
 	}
 
-	desc->virq_flags &= ~VIRT_IRQ_ENABLED;
+	desc->virq_flags &= ~VIRQ_ENABLED_FLAG;
 	if (virt_irq > VM_LOCAL_VIRQ_NR) {
-		if (desc->virq_flags & VIRQ_FLAG_HW) {
+		if (desc->virq_flags & VIRQ_HW_FLAG) {
             if (desc->pirq_num > VM_LOCAL_VIRQ_NR) {
 				irq_disable(desc->pirq_num);
 			} else {
@@ -107,7 +108,7 @@ static int virt_irq_set_type(struct vcpu *vcpu, uint32_t virt_irq, int value)
 
 	if (desc->type != value) {
 		desc->type = value;
-		if (desc->virq_flags & VIRQ_FLAG_HW) {
+		if (desc->virq_flags & VIRQ_HW_FLAG) {
 			if (value) {
 				value = IRQ_TYPE_EDGE;
 			} else {
@@ -121,7 +122,7 @@ static int virt_irq_set_type(struct vcpu *vcpu, uint32_t virt_irq, int value)
 /**
  * @brief Set priority for specific virtual interrupt requests
  */
-static int virt_irq_set_priority(struct vcpu *vcpu, uint32_t virt_irq, int prio)
+static int vgic_virq_set_priority(struct vcpu *vcpu, uint32_t virt_irq, int prio)
 {
 	struct virt_irq_desc *desc;
 
@@ -134,8 +135,9 @@ static int virt_irq_set_priority(struct vcpu *vcpu, uint32_t virt_irq, int prio)
 	return 0;
 }
 
-static int set_virt_irq(struct vcpu *vcpu, struct virt_irq_desc *desc)
+static int vgic_set_virq(struct vcpu *vcpu, struct virt_irq_desc *desc)
 {
+	uint8_t lr_state;
     k_spinlock_key_t key;
     struct vcpu_virt_irq_block *vb = &vcpu->virq_block;
 
@@ -146,16 +148,32 @@ static int set_virt_irq(struct vcpu *vcpu, struct virt_irq_desc *desc)
     }
 
     key = k_spin_lock(&vb->spinlock);
-    if (!(desc->virq_flags & VIRQ_PENDING_FLAG)) {
+	lr_state = desc->virq_states;
+	switch (lr_state) {
+	case VIRQ_STATE_INVALID:
         desc->virq_flags |= VIRQ_PENDING_FLAG;
         if (!sys_dnode_is_linked(&desc->desc_node)) {
             sys_dlist_append(&vb->pending_irqs, &desc->desc_node);
-            vb->virq_act_counts++;
+            vb->virq_pending_counts++;
         }
         if (desc->virq_num < VM_LOCAL_VIRQ_NR) {
+			/* get the src vcpu  */
             desc->src_cpu = get_current_vcpu_id();
         }
-    }
+		break;
+	case VIRQ_STATE_ACTIVE:
+        desc->virq_flags |= VIRQ_ACTIVED_FLAG;
+		/* if vm interrupt is not in active list */
+        if (!sys_dnode_is_linked(&desc->desc_node)) {
+            sys_dlist_append(&vb->pending_irqs, &desc->desc_node);
+            vb->virq_pending_counts++;
+        }
+		break;
+	case VIRQ_STATE_PENDING:
+		break;
+	case VIRQ_STATE_ACTIVE_AND_PENDING:
+		break;
+	}
     k_spin_unlock(&vb->spinlock, key);
 
 	/**
@@ -179,6 +197,10 @@ static int set_virt_irq(struct vcpu *vcpu, struct virt_irq_desc *desc)
     return 0;
 }
 
+/**
+ * @brief set sgi interrupt to vm, which usually used on vcpu
+ * communication.
+*/
 static bool vgic_set_sgi2vcpu(struct vcpu *vcpu, struct virt_irq_desc *desc)
 {
 	return true;
@@ -196,11 +218,9 @@ static int vgic_gicd_mem_read(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
 	switch (offset) {
 		case GICD_CTLR:
 			*value = vgic_sysreg_read32(gicd->gicd_regs_base, VGICD_CTLR) & ~(1 << 31);
-//			*value = gicd->gicd_ctlr & ~(1 << 31);
 			break;
 		case GICD_TYPER:
 			*value = vgic_sysreg_read32(gicd->gicd_regs_base, VGICD_TYPER);
-//			*value = gicd->gicd_typer;
 			break;
 		case GICD_STATUSR:
 			*value = 0;
@@ -213,7 +233,6 @@ static int vgic_gicd_mem_read(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
 			break;
 		case (GIC_DIST_BASE + 0xffe8):
 			*value = vgic_sysreg_read32(gicd->gicd_regs_base, VGICD_PIDR2);
-//			*value = gicd->gicd_pidr2;
 			break;
 		case GICD_ICFGRn...(GIC_DIST_BASE + 0x0cfc - 1):
 			offset = (GIC_DIST_BASE+offset-GICD_ICFGRn) / 4;
@@ -247,7 +266,6 @@ static int vgic_gicd_mem_write(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
 	switch (offset) {
 		case GICD_CTLR:
 			vgic_sysreg_write32(*value, gicd->gicd_regs_base, VGICD_CTLR);
-//			gicd->gicd_ctlr = *value;
 			break;
 		case GICD_TYPER:
 			break;
@@ -268,13 +286,13 @@ static int vgic_gicd_mem_write(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
 			x = (offset - GICD_IPRIORITYRn) / 4;
 			y = x * 4 - 1;
 			bit = (t & 0x000000ff);
-			virt_irq_set_priority(vcpu, y + 1, bit);
+			vgic_virq_set_priority(vcpu, y + 1, bit);
 			bit = (t & 0x0000ff00) >> 8;
-			virt_irq_set_priority(vcpu, y + 2, bit);
+			vgic_virq_set_priority(vcpu, y + 2, bit);
 			bit = (t & 0x00ff0000) >> 16;
-			virt_irq_set_priority(vcpu, y + 3, bit);
+			vgic_virq_set_priority(vcpu, y + 3, bit);
 			bit = (t & 0xff000000) >> 24;
-			virt_irq_set_priority(vcpu, y + 4, bit);
+			vgic_virq_set_priority(vcpu, y + 4, bit);
 			break;
 		case GICD_ICFGRn...(GIC_DIST_BASE + 0x0cfc - 1):
 			offset = (GIC_DIST_BASE+offset-GICD_ICFGRn) / 4;
@@ -503,7 +521,7 @@ int set_virq_to_vcpu(struct vcpu *vcpu, uint32_t virq_num)
         return -EVIRQ;
     }
 
-    return set_virt_irq(vcpu, desc);
+    return vgic_set_virq(vcpu, desc);
 }
 
 int set_virq_to_vm(struct vm *vm, uint32_t virq_num)
@@ -523,7 +541,7 @@ int set_virq_to_vm(struct vm *vm, uint32_t virq_num)
     }
 
     target_vcpu = vm->vcpus[desc->vcpu_id];
-    ret = set_virt_irq(target_vcpu, desc);
+    ret = vgic_set_virq(target_vcpu, desc);
     if (ret >= 0) {
 		return VM_IRQ_TO_VM_SUCCESS;
 	}
@@ -534,35 +552,55 @@ int set_virq_to_vm(struct vm *vm, uint32_t virq_num)
 int virt_irq_sync_vgic(struct vcpu *vcpu)
 {
 	uint8_t lr_state;
+	int ret;
+	uint64_t elrsr, eisr;
 	k_spinlock_key_t key;
 	struct virt_irq_desc *desc;
     struct _dnode *d_node, *ds_node;
 	struct vcpu_virt_irq_block *vb = &vcpu->virq_block;
 
 	key = k_spin_lock(&vb->spinlock);
-	if (vb->virq_act_counts == 0) {
+	if (vb->virq_pending_counts == 0) {
 		k_spin_unlock(&vb->spinlock, key);
 		return 0;
 	}
 
+	/* Get the maintain or valid irq */
+	elrsr = read_elrsr_el2();
+	eisr = read_eisr_el2();
+	elrsr |= eisr;
+	elrsr &= vcpu->arch->list_regs_map;
+
     SYS_DLIST_FOR_EACH_NODE_SAFE(&vb->active_irqs, d_node, ds_node) {
         desc = CONTAINER_OF(d_node, struct virt_irq_desc, desc_node);
-        lr_state = gicv3_get_lr_state(vcpu, desc);
+		/* A valid interrupt? store it again! */
+		if(!VGIC_ELRSR_REG_TEST(desc->id, elrsr)){
+			continue;
+		}
 
-		if (lr_state == VIRQ_STATE_INVALID) {
-			if (desc->virq_flags & VIRQ_PENDING_FLAG) {
-				gicv3_update_lr(vcpu, desc, ACTION_CLEAR_VIRQ);
-				sys_dlist_remove(&desc->desc_node);
-				sys_dlist_append(&vb->pending_irqs, &desc->desc_node);
-			} else {
-				gicv3_update_lr(vcpu, desc, ACTION_CLEAR_VIRQ);
-				desc->virq_states = VIRQ_STATE_INVALID;
-				desc->id = VIRT_IRQ_INVALID_ID;
-				sys_dlist_remove(&desc->desc_node);
-				vb->virq_act_counts--;
+        lr_state = gicv3_get_lr_state(vcpu, desc);
+		switch (lr_state) {
+		/* vm interrupt is done or need pending again when it is active  */
+		case VIRQ_STATE_ACTIVE:
+			/* if this sync is not irq trap */
+			if(vcpu->exit_type != ARM_VM_EXCEPTION_IRQ){
+				desc->virq_states = lr_state;
+				break;
 			}
-		} else {
+		case VIRQ_STATE_INVALID:
+			gicv3_update_lr(vcpu, desc, ACTION_CLEAR_VIRQ, 0);
+			sys_dlist_remove(&desc->desc_node);
+			/* if software irq is still triggered */
+			if (desc->vdev_trigger) {
+				/* This means vm interrupt is done, but host interrupt is pending */
+				sys_dlist_append(&vb->pending_irqs, &desc->desc_node);
+			}
+			vb->virq_pending_counts--;
+		/* vm interrupt is still pending, no need to inject again. */
+		case VIRQ_STATE_PENDING:
+		case VIRQ_STATE_ACTIVE_AND_PENDING:
 			desc->virq_states = lr_state;
+			break;
 		}
     }
 	k_spin_unlock(&vb->spinlock, key);
@@ -572,47 +610,63 @@ int virt_irq_sync_vgic(struct vcpu *vcpu)
 
 int virt_irq_flush_vgic(struct vcpu *vcpu)
 {
-	int ret;
+	uint8_t list_reg_num = -1;
+	int ret, i;
 	k_spinlock_key_t key;
 	struct virt_irq_desc *desc;
     struct _dnode *d_node, *ds_node;
 	struct vcpu_virt_irq_block *vb = &vcpu->virq_block;
 
 	key = k_spin_lock(&vb->spinlock);
-	if (vb->virq_act_counts == 0) {
+	if (vb->virq_pending_counts == 0) {
+		/* No pending irq, just return! */
 		k_spin_unlock(&vb->spinlock, key);
 		return 0;
 	}
+
+	/* no idle list register */
+	if(vcpu->arch->list_regs_map == (1<<VGIC_TYPER_LR_NUM -1) ){
+		k_spin_unlock(&vb->spinlock, key);
+		ZVM_LOG_INFO("There is no idle list register! ");
+		return 0;
+	}
+
     SYS_DLIST_FOR_EACH_NODE_SAFE(&vb->pending_irqs, d_node, ds_node) {
         desc = CONTAINER_OF(d_node, struct virt_irq_desc, desc_node);
 
-        if (desc->virq_flags & VIRQ_PENDING_FLAG) {
+		/* if there the vm interrupt is not deactived, avoid inject it again */
+		if(!(desc->virq_states==VIRQ_STATE_INVALID || desc->virq_states==VIRQ_STATE_ACTIVE)){
+			continue;
+		}
 
+        if (desc->virq_flags & VIRQ_PENDING_FLAG || desc->virq_flags & VIRQ_ACTIVED_FLAG) {
 			switch (VGIC_VIRQ_LEVEL_SORT(desc->virq_num)) {
-			/*TODO: Add muti-vcpu support later.*/
 			case VGIC_VIRQ_IN_SGI:
-				vgic_set_sgi2vcpu(vcpu,desc);
+				vgic_set_sgi2vcpu(vcpu, desc);
 			case VGIC_VIRQ_IN_PPI:
 			default:
 				break;
 			}
-            if (desc->id == VIRT_IRQ_INVALID_ID) {
-				desc->id = read_sysreg(ICH_VTR_EL2) & 0x1f;
-            }
+			desc->id = gicv3_get_idle_lr(vcpu);
+			if(desc->id < 0){
+				ZVM_LOG_WARN("No idle list register for virq: %d. \n", desc->id);
+				break;
+			}
             ret = gicv3_inject_virq(vcpu, desc);
             if (ret) {
+				k_spin_unlock(&vb->spinlock, key);
                 return ret;
             }
             desc->virq_states = VIRQ_STATE_PENDING;
             desc->virq_flags &= (uint32_t)~VIRQ_PENDING_FLAG;
             sys_dlist_remove(&desc->desc_node);
             sys_dlist_append(&vb->active_irqs, &desc->desc_node);
-            continue;
-        }
-        ZVM_LOG_WARN("Some thing wrong, virq-id %d is not pending but in the list. \n", desc->id);
-		gicv3_update_lr(vcpu, desc, ACTION_CLEAR_VIRQ);
-		desc->id = VIRT_IRQ_INVALID_ID;
-        sys_dlist_remove(&desc->desc_node);
+        }else {
+			ZVM_LOG_WARN("Some thing wrong, virq-id %d is not pending but in the list. \n", desc->id);
+			gicv3_update_lr(vcpu, desc, ACTION_CLEAR_VIRQ, 0);
+			desc->id = VM_INVALID_DESC_ID;
+			sys_dlist_remove(&desc->desc_node);
+		}
     }
 	k_spin_unlock(&vb->spinlock, key);
 

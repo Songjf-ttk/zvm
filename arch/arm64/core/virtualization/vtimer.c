@@ -245,10 +245,17 @@ void simulate_timer_cntp_ctl(struct vcpu *vcpu, int read, uint64_t *value)
  * 2. Add a timer expiry function for vcpu.
  * 3. Add a callbak function.
  */
-void arch_vcpu_timer_init(struct vcpu *vcpu)
+int arch_vcpu_timer_init(struct vcpu *vcpu)
 {
 	bool *bit_addr;
 	struct virt_timer_context *ctxt;
+	struct vcpu_arch *arch = vcpu->arch;
+
+	arch->vtimer_context = (struct virt_timer_context *)k_malloc(sizeof(struct virt_timer_context));
+    if(!arch->vtimer_context) {
+        ZVM_LOG_ERR("Init vcpu_arch->vtimer failed");
+        return  -ENXIO;
+    }
 
 	/* Default vcpu, get the count as offset */
 	if (vcpu->vcpu_id == 0) {
@@ -277,6 +284,8 @@ void arch_vcpu_timer_init(struct vcpu *vcpu)
 	bit_addr = vcpu->vm->vm_irq_block.irq_bitmap;
 	bit_addr[ctxt->virt_virq] = true;
 	bit_addr[ctxt->virt_pirq] = true;
+
+	return 0;
 }
 
 /**

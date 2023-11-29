@@ -27,12 +27,13 @@ static void init_vcpu_virt_irq_desc(struct vcpu_virt_irq_block *virq_block)
     struct virt_irq_desc *desc;
     for(i = 0; i < VM_LOCAL_VIRQ_NR; i++){
         desc = &virq_block->vcpu_virt_irq_desc[i];
-        desc->id = 0;
+        desc->id = VM_INVALID_DESC_ID;
         desc->pirq_num = i;
         desc->virq_num = i;
-        desc->prio = 1;
+        desc->prio = VM_DEFAULT_LOCAL_VIRQ_PRIO;
+        desc->vdev_trigger = 0;
         desc->vcpu_id = DEFAULT_VCPU;
-        desc->virq_flags = 0;
+        desc->virq_flags = VIRQ_NOUSED_FLAG;
         desc->virq_states = 0;
         desc->vm_id = DEFAULT_VM;
 
@@ -360,8 +361,8 @@ struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name)
         return  NULL;
     }
 
-    /* init vcpu irq block. */
-    vcpu->virq_block.virq_act_counts = 0;
+    /* init vcpu virt irq block. */
+    vcpu->virq_block.virq_pending_counts = 0;
     sys_dlist_init(&vcpu->virq_block.pending_irqs);
     sys_dlist_init(&vcpu->virq_block.active_irqs);
     ZVM_SPINLOCK_INIT(&vcpu->virq_block.spinlock);
@@ -426,6 +427,7 @@ struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name)
     vcpu->paused_cycles = 0;
     vcpu->vcpu_id = vcpu_id;
     vcpu->vcpu_state = _VCPU_STATE_UNKNOWN;
+    vcpu->exit_type = 0;
     vcpu->resume_signal = false;
     vcpu->waitq_flag = false;
 

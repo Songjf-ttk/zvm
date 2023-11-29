@@ -139,6 +139,6 @@ void simulate_timer_cntp_ctl(struct vcpu *vcpu, int read, uint64_t *value);
 /**
  * @brief Init vtimer struct
  */
-void arch_vcpu_timer_init(struct vcpu *vcpu);
+int arch_vcpu_timer_init(struct vcpu *vcpu);
 
 #endif /* ZEPHYR_INCLUDE_ZVM_ARM_VTIMER_H_ */

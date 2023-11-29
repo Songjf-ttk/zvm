@@ -28,6 +28,14 @@
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
+#define DEV_CFG(dev) \
+	((const struct virt_device_config * const)(dev)->config)
+#define DEV_DATA(dev) \
+	((struct virt_device_data *)(dev)->data)
+
+#define DEV_VGICV3(dev) \
+	((const struct gicv3_vdevice * const)(DEV_CFG(dev)->device_config))
+
 /**
  * @brief load list register for vcpu interface.
  */
@@ -35,7 +43,7 @@ static void vgicv3_lrs_load(struct gicv3_vcpuif_ctxt *ctxt)
 {
     uint32_t rg_cout = VGIC_TYPER_LR_NUM;
 
-    if (rg_cout > vgicv3_lrs_count) {
+    if (rg_cout > VGIC_TYPER_LR_NUM) {
         ZVM_LOG_WARN("System list registers do not support! \n");
         return;
     }
@@ -96,7 +104,7 @@ static void vgicv3_lrs_save(struct gicv3_vcpuif_ctxt *ctxt)
 {
 	uint32_t rg_cout = VGIC_TYPER_LR_NUM;
 
-    if (rg_cout > vgicv3_lrs_count) {
+    if (rg_cout > VGIC_TYPER_LR_NUM) {
         ZVM_LOG_WARN("System list registers do not support! \n");
         return;
     }
@@ -160,54 +168,29 @@ int gicv3_inject_virq(struct vcpu *vcpu, struct virt_irq_desc *desc)
 	struct gicv3_list_reg *lr = (struct gicv3_list_reg *)&value;
 
 	if (desc->id >= VGIC_TYPER_LR_NUM) {
-		ZVM_LOG_WARN("invalid virq id %d\n", desc->id);
+		ZVM_LOG_WARN("invalid virq id %d, It is used by other device! \n", desc->id);
 		return -EINVAL;
 	}
+
+	/* List register is not activated. */
+	if (VGIC_LIST_REGS_TEST(desc->id, vcpu)) {
+		value = gicv3_read_lr(desc->id);
+		lr = (struct gicv3_list_reg *)&value;
+		if (lr->vINTID == desc->virq_num) {
+			desc->virq_flags |= VIRQ_PENDING_FLAG;
+		}
+	}
+
 	lr->vINTID = desc->virq_num;
 	lr->pINTID = desc->pirq_num;
 	lr->priority = desc->prio;
-//	lr->nmi = 0;
+	/* lr->nmi = 0; */
 	lr->group = LIST_REG_GROUP1;
 	lr->hw = LIST_REG_HW_VIRQ;
-	lr->state = VIRQ_STATE_PENDING; //desc->virq_states;
+	lr->state = VIRQ_STATE_PENDING;
 
-	gicv3_write_lr(desc->id, value);
+	gicv3_update_lr(vcpu, desc, ACTION_SET_VIRQ, value);
 	return 0;
-}
-
-uint8_t gicv3_get_lr_state(struct vcpu *vcpu, struct virt_irq_desc *virq)
-{
-	uint64_t value;
-
-	if (virq->id >=  VGIC_TYPER_LR_NUM) {
-		return 0;
-	}
-	value = gicv3_read_lr(virq->id);
-	value = (value >> 62) & 0x03;
-
-	return ((uint8_t)value);
-}
-
-int gicv3_update_lr(struct vcpu *vcpu, struct virt_irq_desc *desc, int action)
-{
-	ARG_UNUSED(vcpu);
-	int ret = 0;
-	if (!desc || desc->id >= VGIC_TYPER_LR_NUM) {
-		return -ENODEV;
-	}
-
-	switch (action) {
-	case ACTION_CLEAR_VIRQ:
-		gicv3_write_lr(desc->id, 0);
-		break;
-
-	default:
-		ZVM_LOG_WARN(" Unsupported virq operation here. \n");
-		ret = -ENODEV;
-		break;
-	}
-
-	return ret;
 }
 
 int vgic_gicrsgi_mem_read(struct vcpu *vcpu, struct virt_gic_gicr *gicr,
@@ -218,18 +201,15 @@ int vgic_gicrsgi_mem_read(struct vcpu *vcpu, struct virt_gic_gicr *gicr,
 	switch (offset) {
 	case GICR_SGI_CTLR:
 		*value = vgic_sysreg_read32(gicr->gicr_sgi_reg_base, VGICR_CTLR) & ~(1 << 31);
-//		*value = gicr->gicr_ctlr & ~(1 << 31);
 		break;
 	case GICR_SGI_ISENABLER:
 		*value = vgic_sysreg_read32(gicr->gicr_sgi_reg_base, VGICR_ISENABLER0);
-//		*value = gicr->gicr_enabler0;
 		break;
 	case GICR_SGI_ICENABLER:
 		*value = vgic_sysreg_read32(gicr->gicr_sgi_reg_base, VGICR_ICENABLER0);
 		break;
 	case GICR_SGI_PENDING:
 		vgic_sysreg_write32(*value, gicr->gicr_sgi_reg_base, VGICR_SGI_PENDING);
-//		*value = gicr->gicr_ispender;
 		break;
 	case GICR_SGI_PIDR2:
 		*value = (0x03 << 4);
@@ -255,7 +235,6 @@ int vgic_gicrsgi_mem_write(struct vcpu *vcpu, struct virt_gic_gicr *gicr, uint32
 			if (sys_test_bit(mem_addr, bit)) {
 				vgic_sysreg_write32(vgic_sysreg_read32(gicr->gicr_sgi_reg_base, VGICR_ISENABLER0) | BIT(bit),\
 				 gicr->gicr_sgi_reg_base, VGICR_ISENABLER0);
-//				gicr->gicr_enabler0 |= BIT(bit);
 			}
 		}
 		break;
@@ -265,7 +244,6 @@ int vgic_gicrsgi_mem_write(struct vcpu *vcpu, struct virt_gic_gicr *gicr, uint32
 			if (sys_test_bit(mem_addr, bit)) {
 				vgic_sysreg_write32(vgic_sysreg_read32(gicr->gicr_sgi_reg_base, VGICR_ICENABLER0) & ~BIT(bit),\
 				 gicr->gicr_sgi_reg_base, VGICR_ICENABLER0);
-//				gicr->gicr_enabler0 &= ~BIT(bit);
 			}
 		}
 		break;
@@ -275,7 +253,6 @@ int vgic_gicrsgi_mem_write(struct vcpu *vcpu, struct virt_gic_gicr *gicr, uint32
 			if (sys_test_bit(mem_addr, bit)) {
 				sys_write32(BIT(bit), GIC_RDIST_BASE + GICR_SGI_BASE_OFF + GICR_SGI_PENDING);
 				vgic_sysreg_write32(~BIT(bit), gicr->gicr_sgi_reg_base, VGICR_SGI_PENDING);
-//				gicr->gicr_ispender &= ~BIT(bit);
 			}
 		}
 		break;
@@ -295,21 +272,16 @@ int vgic_gicrrd_mem_read(struct vcpu *vcpu, struct virt_gic_gicr *gicr, uint32_t
 	switch (offset) {
 	case 0xffe8:
 		*value = vgic_sysreg_read32(gicr->gicr_rd_reg_base, VGICR_PIDR2);
-//		*value = gicr->gicr_pidr2;
 		break;
 	case GICR_CTLR:
 		vgic_sysreg_write32(*value, gicr->gicr_rd_reg_base, VGICR_CTLR);
-//		*value = gicr->gicr_ctlr;
 		break;
 	case GICR_TYPER:
 		*value = vgic_sysreg_read32(gicr->gicr_rd_reg_base, VGICR_TYPER);
 		*(value+1) = vgic_sysreg_read32(gicr->gicr_rd_reg_base, VGICR_TYPER+0x4);
-//		*value = gicr->gicr_typer;
-//		*(value+1) = gicr->gicr_typer >> 32;
 		break;
 	case 0x000c:
 		*value = vgic_sysreg_read32(gicr->gicr_rd_reg_base, VGICR_TYPER+0x4);
-//		*value = gicr->gicr_typer >> 32;
 		break;
 	default:
 		*value = 0;
@@ -467,14 +439,6 @@ static int vdev_gicv3_init(struct vm *vm, struct vgicv3_dev *gicv3_vdev, uint32_
 
 	return 0;
 }
-
-#define DEV_CFG(dev) \
-	((const struct virt_device_config * const)(dev)->config)
-#define DEV_DATA(dev) \
-	((struct virt_device_data *)(dev)->data)
-
-#define DEV_VGICV3(dev) \
-	((const struct gicv3_vdevice * const)(DEV_CFG(dev)->device_config))
 
 /**
  * @brief init vm gic device for each vm. Including:

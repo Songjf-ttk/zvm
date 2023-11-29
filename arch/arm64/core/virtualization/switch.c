@@ -107,7 +107,7 @@ void get_zvm_host_context(void)
 int arch_vcpu_run(struct vcpu *vcpu)
 {
     int ret;
-    uint64_t exit_type;
+    uint16_t exit_type;
 
     /* mask all interrupt here to disable interrupt */
     vm_disable_daif();
@@ -119,6 +119,7 @@ int arch_vcpu_run(struct vcpu *vcpu)
 
     /* Jump to the fire too! */
     exit_type = guest_vm_entry(vcpu, &vcpu->arch->host_ctxt);
+    vcpu->exit_type = exit_type;
 
     switch_to_host_sysreg(vcpu);
 

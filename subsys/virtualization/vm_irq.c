@@ -53,13 +53,14 @@ static int vm_virq_desc_init(struct vm *vm)
     for (i = 0; i < VM_SPI_VIRQ_NR; i++) {
 		desc = &vm->vm_irq_block.vm_virt_irq_desc[i];
 
-        desc->virq_flags = VIRQ_FLAG_NOUSED | VIRQ_FLAG_HW;
+        desc->virq_flags = VIRQ_NOUSED_FLAG | VIRQ_HW_FLAG;
 		/* For shared irq, it shared with all cores */
         desc->vcpu_id =  DEFAULT_VCPU;
         desc->vm_id = vm->vmid;
+        desc->vdev_trigger = 0;
         desc->virq_num = i;
         desc->pirq_num = i;
-        desc->id = VIRT_IRQ_INVALID_ID;
+        desc->id = VM_INVALID_DESC_ID;
         desc->virq_states = VIRQ_STATE_INVALID;
 
         sys_dnode_init(&(desc->desc_node));
@@ -75,11 +76,11 @@ void vm_device_irq_init(struct vm *vm, struct virt_dev *vm_dev)
 
 	desc = get_virt_irq_desc(vm->vcpus[DEFAULT_VCPU], vm_dev->virq);
     if(vm_dev->dev_pt_flag){
-        desc->virq_flags = VIRQ_FLAG_NOUSED | VIRQ_FLAG_HW;
+        desc->virq_flags = VIRQ_NOUSED_FLAG | VIRQ_HW_FLAG;
     }else{
         ZVM_LOG_ERR("There is no supported virtual interrupt");
     }
-    desc->id = desc->virq_num % VM_VGIC_SUPPORT_REGS;
+    desc->id = desc->virq_num;
     desc->pirq_num = vm_dev->hirq;
     desc->virq_num = vm_dev->virq;
 

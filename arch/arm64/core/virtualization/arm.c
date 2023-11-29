@@ -77,22 +77,6 @@ static int vcpu_virq_init(struct vcpu *vcpu)
     return 0;
 }
 
-static int vcpu_vtimer_init(struct vcpu *vcpu)
-{
-    struct vcpu_arch *vcpu_arch;
-    vcpu_arch = vcpu->arch;
-
-    /*Init vtimer context */
-    vcpu_arch->vtimer_context = (struct virt_timer_context *)k_malloc(sizeof(struct virt_timer_context));
-    if(!vcpu_arch->vtimer_context) {
-        ZVM_LOG_ERR("Init vcpu_arch->vtimer failed");
-        return  -ENXIO;
-    }
-
-    arch_vcpu_timer_init(vcpu);
-    return 0;
-}
-
 static void vcpu_vgic_save(struct vcpu *vcpu)
 {
     vgicv3_state_save(vcpu, (struct gicv3_vcpuif_ctxt *)vcpu->arch->virq_data);
@@ -252,6 +236,7 @@ int arch_vcpu_init(struct vcpu *vcpu)
     vcpu_arch->hcr_el2 = HCR_VM_FLAGS ;
     vcpu_arch->guest_mdcr_el2 = 0;
     vcpu_arch->host_mdcr_el2 = 0;
+    vcpu_arch->list_regs_map = 0;
     vcpu_arch->pause = 0;
     vcpu_arch->vcpu_sys_register_loaded = false;
 
@@ -268,7 +253,7 @@ int arch_vcpu_init(struct vcpu *vcpu)
         return ret;
     }
 
-    ret = vcpu_vtimer_init(vcpu);
+    ret = arch_vcpu_timer_init(vcpu);
     if(ret) {
         return ret;
     }
