@@ -26,16 +26,14 @@ LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
  * 1. Allocating virt device to vm, and build map.
  * 2. Setting the device's irq for binding virt interrupt with hardware interrupt.
 */
-static void vm_virio_mmio_init(const struct device *dev, struct vm *vm, struct virt_dev *vdev_desc)
+static int vm_virio_mmio_init(const struct device *dev, struct vm *vm, struct virt_dev *vdev_desc)
 {
-	bool *bit_addr;
-	int ret;
 	struct virt_dev *vdev;
 
     vdev = allocate_device_to_vm(dev, vm, vdev_desc, true, false);
 	if(!vdev){
 		ZVM_LOG_WARN("Init virt serial device error\n");
-        return;
+        return 0;
 	}
 
 	vdev_irq_callback_user_data_set(dev, vm_device_callback_func, vdev);

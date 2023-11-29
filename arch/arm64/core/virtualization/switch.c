@@ -140,7 +140,7 @@ int arch_vcpu_run(struct vcpu *vcpu)
         break;
 	default:
 		ZVM_LOG_WARN("Unsupported exception type in this stage....\n");
-        ZVM_LOG_WARN("Exit code: 0x%08llx \t exit_type: 0x%08llx  ....\n", read_esr_el2(), exit_type);
+        ZVM_LOG_WARN("Exit code: 0x%08llx \t exit_type: 0x%08x  ....\n", read_esr_el2(), exit_type);
 		return -ESRCH;
         break;
 	}

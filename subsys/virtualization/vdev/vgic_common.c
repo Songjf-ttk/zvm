@@ -552,7 +552,6 @@ int set_virq_to_vm(struct vm *vm, uint32_t virq_num)
 int virt_irq_sync_vgic(struct vcpu *vcpu)
 {
 	uint8_t lr_state;
-	int ret;
 	uint64_t elrsr, eisr;
 	k_spinlock_key_t key;
 	struct virt_irq_desc *desc;
@@ -610,8 +609,7 @@ int virt_irq_sync_vgic(struct vcpu *vcpu)
 
 int virt_irq_flush_vgic(struct vcpu *vcpu)
 {
-	uint8_t list_reg_num = -1;
-	int ret, i;
+	int ret;
 	k_spinlock_key_t key;
 	struct virt_irq_desc *desc;
     struct _dnode *d_node, *ds_node;
@@ -625,7 +623,7 @@ int virt_irq_flush_vgic(struct vcpu *vcpu)
 	}
 
 	/* no idle list register */
-	if(vcpu->arch->list_regs_map == (1<<VGIC_TYPER_LR_NUM -1) ){
+	if(vcpu->arch->list_regs_map == ((1<<VGIC_TYPER_LR_NUM) -1) ){
 		k_spin_unlock(&vb->spinlock, key);
 		ZVM_LOG_INFO("There is no idle list register! ");
 		return 0;
