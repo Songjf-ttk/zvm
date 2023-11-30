@@ -421,7 +421,9 @@ FUNC_NORETURN void z_cstart(void)
 	/* perform basic hardware initialization */
 	z_sys_init_run_level(_SYS_INIT_LEVEL_PRE_KERNEL_1);
 	z_sys_init_run_level(_SYS_INIT_LEVEL_PRE_KERNEL_2);
-
+#if defined(CONFIG_SOC_RK3568) && defined(CONFIG_NS16650_EARLYPRINT_DEBUG)
+	printascii("\n Init _SYS_INIT_LEVEL_PRE_KERNEL_2 successful! \n");
+#endif
 #ifdef CONFIG_STACK_CANARIES
 	uintptr_t stack_guard;
 

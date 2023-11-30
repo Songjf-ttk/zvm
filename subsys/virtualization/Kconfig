@@ -40,6 +40,13 @@ config ZVM_INIT_PRIORITY
 	help
 	  ZVM module initialization priority.
 
+config ZVM_DEBUG_LOG_INFO
+	bool "Show system boot info"
+	help
+		When code level debug is not suitable for
+		the this system, we can use log_info to locate
+		the boot issue.
+
 config ZVM_TIME_MEASURE
 	bool "ZVM measure system latency"
 	help

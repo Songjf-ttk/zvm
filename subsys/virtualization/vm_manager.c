@@ -44,58 +44,64 @@ int zvm_new_guest(size_t argc, char **argv)
 		ZVM_LOG_WARN("Can not create vm struct, VM struct init failed!\n");
 		return ret;
 	}
+	ZVM_LOG_INFO("\n Create VM instance successful! \n");
 
 	ret = vm_ops_init(new_vm);
 	if (ret) {
 		ZVM_LOG_WARN("VM ops init failed!\n");
 		return ret;
 	}
+	ZVM_LOG_INFO("\n Init VM ops successful! \n");
 
 	ret = vm_irq_block_init(new_vm);
 	if (ret < 0) {
         ZVM_LOG_WARN(" Init vm's irq block error!\n");
         return ret;
     }
+	ZVM_LOG_INFO("\n Init VM irq block successful! \n");
 
 	ret = vm_vcpus_init(new_vm);
 	if (ret < 0) {
 		ZVM_LOG_WARN("create vcpu error! \n");
 		return -ENXIO;
 	}
+	ZVM_LOG_INFO("\n Init VM vcpus instances successful! \n");
 
 	ret = vm_device_init(new_vm);
 	if (ret) {
 		ZVM_LOG_WARN(" Init vm's virtual device error! \n");
 		return ret;
 	}
+	ZVM_LOG_INFO("\n Init VM devices successful! \n");
 
    	ret = vm_mem_init(new_vm);
 	if(ret < 0){
 		return ret;
 	}
+	ZVM_LOG_INFO("\n Init VM memory successful! \n");
 
 	k_free(vm_info);
 
-	ZVM_LOG_INFO("\n|*********************************************|\n");
-	ZVM_LOG_INFO("|******\t Create vm successful!  **************| \n");
-	ZVM_LOG_INFO("|******\t\t VM INFO \t \t******| \n");
-	ZVM_LOG_INFO("|******\t VM-NAME:     %s \t******| \n", new_vm->vm_name);
-	ZVM_LOG_INFO("|******\t VM-ID: \t %d \t\t******| \n", new_vm->vmid);
-	ZVM_LOG_INFO("|******\t VCPU NUM: \t %d \t\t******| \n", new_vm->vcpu_num);
+	ZVM_PRINTK("\n|*********************************************|\n");
+	ZVM_PRINTK("|******\t Create vm successful!  **************| \n");
+	ZVM_PRINTK("|******\t\t VM INFO \t \t******| \n");
+	ZVM_PRINTK("|******\t VM-NAME:     %s \t******| \n", new_vm->vm_name);
+	ZVM_PRINTK("|******\t VM-ID: \t %d \t\t******| \n", new_vm->vmid);
+	ZVM_PRINTK("|******\t VCPU NUM: \t %d \t\t******| \n", new_vm->vcpu_num);
 
 	switch (new_vm->os->type) {
 	case OS_TYPE_LINUX:
-		ZVM_LOG_INFO("|******\t VMEM SIZE: \t %d(M) \t******| \n",
+		ZVM_PRINTK("|******\t VMEM SIZE: \t %d(M) \t******| \n",
 		LINUX_VMSYS_SIZE/(1024*1024));
 		break;
 	case OS_TYPE_ZEPHYR:
-		ZVM_LOG_INFO("|******\t VMEM SIZE:  \t %d(M) \t\t******| \n",
+		ZVM_PRINTK("|******\t VMEM SIZE:  \t %d(M) \t\t******| \n",
 		ZEPHYR_VMSYS_SIZE/(1024*1024));
 		break;
 	default:
-		ZVM_LOG_INFO("|******\t OTHER VM, NO MEMORY MSG \t\t******| \n");
+		ZVM_PRINTK("|******\t OTHER VM, NO MEMORY MSG \t\t******| \n");
 	}
-	ZVM_LOG_INFO("|*********************************************|\n");
+	ZVM_PRINTK("|*********************************************|\n");
 
 	return 0;
 }
@@ -107,6 +113,7 @@ int zvm_run_guest(size_t argc, char **argv)
 	int ret = 0;
 	struct vm *vm;
 
+	ZVM_LOG_INFO("\n Ready to run VM. \n");
 	vm_id = z_parse_run_vm_args(argc, argv, state);
 	if (!(BIT(vm_id) & zvm_overall_info->alloced_vmid)) {
         ZVM_LOG_WARN("This vmid is not exist!\n Please input zvm info to show info! \n");
@@ -129,13 +136,13 @@ int zvm_run_guest(size_t argc, char **argv)
         return -ENODEV;
 	}
 
-	ZVM_LOG_INFO("\n|*********************************************|\n");
-	ZVM_LOG_INFO("|******\t Start vm successful!  ***************| \n");
-	ZVM_LOG_INFO("|******\t\t VM INFO \t \t******| \n");
-	ZVM_LOG_INFO("|******\t VM-NAME:     %s \t******| \n", vm->vm_name);
-	ZVM_LOG_INFO("|******\t VM-ID: \t %d \t\t******| \n", vm->vmid);
-	ZVM_LOG_INFO("|******\t VCPU NUM: \t %d \t\t******| \n", vm->vcpu_num);
-	ZVM_LOG_INFO("|*********************************************|\n");
+	ZVM_PRINTK("\n|*********************************************|\n");
+	ZVM_PRINTK("|******\t Start vm successful!  ***************| \n");
+	ZVM_PRINTK("|******\t\t VM INFO \t \t******| \n");
+	ZVM_PRINTK("|******\t VM-NAME:     %s \t******| \n", vm->vm_name);
+	ZVM_PRINTK("|******\t VM-ID: \t %d \t\t******| \n", vm->vmid);
+	ZVM_PRINTK("|******\t VCPU NUM: \t %d \t\t******| \n", vm->vcpu_num);
+	ZVM_PRINTK("|*********************************************|\n");
 
 	return ret;
 }
@@ -183,15 +190,15 @@ int zvm_delete_guest(size_t argc, char **argv)
 	vm = zvm_overall_info->vms[vm_id];
 	switch (vm->vm_status) {
 	case VM_STATE_RUNNING:
-		ZVM_LOG_INFO("This vm is running!\n Try to stop and delete it!\n");
+		ZVM_PRINTK("This vm is running!\n Try to stop and delete it!\n");
 		vm_vcpus_halt(vm);
 		break;
 	case VM_STATE_PAUSE:
-		ZVM_LOG_INFO("This vm is paused!\n Just delete it!\n");
+		ZVM_PRINTK("This vm is paused!\n Just delete it!\n");
 		vm_delete(vm);
 		break;
 	case VM_STATE_NEVER_RUN:
-		ZVM_LOG_INFO("This vm is created but not run!\n Just delete it!\n");
+		ZVM_PRINTK("This vm is created but not run!\n Just delete it!\n");
 		vm_delete(vm);
 		break;
 	default:

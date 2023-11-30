@@ -5,17 +5,32 @@
  */
 
 /{
+	aliases {
+        vmvgic = "/soc/vgic@fd400000";
+		vmserial1 = "/soc/serial@fe670000";
+		vmserial2 = "/soc/serial@fe6d0000";
+	};
+
     soc {
+
+        vgic: vgic@fd400000 {
+            compatible = "arm,gic";
+            reg = <0x00 0xfd400000 0x00 0x10000>,
+                    <0x00 0xfd460000 0x00 0xc0000>;
+            label = "VM_VGIC";
+        };
 
         /* VM0's uart here! rk3568's port num is uart3 */
         uart1: serial@fe670000 {
             compatible = "rockchip,rk3568-uart", "ns16550";
             reg = <0x0 0xfe670000 0x0 0x10000>;
             interrupts = <GIC_SPI 119 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY>;
-            clock-frequency = <12000000>;
+		    clocks = <&uartclk>;
+            clock-frequency = <24000000>;
             reg-shift = <2>;
-            label = "UART_1";
             status = "disabled";
+            current-speed = <1500000>;
+            label = "UART_1";
         };
 
         /* VM1's uart here! rk3568's port num is uart9 */
@@ -23,10 +38,12 @@
             compatible = "rockchip,rk3568-uart", "ns16550";
             reg = <0x0 0xfe6d0000 0x0 0x10000>;
             interrupts = <GIC_SPI 125 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY>;
-            clock-frequency = <12000000>;
+		    clocks = <&uartclk>;
+            clock-frequency = <24000000>;
             reg-shift = <2>;
-            label = "UART_2";
             status = "disabled";
+            current-speed = <1500000>;
+            label = "UART_2";
         };
     };
 
@@ -68,15 +85,4 @@
         };
     };
 
-};
-
-
-&uart1 {
-	status = "okay";
-	current-speed = <1500000>;
-};
-
-&uart2 {
-	status = "okay";
-	current-speed = <1500000>;
 };

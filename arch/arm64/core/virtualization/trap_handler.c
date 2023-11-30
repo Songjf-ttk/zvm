@@ -51,7 +51,7 @@ static int handle_ftrans_desc(int iss_dfsc, uint64_t pa_addr,
     if(ret){
         reg_value = find_index_reg(reg_index, regs);
         *reg_value = 0xfefefefefefefefe;
-        ZVM_LOG_INFO("VM's mem abort addr: 0x%llx ! \n", pa_addr);
+        ZVM_LOG_WARN("VM's mem abort addr: 0x%llx ! \n", pa_addr);
         /**
          * if the device is allocated, whether it can be emulated
          * by virtIO?
@@ -194,6 +194,9 @@ static int cpu_system_msr_mrs_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_e
 
 static int cpu_inst_abort_low_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_elx)
 {
+    uint64_t ipa_ddr;
+    ipa_ddr = get_fault_ipa(read_hpfar_el2(), read_far_el2());
+    ZVM_LOG_INFO("Lower inst abort, exit address is: %08lx \n ", ipa_ddr);
     ARG_UNUSED(arch_ctxt);
     ARG_UNUSED(esr_elx);
 	return 0;
@@ -222,6 +225,7 @@ static int cpu_data_abort_low_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_e
 
     iss_dfsc = dabt->dfsc & ~(0x3);
     ipa_ddr = get_fault_ipa(read_hpfar_el2(), read_far_el2());
+    ZVM_LOG_INFO("Lower data abort, exit address is: %08lx \n ", ipa_ddr);
 
     switch (iss_dfsc) {
     /* translation fault level0-3*/

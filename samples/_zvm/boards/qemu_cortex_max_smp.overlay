@@ -40,7 +40,6 @@
         uart1: uart@9001000 {
 			compatible = "arm,pl011";
 			reg = <0x00 0x09001000 0x00 0x1000>;
-			status = "disabled";
 			interrupts = <GIC_SPI 10 IRQ_TYPE_EDGE 0>;
 			interrupt-names = "irq_0";
 			clocks = <&uartclk>;
@@ -48,10 +47,10 @@
             current-speed = <115200>;
 			label = "UART_1";
 		};
+
 		uart2: uart@9002000 {
 			compatible = "arm,pl011";
 			reg = <0x00 0x09002000 0x00 0x1000>;
-			status = "disabled";
 			interrupts = <GIC_SPI 11 IRQ_TYPE_EDGE 0>;
 			interrupt-names = "irq_0";
 			clocks = <&uartclk>;

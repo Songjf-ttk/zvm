@@ -66,6 +66,12 @@
 		label = "arch_timer";
 	};
 
+	uartclk: apb-pclk {
+		compatible = "fixed-clock";
+		clock-frequency = <12000000>;
+		#clock-cells = <0>;
+	};
+
 	gic: interrupt-controller@fd400000 {
 		compatible = "arm,gic";
 		#interrupt-cells = <4>;
@@ -85,7 +91,7 @@
 
 	sram: sram@10000000 {
 		compatible = "mmio-sram";
-		reg = <0x0 0x10000000 0x0 DT_SIZE_M(64)>;
+		reg = <0x0 0x10000000 0x0 DT_SIZE_M(128)>;
 	};
 
 	uart0: serial@fe660000 {

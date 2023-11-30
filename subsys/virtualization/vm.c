@@ -320,6 +320,7 @@ int vm_vcpus_run(struct vm *vm)
     k_spinlock_key_t key;
     ARG_UNUSED(thread);
 
+    ZVM_LOG_INFO("\n Ready to run VM vcpus. \n");
     key = k_spin_lock(&vm->spinlock);
     for(i = 0; i < vm->vcpu_num; i++){
         /* find the vcpu struct */

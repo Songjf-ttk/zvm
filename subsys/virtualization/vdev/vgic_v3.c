@@ -188,7 +188,7 @@ int gicv3_inject_virq(struct vcpu *vcpu, struct virt_irq_desc *desc)
 	lr->group = LIST_REG_GROUP1;
 	lr->hw = LIST_REG_HW_VIRQ;
 	lr->state = VIRQ_STATE_PENDING;
-
+	ZVM_LOG_INFO("Ready to inject irq to VM,\n the virt irq is %d, the hard irq is %d, the prio is %d.\n ", desc->virq_num, desc->pirq_num, desc->prio);
 	gicv3_update_lr(vcpu, desc, ACTION_SET_VIRQ, value);
 	return 0;
 }

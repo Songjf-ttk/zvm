@@ -507,7 +507,8 @@ int vm_mem_domain_partitions_add(struct vm_mem_domain *vmem_dm)
     key = k_spin_lock(&vmem_dm->spin_mmlock);
     SYS_DLIST_FOR_EACH_NODE_SAFE(&vmem_dm->idle_vpart_list, d_node, ds_node){
         vpart = CONTAINER_OF(d_node, struct vm_mem_partition, vpart_node);
-
+        ZVM_LOG_INFO("\n Ready to add partition to vm memory region. \n ");
+        ZVM_LOG_INFO("\n Partition physical addr: %08x, size: %08x. \n ", vpart->part_hpa_base, vpart->part_hpa_size);
         ret = vm_mem_domain_partition_add(vmem_dm, vpart);
         if (ret) {
             k_spin_unlock(&vmem_dm->spin_mmlock, key);

@@ -107,7 +107,7 @@ void get_zvm_host_context(void)
 int arch_vcpu_run(struct vcpu *vcpu)
 {
     int ret;
-    uint16_t exit_type;
+    uint16_t exit_type = 0;
 
     /* mask all interrupt here to disable interrupt */
     vm_disable_daif();
@@ -116,11 +116,14 @@ int arch_vcpu_run(struct vcpu *vcpu)
         return ret;
     }
     switch_to_guest_sysreg(vcpu);
+    ZVM_LOG_INFO("The entry pc is: %08lx \n ", vcpu->arch->ctxt.regs.pc);
 
     /* Jump to the fire too! */
     exit_type = guest_vm_entry(vcpu, &vcpu->arch->host_ctxt);
     vcpu->exit_type = exit_type;
 
+    ZVM_LOG_INFO("exit_type: %d, esr_el2: %08lx \n ", exit_type, read_esr_el2());
+ //   ZVM_LOG_INFO("esr_el1: %08lx, far_el1: %08lx \n ", read_esr_el12(), read_far_el12());
     switch_to_host_sysreg(vcpu);
 
     vm_sync_vgic(vcpu);

@@ -30,7 +30,7 @@ static void init_vcpu_virt_irq_desc(struct vcpu_virt_irq_block *virq_block)
         desc->id = VM_INVALID_DESC_ID;
         desc->pirq_num = i;
         desc->virq_num = i;
-        desc->prio = VM_DEFAULT_LOCAL_VIRQ_PRIO;
+        desc->prio = IRQ_DEFAULT_PRIORITY;
         desc->vdev_trigger = 0;
         desc->vcpu_id = DEFAULT_VCPU;
         desc->virq_flags = VIRQ_NOUSED_FLAG;
@@ -315,11 +315,11 @@ int vcpu_ipi_scheduler(uint32_t cpu_mask, uint32_t timeout)
 int z_vcpu_run(struct vcpu *vcpu)
 {
     int ret = 0;
-
+    ZVM_LOG_INFO("\n Start running vcpu: %s-%d. \n", vcpu->vm->vm_name, vcpu->vcpu_id);
     do{
         ret = arch_vcpu_run(vcpu);
     }while(ret >= 0);
-
+    ZVM_LOG_INFO("\n Stop running vcpu: %s-%d. \n", vcpu->vm->vm_name, vcpu->vcpu_id);
     vm_delete(vcpu->vm);
 
     return ret;
@@ -444,6 +444,7 @@ int vm_vcpu_run(struct vcpu *vcpu)
     uint16_t cur_state = vcpu->vcpu_state;
     struct k_thread *thread;
 
+    ZVM_LOG_INFO("\n Ready to run vcpu: %s-%d. \n", vcpu->vm->vm_name, vcpu->vcpu_id);
     /*vcpu life time cycles*/
     vcpu->hcpu_cycles = sys_clock_cycle_get_32();
     thread = vcpu->work->vcpu_thread;

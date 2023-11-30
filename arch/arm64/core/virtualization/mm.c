@@ -507,7 +507,8 @@ int arch_vm_mem_domain_partition_add(struct k_mem_domain *domain,
 {
 	struct arm_mmu_ptables *domain_ptables = &domain->arch.ptables;
 	struct k_mem_partition *ptn = &domain->partitions[partition_id];
-
+	ZVM_LOG_INFO("\n Add memory mapping from  %08x to %08x. \n ", ptn->start, phys_start);
+	ZVM_LOG_INFO("The size is %08x and the attr is: %08x. \n ", ptn->size, ptn->attr.attrs);
 	return vm_add_map(domain_ptables, "vm-mmio-space", phys_start,
 				ptn->start, ptn->size, ptn->attr.attrs, vmid);
 }

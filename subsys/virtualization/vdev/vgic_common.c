@@ -625,7 +625,7 @@ int virt_irq_flush_vgic(struct vcpu *vcpu)
 	/* no idle list register */
 	if(vcpu->arch->list_regs_map == ((1<<VGIC_TYPER_LR_NUM) -1) ){
 		k_spin_unlock(&vb->spinlock, key);
-		ZVM_LOG_INFO("There is no idle list register! ");
+		ZVM_LOG_WARN("There is no idle list register! ");
 		return 0;
 	}
 
