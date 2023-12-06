@@ -1,5 +1,7 @@
 /*
  * Copyright 2020 NXP
+ * Copyright 2022 HNU-ESNL
+ * Copyright 2022 openEuler SIG-Zephyr
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -8,7 +10,6 @@
 #include <arm64/armv8-a.dtsi>
 #include <dt-bindings/interrupt-controller/arm-gic.h>
 
-
 / {
 	#address-cells = <2>;
 	#size-cells = <2>;
@@ -16,47 +17,59 @@
 	compatible = "rockchip,rk3568";
 	interrupt-parent = <&gic>;
 
-	chosen {
-		zephyr,console = &uart0;
-		zephyr,shell-uart = &uart0;
-		zephyr,sram = &sram;
-	};
-
 	cpus {
-		#address-cells = <2>;
+		#address-cells = <1>;
 		#size-cells = <0>;
 
-		cpu0: cpu@0 {
+		cpu@0 {
 			device_type = "cpu";
 			compatible = "arm,cortex-a55";
 			enable-method = "psci";
-			reg = <0x0 0x0>;
+			reg = <0x0>;
 		};
 
-		cpu1: cpu@1 {
+		cpu@1 {
 			device_type = "cpu";
 			compatible = "arm,cortex-a55";
 			enable-method = "psci";
-			reg = <0x0 0x1>;
+			reg = <0x1>;
 		};
 
-		cpu2: cpu@2 {
+		cpu@2 {
 			device_type = "cpu";
 			compatible = "arm,cortex-a55";
 			enable-method = "psci";
-			reg = <0x0 0x2>;
+			reg = <0x2>;
+
 		};
 
-		cpu3: cpu@3 {
+		cpu@3 {
 			device_type = "cpu";
 			compatible = "arm,cortex-a55";
 			enable-method = "psci";
-			reg = <0x0 0x3>;
+			reg = <0x3>;
 		};
 	};
 
+	gic: interrupt-controller@fd400000 {
+		#address-cells = <1>;
+		compatible = "arm,gic-v3","arm,gic";
+		#interrupt-cells = <4>;
+		interrupt-controller;
 
-	arch_timer: timer {
+		reg = <0x0 0xfd400000 0x0 0x10000>, /* GICD */
+		      <0x0 0xfd460000 0x0 0xc0000>; /* GICR */
+		status = "okay";
+		label = "GIC";
+	};
+
+	psci {
+		compatible = "arm,psci-0.2", "arm,psci";
+		method = "smc";
+		label = "PSCI";
+	};
+
+	timer {
 		compatible = "arm,armv8-timer";
 		interrupts = <GIC_PPI 13 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>,
 			     <GIC_PPI 14 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>,
@@ -68,40 +81,19 @@
 
 	uartclk: apb-pclk {
 		compatible = "fixed-clock";
-		clock-frequency = <12000000>;
+		clock-frequency = <24000000>;
 		#clock-cells = <0>;
 	};
 
-	gic: interrupt-controller@fd400000 {
-		compatible = "arm,gic";
-		#interrupt-cells = <4>;
-		interrupt-controller;
-
-		reg = <0x0 0xfd400000 0 0x10000>, /* GICD */
-		      <0x0 0xfd460000 0 0xc0000>; /* GICR */
-		status = "okay";
-		label = "GIC";
-	};
-
-	psci {
-		compatible = "arm,psci-0.2", "arm,psci";
-		method = "smc";
-		label = "PSCI";
-	};
-
-	sram: sram@10000000 {
-		compatible = "mmio-sram";
-		reg = <0x0 0x10000000 0x0 DT_SIZE_M(128)>;
-	};
-
-	uart0: serial@fe660000 {
+	/* uart2 in the rk3568 */
+	uart2: serial@fe660000 {
 		compatible = "rockchip,rk3568-uart", "ns16550";
 		reg = <0x0 0xfe660000 0x0 0x10000>;
 		interrupts = <GIC_SPI 118 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY>;
-		clock-frequency = <24000000>;
+		clock-frequency = <12000000>;
 		reg-shift = <2>;
-		label = "UART0";
 		status = "disabled";
+		label = "UART2";
 	};
 
 };

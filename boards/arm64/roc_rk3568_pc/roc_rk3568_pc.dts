@@ -1,24 +1,37 @@
 /*
- * Copyright 2022 HNU
- *
+ * Copyright 2022 HNU-ESNL
+ * Copyright 2022 openEuler SIG-Zephyr
  * SPDX-License-Identifier: Apache-2.0
  */
 
 /dts-v1/;
 
-#include <rockchip/rk3568.dtsi>
+#include <arm64/rockchip/rk3568.dtsi>
 #include <common/mem.h>
 
 / {
-	model = "Rockchip ROCRK3568PC";
+	model = "Firefly ROC-RK3568-PC";
 	compatible = "rockchip,rk3568";
+
 	aliases {
-		serial2 = &uart0;
+		serial2 = &uart2;
 	};
+
+	chosen {
+		zephyr,console = &uart2;
+		zephyr,shell-uart = &uart2;
+		zephyr,sram = &sram0;
+	};
+
+	sram0: memory@10000000 {
+		device_type = "memory";
+		compatible = "mmio-sram";
+		reg = <0x0 0x10000000 0x0 DT_SIZE_M(256)>;
+	};
+
 };
 
-/* debug */
-&uart0 {
-    status = "okay";
+&uart2 {
+	status = "okay";
 	current-speed = <1500000>;
 };

@@ -1,20 +1,17 @@
-# Copyright 2022 HNU
+# Copyright 2022 HNU-ESNL
+# Copyright 2022 openEuler SIG-Zephyr
 # SPDX-License-Identifier: Apache-2.0
-# it is a soc default config file
 
 if SOC_RK3568
 
 config SOC
 	default "rk3568"
 
-# Workaround for not being able to have commas in macro arguments
-DT_CHOSEN_Z_FLASH := zephyr,flash
-
 config FLASH_SIZE
-	default $(dt_chosen_reg_size_int,$(DT_CHOSEN_Z_FLASH),0,K)
+	default 0
 
 config FLASH_BASE_ADDRESS
-	default $(dt_chosen_reg_addr_hex,$(DT_CHOSEN_Z_FLASH))
+	default 0
 
 config NUM_IRQS
 	int
