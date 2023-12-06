@@ -175,5 +175,6 @@ vm_isr_in_sync:
 	ldp	x25, x26, [x1, #_zvm_vcpu_ctxt_arch_regs_to_callee_saved_x25_x26]
 	ldp	x27, x28, [x1, #_zvm_vcpu_ctxt_arch_regs_to_callee_saved_x27_x28]
 
+	isb
 	ldp x0, x1,   [sp], #16
 	ret

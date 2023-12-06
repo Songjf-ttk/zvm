@@ -63,7 +63,6 @@ static uint64_t get_vm_region_desc(uint32_t attrs)
 	desc |= (attrs & MT_S2_ACCESS_OFF) ? 0 : S2_PTE_BLOCK_DESC_AF;
 
 	mem_type = MT_S2_TYPE(attrs);
-	desc |= S2_PTE_BLOCK_DESC_MEMTYPE(mem_type);
 
 	switch (mem_type) {
 	case MT_S2_DEVICE_nGnRnE:
@@ -73,16 +72,28 @@ static uint64_t get_vm_region_desc(uint32_t attrs)
 		/* Map device memory as execute-never */
 		desc |= S2_PTE_BLOCK_DESC_PU_XN;
 		break;
+	case MT_S2_NORMAL_WT:
 	case MT_S2_NORMAL_NC:
 	case MT_S2_NORMAL:
 		/* Make Normal RW memory as execute */
-		if ( (attrs & (MT_S2_R | MT_S2_W)) )
+		if ( (attrs & (MT_S2_R | MT_S2_W)) ) {
 			desc |= S2_PTE_BLOCK_DESC_NO_XN;
+		}
 
-		if (mem_type == MT_NORMAL)
+		if (mem_type == MT_NORMAL) {
 			desc |= S2_PTE_BLOCK_DESC_INNER_SHARE;
-		else
+		}
+		else {
 			desc |= S2_PTE_BLOCK_DESC_OUTER_SHARE;
+		}
+		/**
+		 * When VM thread use atomic operation, stage-2 attributes must be
+		 * Normal memory, Outer Write-Back Cacheable & Inner Write-Back
+		 * Cacheable.
+		*/
+		desc |= S2_PTE_BLOCK_DESC_O_WB_CACHE;
+		desc |= S2_PTE_BLOCK_DESC_I_WB_CACHE;
+		break;
 	}
 
 	return desc;
@@ -507,8 +518,7 @@ int arch_vm_mem_domain_partition_add(struct k_mem_domain *domain,
 {
 	struct arm_mmu_ptables *domain_ptables = &domain->arch.ptables;
 	struct k_mem_partition *ptn = &domain->partitions[partition_id];
-	ZVM_LOG_INFO("\n Add memory mapping from  %08x to %08x. \n ", ptn->start, phys_start);
-	ZVM_LOG_INFO("The size is %08x and the attr is: %08x. \n ", ptn->size, ptn->attr.attrs);
+
 	return vm_add_map(domain_ptables, "vm-mmio-space", phys_start,
 				ptn->start, ptn->size, ptn->attr.attrs, vmid);
 }

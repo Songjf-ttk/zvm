@@ -196,7 +196,6 @@ static int cpu_inst_abort_low_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_e
 {
     uint64_t ipa_ddr;
     ipa_ddr = get_fault_ipa(read_hpfar_el2(), read_far_el2());
-    ZVM_LOG_INFO("Lower inst abort, exit address is: %08lx \n ", ipa_ddr);
     ARG_UNUSED(arch_ctxt);
     ARG_UNUSED(esr_elx);
 	return 0;
@@ -225,7 +224,6 @@ static int cpu_data_abort_low_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_e
 
     iss_dfsc = dabt->dfsc & ~(0x3);
     ipa_ddr = get_fault_ipa(read_hpfar_el2(), read_far_el2());
-    ZVM_LOG_INFO("Lower data abort, exit address is: %08lx \n ", ipa_ddr);
 
     switch (iss_dfsc) {
     /* translation fault level0-3*/

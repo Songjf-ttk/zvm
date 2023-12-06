@@ -241,7 +241,7 @@ int arch_vcpu_init(struct vcpu *vcpu)
     vcpu_arch->vcpu_sys_register_loaded = false;
 
     /* init vm_arch here */
-    vm_arch->vtcr_el2 = (0x20 | BIT(6) | BIT(8) | BIT(10) | BIT(12) | BIT(13));
+    vm_arch->vtcr_el2 = (0x20 | BIT(6) | BIT(8) | BIT(10) | BIT(12) | BIT(13) | BIT(31));
     vm_arch->vttbr = (vcpu->vm->vmid | vm_arch->vm_pgd_base);
 
     arch_vcpu_common_regs_init(vcpu);
@@ -274,6 +274,7 @@ int arch_vcpu_init(struct vcpu *vcpu)
 
 int zvm_arch_init(void *op)
 {
+    ARG_UNUSED(op);
     int ret = 0;
 
     /* Is hyp、vhe available? */
@@ -285,7 +286,7 @@ int zvm_arch_init(void *op)
         return -ENOVDEV;
     }
 
-    ret = zvm_arch_vtimer_init(op);
+    ret = zvm_arch_vtimer_init();
     if(ret) {
         ZVM_LOG_ERR("Vtimer subsystem do not supported! \n");
         return ret;
