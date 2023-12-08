@@ -75,7 +75,7 @@ static const struct virt_device_api virt_serial_api = {
 static int serial_init(const struct device *dev)
 {
 	dev->state->init_res = VM_DEVICE_INIT_RES;
-	ZVM_LOG_INFO("\n Ready to init vm serial, dev name is: %s. \n", dev->name);
+	ZVM_LOG_INFO("** Ready to init vm serial, dev name is: %s. \n", dev->name);
 #ifdef CONFIG_UART_INTERRUPT_DRIVEN
 	((const struct uart_device_config * const)(DEV_CFG(dev)->device_config))->irq_config_func(dev);
 #endif
@@ -87,7 +87,7 @@ static int serial_init(const struct device *dev)
 void virt_serial_isr(const struct device *dev)
 {
 	struct virt_device_data *data = DEV_DATA(dev);
-	ZVM_LOG_INFO("Enter virt serial interrput function \n ");
+	ZVM_LOG_INFO("** Enter virt serial interrput function \n ");
 	/* Verify if the callback has been registered */
 	if (data->irq_cb) {
 		uart_irq_update(dev);

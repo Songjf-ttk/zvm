@@ -132,6 +132,40 @@ static void vgicv3_lrs_save(struct gicv3_vcpuif_ctxt *ctxt)
 	}
 }
 
+static void vgicv3_lrs_init(void)
+{
+    uint32_t rg_cout = VGIC_TYPER_LR_NUM;
+
+    if (rg_cout > VGIC_TYPER_LR_NUM) {
+        ZVM_LOG_WARN("System list registers do not support! \n");
+        return;
+    }
+
+	rg_cout = rg_cout>8 ? 8 : rg_cout;
+
+	switch (rg_cout) {
+	case 8:
+		write_sysreg(0, ICH_LR7_EL2);
+	case 7:
+		write_sysreg(0, ICH_LR6_EL2);
+	case 6:
+		write_sysreg(0, ICH_LR5_EL2);
+	case 5:
+		write_sysreg(0, ICH_LR4_EL2);
+	case 4:
+		write_sysreg(0, ICH_LR3_EL2);
+	case 3:
+		write_sysreg(0, ICH_LR2_EL2);
+	case 2:
+		write_sysreg(0, ICH_LR1_EL2);
+	case 1:
+		write_sysreg(0, ICH_LR0_EL2);
+		break;
+	default:
+		break;
+	}
+}
+
 static void vgicv3_prios_save(struct gicv3_vcpuif_ctxt *ctxt)
 {
     uint32_t rg_cout = VGIC_TYPER_PRIO_NUM;
@@ -184,11 +218,9 @@ int gicv3_inject_virq(struct vcpu *vcpu, struct virt_irq_desc *desc)
 	lr->vINTID = desc->virq_num;
 	lr->pINTID = desc->pirq_num;
 	lr->priority = desc->prio;
-	/* lr->nmi = 0; */
 	lr->group = LIST_REG_GROUP1;
 	lr->hw = LIST_REG_HW_VIRQ;
 	lr->state = VIRQ_STATE_PENDING;
-	ZVM_LOG_INFO("Ready to inject irq to VM,\n the virt irq is %d, the hard irq is %d, the prio is %d.\n ", desc->virq_num, desc->pirq_num, desc->prio);
 	gicv3_update_lr(vcpu, desc, ACTION_SET_VIRQ, value);
 	return 0;
 }
@@ -301,9 +333,10 @@ int get_vcpu_gicr_type(struct virt_gic_gicr *gicr,
 {
 	int i;
 	uint32_t vcpu_id = gicr->vcpu_id;
+	ZVM_LOG_INFO("vcpu_id: %08lx \n", vcpu_id);
 
 	/* master core can access all the other core's gicr */
-	if(vcpu_id == 0){
+	if (vcpu_id == 0) {
 		for(i=0; i<VGIC_RDIST_SIZE/VGIC_RD_SGI_SIZE + 1; i++){
 			if ((addr >= gicr->gicr_sgi_base + i*VGIC_RD_SGI_SIZE) &&
 				(addr < gicr->gicr_sgi_base + i*VGIC_RD_SGI_SIZE + gicr->gicr_sgi_size)) {
@@ -317,7 +350,7 @@ int get_vcpu_gicr_type(struct virt_gic_gicr *gicr,
 				return TYPE_GIC_GICR_RD;
 			}
 		}
-	}else{
+	} else {
 		if ((addr >= gicr->gicr_sgi_base + vcpu_id*VGIC_RD_SGI_SIZE) &&
 			(addr < (gicr->gicr_sgi_base + vcpu_id*VGIC_RD_SGI_SIZE + gicr->gicr_sgi_size))) {
 			*offset = addr - (gicr->gicr_sgi_base + vcpu_id*VGIC_RD_SGI_SIZE);
@@ -330,6 +363,7 @@ int get_vcpu_gicr_type(struct virt_gic_gicr *gicr,
 			return TYPE_GIC_GICR_RD;
 		}
 	}
+	ZVM_LOG_INFO("offset: %08lx \n", *offset);
 	return TYPE_GIC_INVAILD;
 }
 
@@ -378,7 +412,6 @@ static int vdev_gicv3_init(struct vm *vm, struct vgicv3_dev *gicv3_vdev, uint32_
     struct virt_gic_gicd *gicd = &gicv3_vdev->gicd;
     struct virt_gic_gicr *gicr;
 
-	ZVM_SPINLOCK_INIT(&gicd->gicd_lock);
 	gicd->gicd_base = gicd_base;
     gicd->gicd_size = gicd_size;
 	gicd->gicd_regs_base = k_malloc(gicd->gicd_size);
@@ -436,6 +469,10 @@ static int vdev_gicv3_init(struct vm *vm, struct vgicv3_dev *gicv3_vdev, uint32_
 
 		gicv3_vdev->gicr[i] = gicr;
     }
+
+	/* Init List register */
+	ZVM_LOG_INFO("** List register num: %d \n", VGIC_TYPER_LR_NUM);
+	vgicv3_lrs_init();
 
 	return 0;
 }

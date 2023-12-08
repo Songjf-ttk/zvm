@@ -205,9 +205,6 @@ static el_status elf_load(el_ctx *ctx, el_alloc_cb alloc, void *src)
             return EL_ENOMEM;
         }
 
-        ZVM_LOG_INFO("\nLoading seg fileoff %x, vaddr %x to %p\n",
-            ph.p_offset, ph.p_vaddr, dest);
-
         /* read loaded portion */
         if ((rv = el_pread(ctx, dest, src+ph.p_offset, ph.p_filesz))){
             return rv;

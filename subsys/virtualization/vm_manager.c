@@ -44,41 +44,41 @@ int zvm_new_guest(size_t argc, char **argv)
 		ZVM_LOG_WARN("Can not create vm struct, VM struct init failed!\n");
 		return ret;
 	}
-	ZVM_LOG_INFO("\n Create VM instance successful! \n");
+	ZVM_LOG_INFO("** Create VM instance successful! \n");
 
 	ret = vm_ops_init(new_vm);
 	if (ret) {
 		ZVM_LOG_WARN("VM ops init failed!\n");
 		return ret;
 	}
-	ZVM_LOG_INFO("\n Init VM ops successful! \n");
+	ZVM_LOG_INFO("** Init VM ops successful! \n");
 
 	ret = vm_irq_block_init(new_vm);
 	if (ret < 0) {
         ZVM_LOG_WARN(" Init vm's irq block error!\n");
         return ret;
     }
-	ZVM_LOG_INFO("\n Init VM irq block successful! \n");
+	ZVM_LOG_INFO("** Init VM irq block successful! \n");
 
 	ret = vm_vcpus_init(new_vm);
 	if (ret < 0) {
 		ZVM_LOG_WARN("create vcpu error! \n");
 		return -ENXIO;
 	}
-	ZVM_LOG_INFO("\n Init VM vcpus instances successful! \n");
+	ZVM_LOG_INFO("** Init VM vcpus instances successful! \n");
 
 	ret = vm_device_init(new_vm);
 	if (ret) {
 		ZVM_LOG_WARN(" Init vm's virtual device error! \n");
 		return ret;
 	}
-	ZVM_LOG_INFO("\n Init VM devices successful! \n");
+	ZVM_LOG_INFO("** Init VM devices successful! \n");
 
    	ret = vm_mem_init(new_vm);
 	if(ret < 0){
 		return ret;
 	}
-	ZVM_LOG_INFO("\n Init VM memory successful! \n");
+	ZVM_LOG_INFO("** Init VM memory successful! \n");
 
 	k_free(vm_info);
 
@@ -113,7 +113,7 @@ int zvm_run_guest(size_t argc, char **argv)
 	int ret = 0;
 	struct vm *vm;
 
-	ZVM_LOG_INFO("\n Ready to run VM. \n");
+	ZVM_LOG_INFO("** Ready to run VM. \n");
 	vm_id = z_parse_run_vm_args(argc, argv, state);
 	if (!(BIT(vm_id) & zvm_overall_info->alloced_vmid)) {
         ZVM_LOG_WARN("This vmid is not exist!\n Please input zvm info to show info! \n");

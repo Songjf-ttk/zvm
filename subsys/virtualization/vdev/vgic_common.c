@@ -149,6 +149,7 @@ static int vgic_set_virq(struct vcpu *vcpu, struct virt_irq_desc *desc)
 
     key = k_spin_lock(&vb->spinlock);
 	lr_state = desc->virq_states;
+//	ZVM_LOG_INFO("vgic_set_virq, lr_state: %d, current cpu num %08lx \n", lr_state, read_mpidr_el1());
 	switch (lr_state) {
 	case VIRQ_STATE_INVALID:
         desc->virq_flags |= VIRQ_PENDING_FLAG;
@@ -187,6 +188,7 @@ static int vgic_set_virq(struct vcpu *vcpu, struct virt_irq_desc *desc)
 	if(vcpu->work->vcpu_thread != _current){
 		if(zvm_thread_active_elsewhere(vcpu->work->vcpu_thread)){
 #if defined(CONFIG_SMP) &&  defined(CONFIG_SCHED_IPI_SUPPORTED)
+			ZVM_LOG_INFO("Ready to send arch_sched_ipi \n");
 			arch_sched_ipi();
 #endif
 		}else{
@@ -588,6 +590,7 @@ int virt_irq_sync_vgic(struct vcpu *vcpu)
 			}
 		case VIRQ_STATE_INVALID:
 			gicv3_update_lr(vcpu, desc, ACTION_CLEAR_VIRQ, 0);
+			vcpu->arch->hcr_el2 &= ~(uint64_t)HCR_VI_BIT;
 			sys_dlist_remove(&desc->desc_node);
 			/* if software irq is still triggered */
 			if (desc->vdev_trigger) {

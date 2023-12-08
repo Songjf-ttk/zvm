@@ -43,6 +43,7 @@
 #define GICH_HCR_UIE      		(1 << 1)
 #define GICH_HCR_LRENPIE  		(1 << 2)
 #define GICH_HCR_NPIE     		(1 << 3)
+#define GICH_HCR_TALL1			(1 << 12)
 
 /* list register */
 #define LIST_REG_GTOUP0			(0)
