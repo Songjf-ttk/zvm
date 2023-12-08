@@ -220,13 +220,6 @@ GTEXT(z_arm64_exit_exc_fpu_done)
 z_arm64_exit_exc_fpu_done:
 #endif
 
-#if defined(CONFIG_SOC_RK35681) && defined(CONFIG_NS16650_EARLYPRINT_DEBUG) && defined(RK3568_ASM_PRINTK)
-	stp     x0, x1, [sp, #-16]!
-	mrs	x0, elr_el1
-	bl safe_print_debug
-	ldp     x0, x1, [sp], #16
-#endif
-
 	ldp	x0, x1, [sp, ___esf_t_spsr_elr_OFFSET]
 	msr	spsr_el1, x0
 	msr	elr_el1, x1

@@ -322,12 +322,13 @@ static void *virt_region_alloc(size_t size, size_t align)
 
 		dest_addr = aligned_dest_addr;
 	}
-#if defined(CONFIG_SOC_RK3568) && defined(CONFIG_NS16650_EARLYPRINT_DEBUG)
-	printascii("\n dest_addr and start addr: ");
-	early_print_debug(dest_addr, POINTER_TO_UINT(Z_VIRT_REGION_START_ADDR));
-#endif
+
 	/* Need to make sure this does not step into kernel memory */
 	if (dest_addr < POINTER_TO_UINT(Z_VIRT_REGION_START_ADDR)) {
+#if defined(CONFIG_SOC_RK3568) && defined(CONFIG_NS16550_EARLYPRINT_DEBUG)
+	printascii("## Waring: dest_addr and start addr: ");
+	early_print_debug(dest_addr, POINTER_TO_UINT(Z_VIRT_REGION_START_ADDR));
+#endif
 		(void)sys_bitarray_free(&virt_region_bitmap, size, offset);
 		return NULL;
 	}
