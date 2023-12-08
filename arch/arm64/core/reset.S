@@ -136,9 +136,7 @@ SECTION_SUBSEC_FUNC(TEXT,_reset_section,__start)
 	cmp x1, #0
 	bne 1f
 #endif
-#if defined(CONFIG_SOC_RK3568)
-	mov x1, x1, lsr #0x08
-#endif
+
 	cmp	x2, #-1
 	beq	primary_core
 
@@ -146,7 +144,6 @@ SECTION_SUBSEC_FUNC(TEXT,_reset_section,__start)
 	msr SPsel, #1
 	switch_el x13, 15f, 16f, 18f
 18:
-	nop
 16:
 	mov_imm x13, (SCTLR_EL2_RES1)
 	msr sctlr_el2, x13
@@ -161,7 +158,7 @@ SECTION_SUBSEC_FUNC(TEXT,_reset_section,__start)
 	isb
 	mov_imm x13, (SPSR_MODE_EL1H | DAIF_FIQ_BIT)
 	msr spsr_el1, x13
-
+	isb
 #endif
 
 	/* loop until our turn comes */
@@ -206,7 +203,6 @@ switch_el:
 2:
 /* TODO: The init order may be change */
 #if	defined(CONFIG_ZVM) && defined(CONFIG_HAS_ARM_VHE_EXTN)
-	/* EL2 VHE mode init */
 	bl	z_arm64_el2_vhe_init
 #else
 	bl  z_arm64_el2_init

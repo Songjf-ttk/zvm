@@ -45,7 +45,7 @@ static inline void z_arm64_bss_zero(void)
 void z_arm64_prep_c(void)
 {
 	/* init uart for output, for rk3568 */
-#if defined(CONFIG_SOC_RK3568) && defined(CONFIG_NS16650_EARLYPRINT_DEBUG)
+#if defined(CONFIG_SOC_RK3568) && defined(CONFIG_NS16550_EARLYPRINT_DEBUG)
 	tpl_main();
 #endif
 
@@ -59,8 +59,8 @@ void z_arm64_prep_c(void)
 	z_data_copy();
 #endif
 	z_arm64_mm_init(true);
-#if defined(CONFIG_SOC_RK3568) && defined(CONFIG_NS16650_EARLYPRINT_DEBUG)
-	printascii("\n Init mmu successful! \n");
+#if defined(CONFIG_SOC_RK3568) && defined(CONFIG_NS16550_EARLYPRINT_DEBUG)
+	printascii("** Init System mmu successful! \n");
 #endif
 	z_arm64_interrupt_init();
 	z_cstart();

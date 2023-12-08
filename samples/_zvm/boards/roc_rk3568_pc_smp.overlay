@@ -21,29 +21,29 @@
         };
 
         /* VM0's uart here! rk3568's port num is uart3 */
-        uart1: serial@fe670000 {
+        uart3: serial@fe670000 {
             compatible = "rockchip,rk3568-uart", "ns16550";
             reg = <0x0 0xfe670000 0x0 0x10000>;
             interrupts = <GIC_SPI 119 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY>;
 		    clocks = <&uartclk>;
-            clock-frequency = <24000000>;
+            clock-frequency = <12000000>;
             reg-shift = <2>;
-            status = "disabled";
+            status = "reserved";
             current-speed = <1500000>;
-            label = "UART_1";
+            label = "UART3";
         };
 
         /* VM1's uart here! rk3568's port num is uart9 */
-        uart2: serial@fe6d0000 {
+        uart9: serial@fe6d0000 {
             compatible = "rockchip,rk3568-uart", "ns16550";
             reg = <0x0 0xfe6d0000 0x0 0x10000>;
             interrupts = <GIC_SPI 125 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY>;
 		    clocks = <&uartclk>;
-            clock-frequency = <24000000>;
+            clock-frequency = <12000000>;
             reg-shift = <2>;
-            status = "disabled";
+            status = "reserved";
             current-speed = <1500000>;
-            label = "UART_2";
+            label = "UART9";
         };
     };
 
@@ -61,7 +61,7 @@
             address_type = "normal_memory";
             vm_reg_base = <0x40000000>;
             vm_reg_size = <DT_SIZE_M(2)>;
-            reg = <0x0 0x48000000 0x0 DT_SIZE_M(1)>;
+            reg = <0x0 0x48000000 0x0 DT_SIZE_M(2)>;
             label = "VM0_MEM";
         };
 
