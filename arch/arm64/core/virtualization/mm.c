@@ -91,8 +91,7 @@ static uint64_t get_vm_region_desc(uint32_t attrs)
 		 * Normal memory, Outer Write-Back Cacheable & Inner Write-Back
 		 * Cacheable.
 		*/
-		desc |= S2_PTE_BLOCK_DESC_O_WB_CACHE;
-		desc |= S2_PTE_BLOCK_DESC_I_WB_CACHE;
+		desc |= (S2_PTE_BLOCK_DESC_O_WB_CACHE | S2_PTE_BLOCK_DESC_I_WB_CACHE);
 		break;
 	}
 

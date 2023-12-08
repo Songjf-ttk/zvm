@@ -25,8 +25,7 @@ static int vm_vdev_mem_add(struct vm *vm, struct virt_dev *vdev)
 
     /*If device is emulated, set access off attrs*/
     if (vdev->dev_pt_flag) {
-        attrs = MT_VM_NORMAL_MEM;
-        //attrs = MT_VM_DEVICE_MEM;
+        attrs = MT_VM_DEVICE_MEM;
     }else{
         attrs = MT_VM_DEVICE_MEM | MT_S2_ACCESS_OFF;
     }
