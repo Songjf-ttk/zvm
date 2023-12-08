@@ -8,7 +8,7 @@ rk3568目录下的代码用作测试rk3568板卡，使用ns16650工具来对板�
 
 配置项
 ~~~~~~~~~
-CONFIG_NS16650_EARLYPRINT_DEBUG=y
+CONFIG_NS16550_EARLYPRINT_DEBUG=y
 
 
 注：串口工具在程序正常运行的时候需要关闭，不然会引起中断风暴（原因未知）。
