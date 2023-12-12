@@ -16,6 +16,7 @@
 #include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/vm_console.h>
 #include <virtualization/vdev/virt_device.h>
+#include <virtualization/vdev/virtio/virtio_mmio.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
@@ -24,7 +25,7 @@ static int vm_vdev_mem_add(struct vm *vm, struct virt_dev *vdev)
     uint32_t attrs = 0;
 
     /*If device is emulated, set access off attrs*/
-    if (vdev->dev_pt_flag) {
+    if (vdev->dev_pt_flag && !vdev->shareable) {
         attrs = MT_VM_DEVICE_MEM;
     }else{
         attrs = MT_VM_DEVICE_MEM | MT_S2_ACCESS_OFF;
@@ -48,11 +49,12 @@ struct virt_dev *vm_virt_dev_add(struct vm *vm, const char *dev_name, bool pt_fl
         ZVM_LOG_ERR("Allocate memory for vm device error!\n");
         return NULL;
     }
+
     name_len = strlen(dev_name);
     name_len = name_len > VIRT_DEV_NAME_LENGTH ? VIRT_DEV_NAME_LENGTH : name_len;
     strncpy(vm_dev->name, dev_name, name_len);
-
     vm_dev->name[name_len] = '\0';
+
     vm_dev->dev_pt_flag = pt_flag;
     vm_dev->shareable = shareable;
     vm_dev->vm_vdev_paddr = dev_pbase;
@@ -73,7 +75,7 @@ struct virt_dev *vm_virt_dev_add(struct vm *vm, const char *dev_name, bool pt_fl
 }
 
 int vdev_mmio_abort(arch_commom_regs_t *regs, int write, uint64_t addr,
-                uint64_t *value)
+                uint64_t *value, uint16_t size)
 {
     uint64_t *reg_value = value;
     struct vm *vm;
@@ -86,15 +88,25 @@ int vdev_mmio_abort(arch_commom_regs_t *regs, int write, uint64_t addr,
     SYS_DLIST_FOR_EACH_NODE_SAFE(&vm->vdev_list, d_node, ds_node){
         vdev = CONTAINER_OF(d_node, struct virt_dev, vdev_node);
 
-        if ((addr >= vdev->vm_vdev_paddr) && (addr < vdev->vm_vdev_paddr +
-            vdev->vm_vdev_size)) {
-            dev = (const struct device* const)vdev->priv_vdev;
-            if (write) {
-                return ((const struct virt_device_api * \
-                    const)(dev->api))->virt_device_write(vdev, addr, reg_value);
-            }else{
-                return ((const struct virt_device_api * \
-                    const)(dev->api))->virt_device_read(vdev, addr, reg_value);
+        if (vdev->shareable) {
+			if ((addr >= vdev->vm_vdev_vaddr) && (addr < vdev->vm_vdev_vaddr + vdev->vm_vdev_size)) {
+                dev = (const struct device* const)vdev->priv_data;
+				if (write) {
+					return ((struct virtio_mmio_driver_api *)((struct virt_device_api *)dev->api)->device_driver_api)->write(vdev, addr - vdev->vm_vdev_vaddr, 0, (uint32_t)*reg_value, size);
+				} else {
+					return ((struct virtio_mmio_driver_api *)((struct virt_device_api *)dev->api)->device_driver_api)->read(vdev, addr - vdev->vm_vdev_vaddr, (uint32_t *)reg_value, size);
+				}
+			}
+		} else {
+            if ((addr >= vdev->vm_vdev_paddr) && (addr < vdev->vm_vdev_paddr + vdev->vm_vdev_size)) {
+                dev = (const struct device* const)vdev->priv_vdev;
+                if (write) {
+                    return ((const struct virt_device_api * \
+                        const)(dev->api))->virt_device_write(vdev, addr, reg_value);
+                }else{
+                    return ((const struct virt_device_api * \
+                        const)(dev->api))->virt_device_read(vdev, addr, reg_value);
+                }
             }
         }
     }
@@ -133,8 +145,9 @@ int vm_vdev_pause(struct vcpu *vcpu)
 
 int handle_vm_device_emulate(struct vm *vm, uint64_t pa_addr)
 {
-    bool chosen_flag=false;
-    struct virt_dev *vm_dev, *chosen_dev=NULL;
+    bool chosen_flag = false;
+    int ret;
+    struct virt_dev *vm_dev, *chosen_dev = NULL;
     struct zvm_dev_lists *vdev_list;
     struct  _dnode *d_node, *ds_node;
     const struct device *dev;
@@ -150,7 +163,7 @@ int handle_vm_device_emulate(struct vm *vm, uint64_t pa_addr)
     }
 
     if(chosen_flag){
-        chosen_dev = vm_virt_dev_add(vm, vm_dev->name, true, false,
+        chosen_dev = vm_virt_dev_add(vm, vm_dev->name, vm_dev->dev_pt_flag, vm_dev->shareable,
                             vm_dev->vm_vdev_paddr, vm_dev->vm_vdev_paddr,
                             vm_dev->vm_vdev_size, vm_dev->hirq, vm_dev->hirq);
         if(!chosen_dev){
@@ -163,7 +176,22 @@ int handle_vm_device_emulate(struct vm *vm, uint64_t pa_addr)
 
         vm_device_irq_init(vm, chosen_dev);
         dev = (struct device *)vm_dev->priv_data;
+        chosen_dev->priv_data = (void *)dev;
         vdev_irq_callback_user_data_set(dev, vm_device_callback_func, chosen_dev);
+
+        if(chosen_dev->shareable){
+            ret = ((struct virtio_mmio_driver_api *)((struct virt_device_api *)dev->api)->device_driver_api)->probe(vm, chosen_dev);
+            if (ret) {
+				ZVM_LOG_WARN(" Init virtio device error! \n");
+				return -EFAULT;
+			}
+
+            ret = ((struct virtio_mmio_driver_api *)((struct virt_device_api *)dev->api)->device_driver_api)->reset(chosen_dev);
+            if (ret) {
+				ZVM_LOG_WARN(" Reset Init virtio device error! \n");
+				return -EFAULT;
+			}
+        }
 
         return 0;
     }

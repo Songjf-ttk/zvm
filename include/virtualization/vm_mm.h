@@ -161,4 +161,19 @@ int vm_mem_apart_remove(struct vm_mem_domain *vmem_dm);
  */
 int arch_vm_mem_domain_init(struct k_mem_domain *domain, uint32_t vmid);
 
+/**
+ * @brief translate guest physical address to host physical address
+ * 
+ * @param vm the pointer to guest
+ * @param gpa guset physical address need to be translate
+ * @return uint64_t host physical address
+ */
+uint64_t vm_gpa_to_hpa(struct vm *vm, uint64_t gpa, struct vm_mem_partition *vpart);
+
+void vm_host_memory_read(uint64_t hpa, void *dst, size_t len);
+void vm_host_memory_write(uint64_t hpa, void *src, size_t len);
+
+void vm_guest_memory_read(struct vm *vm, uint64_t gpa, void *dst, size_t len);
+void vm_guest_memory_write(struct vm *vm, uint64_t gpa, void *src, size_t len);
+
 #endif /* ZEPHYR_INCLUDE_ZVM_VM_MM_H_ */

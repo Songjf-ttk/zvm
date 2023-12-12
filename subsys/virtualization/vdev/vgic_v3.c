@@ -484,7 +484,7 @@ static int vm_vgicv3_init(const struct device *dev, struct vm *vm, struct virt_d
 
 	/* get the private data for vgicv3 */
 	virt_dev->priv_data = vgicv3;
-	virt_dev->priv_vdev = dev;
+	virt_dev->priv_vdev = (void *)dev;
 
 	return 0;
 }

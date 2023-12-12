@@ -16,6 +16,7 @@
 #include <virtualization/arm/cpu.h>
 
 #define VIRT_DEV_NAME_LENGTH    (32)
+#define VIRT_DEV_TYPE_LENGTH    (32)
 
 #define DEV_TYPE_EMULATE_ALL_DEVICE (0x01)
 #define DEV_TYPE_VIRTIO_DEVICE      (0x02)
@@ -27,7 +28,8 @@ struct virt_dev {
 
     /* Is this dev pass-through device? */
     bool dev_pt_flag;
-    bool shareable;
+    /* Is this dev virtio device?*/
+    bool shareable; 
 
     uint32_t hirq;
     uint32_t virq;
@@ -43,12 +45,12 @@ struct virt_dev {
      * For full virtual device, it may store the emulated device private data.
      * For passthrough, it store the hardware instance data.
     */
-    const void *priv_data;
+    void *priv_data;
 
     /**
      * Binding to full virtual device driver.
     */
-    const void *priv_vdev;
+    void *priv_vdev;
 };
 typedef struct virt_dev virt_dev_t;
 
@@ -73,7 +75,7 @@ struct virt_dev *vm_virt_dev_add(struct vm *vm, const char *dev_name, bool pt_fl
 /**
  * @brief write or read vdev for VM operation....
  */
-int vdev_mmio_abort(arch_commom_regs_t *regs, int write, uint64_t addr, uint64_t *value);
+int vdev_mmio_abort(arch_commom_regs_t *regs, int write, uint64_t addr, uint64_t *value, uint16_t size);
 
 /**
  * @brief unmap passthrough device.

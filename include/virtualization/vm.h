@@ -24,7 +24,7 @@
 #define VCPU_NAME_LEN       (32)
 #define RAMDISK_NAME_LEN    (32)
 
-#define VCPU_THREAD_STACKSIZE   (32768)
+#define VCPU_THREAD_STACKSIZE   (65536)
 #define VCPU_THREAD_PRIO        (1)
 
 /**

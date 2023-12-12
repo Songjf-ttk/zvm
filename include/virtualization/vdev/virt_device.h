@@ -40,6 +40,7 @@ struct virt_device_config {
     uint32_t reg_base;
     uint32_t reg_size;
     uint32_t hirq_num;
+    char device_type[VIRT_DEV_TYPE_LENGTH];
     /* Address of device instance config information */
     const void *device_config;
 };

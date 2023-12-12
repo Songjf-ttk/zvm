@@ -646,3 +646,80 @@ int vm_mem_domain_create(struct vm *vm)
 
     return 0;
 }
+
+
+uint64_t vm_gpa_to_hpa(struct vm *vm, uint64_t gpa, struct vm_mem_partition *vpart)
+{
+    struct vm_mem_domain *vmem_domain = vm->vmem_domain;
+    sys_dnode_t *d_node, *ds_node;
+    uint64_t vpart_gpa_start, vpart_gpa_end, vpart_hpa_start;
+
+    SYS_DLIST_FOR_EACH_NODE_SAFE(&vmem_domain->mapped_vpart_list, d_node, ds_node) {
+        vpart = CONTAINER_OF(d_node, struct vm_mem_partition, vpart_node);
+
+        vpart_gpa_start = (uint64_t)(vpart->vm_mm_partition->start);
+        vpart_gpa_end = vpart_gpa_start + ((uint64_t)vpart->vm_mm_partition->size);
+
+        if(vpart_gpa_start <= gpa && gpa <= vpart_gpa_end) {
+            vpart_hpa_start = vpart->part_hpa_base;
+            return (gpa - vpart_gpa_start + vpart_hpa_start);
+        }
+    }
+    return -ESRCH;
+}
+
+void vm_host_memory_read(uint64_t hpa, void *dst, size_t len)
+{
+    size_t len_actual = len;
+    uint64_t *hva;
+    if (len == 1) {
+        len = 4;
+    }
+    z_phys_map((uint8_t **)&hva, hpa, len, K_MEM_CACHE_NONE | K_MEM_PERM_RW);
+    memcpy(dst, hva, len_actual);
+    z_phys_unmap((uint8_t *)hva, len);
+}
+
+void vm_host_memory_write(uint64_t hpa, void *src, size_t len)
+{   
+    size_t len_actual = len;
+    uint64_t *hva;
+    if (len == 1) {
+        len = 4;
+    }
+    z_phys_map((uint8_t **)&hva, (uintptr_t)hpa, len, K_MEM_CACHE_NONE | K_MEM_PERM_RW);
+    memcpy(hva, src, len_actual);
+    z_phys_unmap((uint8_t *)hva, len);
+}
+
+void vm_guest_memory_read(struct vm *vm, uint64_t gpa, void *dst, size_t len)
+{   
+    uint64_t hpa;
+    struct vm_mem_partition *vpart;
+    vpart = (struct vm_mem_partition *)k_malloc(sizeof(struct vm_mem_partition));
+    if (!vpart) {
+        return;
+    }	
+    hpa = vm_gpa_to_hpa(vm, gpa, vpart);
+    if(hpa < 0){
+        printk("vm_guest_memory_read: gpa to hpa failed!\n");
+        return ;
+    }
+    vm_host_memory_read(hpa, dst, len);
+}
+
+void vm_guest_memory_write(struct vm *vm, uint64_t gpa, void *src, size_t len)
+{
+    uint64_t hpa;
+    struct vm_mem_partition *vpart;
+    vpart = (struct vm_mem_partition *)k_malloc(sizeof(struct vm_mem_partition));
+    if (!vpart) {
+        return;
+    }	
+    hpa = vm_gpa_to_hpa(vm, gpa, vpart);
+    if(hpa < 0){
+        printk("vm_guest_memory_write: gpa to hpa failed!\n");
+        return ;
+    }
+    vm_host_memory_write(hpa, src, len);
+}

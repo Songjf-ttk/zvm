@@ -89,7 +89,7 @@ void virt_serial_isr(const struct device *dev)
 
 	/* Verify if the callback has been registered */
 	if (data->irq_cb) {
-		uart_irq_update(dev);
+//		uart_irq_update(dev);
 		data->irq_cb(dev, data->irq_cb, data->irq_cb_data);
 	}
 }

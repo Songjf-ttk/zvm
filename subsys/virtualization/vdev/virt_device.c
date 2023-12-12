@@ -56,7 +56,7 @@ struct virt_dev *allocate_device_to_vm(const struct device *dev, struct vm *vm,
 {
     struct virt_dev *vdev;
 
-    vdev = vm_virt_dev_add(vm, dev->name, true, false, DEV_CFG(dev)->reg_base,
+    vdev = vm_virt_dev_add(vm, dev->name, pt_flag, shareable, DEV_CFG(dev)->reg_base,
 					vdev_desc->vm_vdev_paddr, DEV_CFG(dev)->reg_size,
 					DEV_CFG(dev)->hirq_num, vdev_desc->virq);
     if(!vdev){

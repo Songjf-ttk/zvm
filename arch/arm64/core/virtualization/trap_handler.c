@@ -69,15 +69,43 @@ static int handle_faccess_desc(int iss_dfsc, uint64_t pa_addr,
 {
     int ret;
     uint16_t reg_index = dabt->srt;
+    uint16_t iss_isv, iss_sas, size;
     uint64_t addr = pa_addr, *reg_value;
+
+    iss_isv = dabt->isv;
+    
+    if (!iss_isv) {
+        ZVM_LOG_WARN("Instruction syndrome not valid\n");
+        return -EFAULT;
+    }
 
     reg_value = find_index_reg(reg_index, regs);
     if (reg_value == NULL) {
         reg_value = &wzr_reg;
     }
 
-    ret = vdev_mmio_abort(regs, dabt->wnr, addr, reg_value);
-    if (ret) {
+    iss_sas = dabt->sas;
+
+    switch (iss_sas) {
+    case 0:
+        size = 1;
+        break;
+    case 1:
+        size = 2;
+        break;
+    case 2:
+        size = 4;
+        break;
+    case 3:
+        size = 8;
+        break;
+    default:
+        ZVM_LOG_WARN("unsupport data size\n");
+        return -EFAULT;
+    }
+
+    ret = vdev_mmio_abort(regs, dabt->wnr, addr, reg_value, size);
+    if (ret < 0) {
         ZVM_LOG_WARN("Handle mmio read/write failed! The addr: %llx \n", addr);
         return -ENODEV;
     }

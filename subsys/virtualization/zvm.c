@@ -194,12 +194,23 @@ static int zvm_overall_init(void)
 int zvm_init_idle_device(const struct device *dev, struct virt_dev *vdev,
                             struct zvm_dev_lists *dev_list)
 {
+    uint16_t name_len;
     struct virt_dev *vm_dev = vdev;
+    
+    /*TODO：Determine whether to connect directly based on device type*/
+    vm_dev->dev_pt_flag = true;
 
-    vm_dev->dev_pt_flag = false;
-    vm_dev->shareable = false;
+    if(strcmp(((struct virt_device_config *)dev->config)->device_type, "virtio") == 0) {
+        vm_dev->shareable = true;
+    } else {
+        vm_dev->shareable = false;
+    }
 
-    strcpy(vm_dev->name, dev->name);
+    name_len = strlen(dev->name);
+    name_len = name_len > VIRT_DEV_NAME_LENGTH ? VIRT_DEV_NAME_LENGTH : name_len;
+    strncpy(vm_dev->name, dev->name, name_len);
+    vm_dev->name[name_len] = '\0';
+
     vm_dev->vm_vdev_paddr = ((struct virt_device_config *)dev->config)->reg_base;
     vm_dev->vm_vdev_vaddr = VM_DEVICE_INVALID_BASE;
     vm_dev->vm_vdev_size = ((struct virt_device_config *)dev->config)->reg_size;
@@ -207,7 +218,7 @@ int zvm_init_idle_device(const struct device *dev, struct virt_dev *vdev,
     vm_dev->virq = VM_DEVICE_INVALID_VIRQ;
     vm_dev->vm = NULL;
 
-    vm_dev->priv_data = dev;
+    vm_dev->priv_data = (void *)dev;
 
     printk("Init passthrough device %s successful! \n", vm_dev->name);
 

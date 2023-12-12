@@ -37,10 +37,16 @@ config VM_SERIAL2
 	  	This option is used for building serial2 that get from overlay.
 
 config VM_VIRTIO_MMIO
-	bool "VM virtio_mmio block for vm."
+	bool "virtio_mmio"
 	help
 		This option is selected by any subsystem which implements the virtio
 	  	mmio.
+
+config VM_VIRTIO_BLOCK
+	bool "VM virtio_mmio block for vm."
+	help
+		This option is selected by any subsystem which implements the virtio_block
+		using virtio_mmio.
 
 if VM_VIRTIO_MMIO
 

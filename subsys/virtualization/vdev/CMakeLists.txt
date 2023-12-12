@@ -11,5 +11,11 @@ zephyr_sources_ifdef(
 
 zephyr_sources_ifdef(
     CONFIG_VM_VIRTIO_MMIO
+    virtio.c
     virtio_mmio.c
+)
+
+zephyr_sources_ifdef(
+    CONFIG_VM_VIRTIO_BLOCK
+    virtio_blk.c
 )

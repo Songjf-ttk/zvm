@@ -75,73 +75,83 @@
         };
 
         virtio_mmio@a000000 {
-            dma-coherent;
             interrupts = <GIC_SPI 0x10 IRQ_TYPE_EDGE 0>;
-            reg = <0x00 0xa000000 0x00 0x200>;
+            reg = <0x00 0xa000000 0x00 0x1000>;
             compatible = "virtio,mmio";
+            device_type = "virtio";
+            virtio_type = <2>;
         };
 
         virtio_mmio@a000200 {
-            dma-coherent;
             interrupts = <GIC_SPI 0x11 IRQ_TYPE_EDGE 0>;
-            reg = <0x00 0xa000200 0x00 0x200>;
+            reg = <0x00 0xa000200 0x00 0x1000>;
             compatible = "virtio,mmio";
+            device_type = "virtio";
+            virtio_type = <2>;
         };
 
         virtio_mmio@a000400 {
-            dma-coherent;
             interrupts = <GIC_SPI 0x12 IRQ_TYPE_EDGE 0>;
-            reg = <0x00 0xa000400 0x00 0x200>;
+            reg = <0x00 0xa000400 0x00 0x1000>;
             compatible = "virtio,mmio";
+            device_type = "virtio";
+            virtio_type = <2>;
         };
 
         virtio_mmio@a000600 {
-            dma-coherent;
             interrupts = <GIC_SPI 0x13 IRQ_TYPE_EDGE 0>;
-            reg = <0x00 0xa000600 0x00 0x200>;
+            reg = <0x00 0xa000600 0x00 0x1000>;
             compatible = "virtio,mmio";
+            device_type = "virtio";
+            virtio_type = <2>;
         };
 
         virtio_mmio@a000800 {
-            dma-coherent;
             interrupts = <GIC_SPI 0x14 IRQ_TYPE_EDGE 0>;
-            reg = <0x00 0xa000800 0x00 0x200>;
+            reg = <0x00 0xa000800 0x00 0x1000>;
             compatible = "virtio,mmio";
+            device_type = "virtio";
+            virtio_type = <2>;
         };
 
         virtio_mmio@a000a00 {
-            dma-coherent;
             interrupts = <GIC_SPI 0x15 IRQ_TYPE_EDGE 0>;
-            reg = <0x00 0xa000a00 0x00 0x200>;
+            reg = <0x00 0xa000a00 0x00 0x1000>;
             compatible = "virtio,mmio";
+            device_type = "virtio";
+            virtio_type = <2>;
         };
 
         virtio_mmio@a000c00 {
-            dma-coherent;
             interrupts = <GIC_SPI 0x16 IRQ_TYPE_EDGE 0>;
-            reg = <0x00 0xa000c00 0x00 0x200>;
+            reg = <0x00 0xa000c00 0x00 0x1000>;
             compatible = "virtio,mmio";
+            device_type = "virtio";
+            virtio_type = <2>;
         };
 
         virtio_mmio@a000e00 {
-            dma-coherent;
             interrupts = <GIC_SPI 0x17 IRQ_TYPE_EDGE 0>;
-            reg = <0x00 0xa000e00 0x00 0x200>;
+            reg = <0x00 0xa000e00 0x00 0x1000>;
             compatible = "virtio,mmio";
+            device_type = "virtio";
+            virtio_type = <2>;
         };
 
         virtio_mmio@a001000 {
-            dma-coherent;
             interrupts = <GIC_SPI 0x18 IRQ_TYPE_EDGE 0>;
-            reg = <0x00 0xa001000 0x00 0x200>;
+            reg = <0x00 0xa001000 0x00 0x1000>;
             compatible = "virtio,mmio";
+            device_type = "virtio";
+            virtio_type = <2>;
         };
 
         virtio_mmio@a001200 {
-            dma-coherent;
             interrupts = <GIC_SPI 0x19 IRQ_TYPE_EDGE 0>;
-            reg = <0x00 0xa001200 0x00 0x200>;
+            reg = <0x00 0xa001200 0x00 0x1000>;
             compatible = "virtio,mmio";
+            device_type = "virtio";
+            virtio_type = <2>;
         };
 
         pl061@9030000 {
