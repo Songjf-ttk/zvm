@@ -131,7 +131,7 @@ int arch_vcpu_run(struct vcpu *vcpu)
     switch_to_guest_sysreg(vcpu);
     dsb();
     isb();
-    print_list_register();
+    // print_list_register();
     // ZVM_LOG_INFO("hcr_el2: %08lx \n",read_hcr_el2());
     // ZVM_LOG_INFO("ich_hcr_el2: %08lx, ich_vtr_el2:  %08lx \n",read_sysreg(ICH_HCR_EL2),read_sysreg(ICH_VTR_EL2));
     // ZVM_LOG_INFO("ich_vmcr_el2: %08lx \n",read_sysreg(ICH_VMCR_EL2));

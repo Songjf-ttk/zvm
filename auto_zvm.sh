@@ -31,7 +31,7 @@ if [ "$OPS" = "$ops_build" ]; then
         -DARMFVP_BL1_FILE=$(pwd)/zvm_config/fvp_platform/hub/bl1.bin \
         -DARMFVP_FIP_FILE=$(pwd)/zvm_config/fvp_platform/hub/fip.bin
     elif [ "$PLAT" = "$plat_rk3568" ]; then
-        west build -b roc_rk3568_pc samples/_zvm
+        west build -b roc_rk3568_pc_smp samples/_zvm
         cp build/zephyr/zvm_host.bin /home/xiong/tftp_server
     else
         echo "Error arguments for this auto.sh! \n Please input command like: ./auto_build.sh build qemu. "

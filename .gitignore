@@ -67,3 +67,6 @@ todo
 
 # ignore Image
 zvm_config/qemu_platform/hub/*
+
+# ignore
+_tmp*/
