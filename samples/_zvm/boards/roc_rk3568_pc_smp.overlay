@@ -7,8 +7,12 @@
 /{
 	aliases {
         vmvgic = "/soc/vgic@fd400000";
-		vmserial1 = "/soc/serial@fe670000";
+		vmserial1 = "/soc/serial@fe660000";
 		vmserial2 = "/soc/serial@fe6d0000";
+	};
+
+	chosen {
+		vm,console = &uart3;
 	};
 
     soc {
@@ -21,10 +25,10 @@
         };
 
         /* VM0's uart here! rk3568's port num is uart3 */
-        uart3: serial@fe670000 {
+        uart3: serial@fe660000 {
             compatible = "rockchip,rk3568-uart", "ns16550";
-            reg = <0x0 0xfe670000 0x0 0x10000>;
-            interrupts = <GIC_SPI 119 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY>;
+            reg = <0x0 0xfe660000 0x0 0x10000>;
+            interrupts = <GIC_SPI 118 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY>;
 		    clocks = <&uartclk>;
             clock-frequency = <12000000>;
             reg-shift = <2>;

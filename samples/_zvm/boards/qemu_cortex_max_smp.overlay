@@ -28,6 +28,10 @@
         vmflash = "/soc/flash@0";
 	};
 
+    chosen {
+		vm,console = &uart0;
+	};
+
     soc {
 
 		vgic: vgic@8000000 {

@@ -135,13 +135,11 @@ int arch_vcpu_run(struct vcpu *vcpu)
     // ZVM_LOG_INFO("hcr_el2: %08lx \n",read_hcr_el2());
     // ZVM_LOG_INFO("ich_hcr_el2: %08lx, ich_vtr_el2:  %08lx \n",read_sysreg(ICH_HCR_EL2),read_sysreg(ICH_VTR_EL2));
     // ZVM_LOG_INFO("ich_vmcr_el2: %08lx \n",read_sysreg(ICH_VMCR_EL2));
-    // ZVM_LOG_INFO("The entry pc is: %08lx \n ", vcpu->arch->ctxt.regs.pc);
 
     /* Jump to the fire too! */
     exit_type = guest_vm_entry(vcpu, &vcpu->arch->host_ctxt);
     vcpu->exit_type = exit_type;
 
-    // ZVM_LOG_INFO("\n exit_type: %d, esr_el2: %08lx \n ", exit_type, read_esr_el2());
     switch_to_host_sysreg(vcpu);
 
     vm_sync_vgic(vcpu);

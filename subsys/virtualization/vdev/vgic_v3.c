@@ -333,7 +333,6 @@ int get_vcpu_gicr_type(struct virt_gic_gicr *gicr,
 {
 	int i;
 	uint32_t vcpu_id = gicr->vcpu_id;
-	ZVM_LOG_INFO("vcpu_id: %08lx \n", vcpu_id);
 
 	/* master core can access all the other core's gicr */
 	if (vcpu_id == 0) {

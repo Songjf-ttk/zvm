@@ -70,3 +70,5 @@ zvm_config/qemu_platform/hub/*
 
 # ignore
 _tmp*/
+.command
+auto_zvm.sh

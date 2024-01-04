@@ -87,7 +87,6 @@ static int serial_init(const struct device *dev)
 void virt_serial_isr(const struct device *dev)
 {
 	struct virt_device_data *data = DEV_DATA(dev);
-	ZVM_LOG_INFO("** Enter virt serial interrput function \n ");
 	/* Verify if the callback has been registered */
 	if (data->irq_cb) {
 		uart_irq_update(dev);
