@@ -79,6 +79,38 @@
 		label = "arch_timer";
 	};
 
+	pmugrf: syscon@fdc20000 {
+		compatible = "rockchip,rk3568-pmugrf","syscon", "simple-mfd";
+		reg = <0x00 0xfdc20000 0x00 0x10000>;
+		label = "PMUGRF";
+		status = "okay";
+	};
+
+	grf: syscon@fdc60000 {
+		compatible = "rockchip,rk3568-grf","syscon","simple-mfd";
+		reg = <0x00 0xfdc60000 0x00 0x10000>;
+		label = "GRF";
+		status = "okay";
+	};
+
+	pmucru: clock-controller@fdd00000 {
+		compatible = "rockchip,rk3568-pmucru";
+		reg = <0x00 0xfdd00000 0x00 0x1000>;
+		#clock-cells = <0x01>;
+		#reset-cells = <0x01>;
+		status = "okay";
+		label = "PMUCRU";
+	};
+
+	cru: clock-controller@fdd20000 {
+		compatible = "rockchip,rk3568-cru";
+		reg = <0x00 0xfdd20000 0x00 0x1000>;
+		#clock-cells = <0x01>;
+		#reset-cells = <0x01>;
+		status = "okay";
+		label = "CRU";
+	};
+
 	uartclk: apb-pclk {
 		compatible = "fixed-clock";
 		clock-frequency = <24000000>;

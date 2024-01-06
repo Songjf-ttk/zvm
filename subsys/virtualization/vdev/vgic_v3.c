@@ -362,7 +362,7 @@ int get_vcpu_gicr_type(struct virt_gic_gicr *gicr,
 			return TYPE_GIC_GICR_RD;
 		}
 	}
-	ZVM_LOG_INFO("offset: %08lx \n", *offset);
+
 	return TYPE_GIC_INVAILD;
 }
 
@@ -469,8 +469,7 @@ static int vdev_gicv3_init(struct vm *vm, struct vgicv3_dev *gicv3_vdev, uint32_
 		gicv3_vdev->gicr[i] = gicr;
     }
 
-	/* Init List register */
-	ZVM_LOG_INFO("** List register num: %d \n", VGIC_TYPER_LR_NUM);
+	ZVM_LOG_INFO("** List register num: %lld \n", VGIC_TYPER_LR_NUM);
 	vgicv3_lrs_init();
 
 	return 0;

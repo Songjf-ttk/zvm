@@ -104,16 +104,16 @@ void get_zvm_host_context(void)
     );
 }
 
-static void print_list_register(void)
+static inline void print_list_register(void)
 {
     if(read_sysreg(ICH_LR0_EL2)){
-        ZVM_LOG_INFO("ICH_LR0_EL2: %08lx \n", read_sysreg(ICH_LR0_EL2));
+        ZVM_LOG_INFO("ICH_LR0_EL2: %08llx \n", read_sysreg(ICH_LR0_EL2));
     }else if(read_sysreg(ICH_LR0_EL2)){
-        ZVM_LOG_INFO("ICH_LR1_EL2: %08lx \n", read_sysreg(ICH_LR1_EL2));
+        ZVM_LOG_INFO("ICH_LR1_EL2: %08llx \n", read_sysreg(ICH_LR1_EL2));
     }else if(read_sysreg(ICH_LR1_EL2)){
-        ZVM_LOG_INFO("ICH_LR2_EL2: %08lx \n", read_sysreg(ICH_LR2_EL2));
+        ZVM_LOG_INFO("ICH_LR2_EL2: %08llx \n", read_sysreg(ICH_LR2_EL2));
     }else if(read_sysreg(ICH_LR2_EL2)){
-        ZVM_LOG_INFO("ICH_LR3_EL2: %08lx \n", read_sysreg(ICH_LR3_EL2));
+        ZVM_LOG_INFO("ICH_LR3_EL2: %08llx \n", read_sysreg(ICH_LR3_EL2));
     }
 }
 

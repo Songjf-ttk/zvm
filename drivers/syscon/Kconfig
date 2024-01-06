@@ -40,3 +40,8 @@ config SYSCON_INIT_PRIORITY
 	  value
 
 endif # SYSCON
+
+config RK3568_SYSCON
+	bool "RK3568 SYSCON driver"
+	help
+		Enable RK3568 generic SYSCON (System Controller) driver

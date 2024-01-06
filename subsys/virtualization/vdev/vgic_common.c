@@ -149,7 +149,7 @@ static int vgic_set_virq(struct vcpu *vcpu, struct virt_irq_desc *desc)
 
     key = k_spin_lock(&vb->spinlock);
 	lr_state = desc->virq_states;
-//	ZVM_LOG_INFO("vgic_set_virq, lr_state: %d, current cpu num %08lx \n", lr_state, read_mpidr_el1());
+
 	switch (lr_state) {
 	case VIRQ_STATE_INVALID:
         desc->virq_flags |= VIRQ_PENDING_FLAG;
