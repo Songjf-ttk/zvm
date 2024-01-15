@@ -9,6 +9,7 @@
         vmvgic = "/soc/vgic@fd400000";
 		vmserial1 = "/soc/serial@fe660000";
 		vmserial2 = "/soc/serial@fe6d0000";
+        linuxdebugger = "/soc/fiq-debugger";
 	};
 
 	chosen {
@@ -49,6 +50,17 @@
             current-speed = <1500000>;
             label = "UART9";
         };
+
+        debug_uart: fiq-debugger {
+            compatible = "rockchip,fiq-debugger";
+            rockchip,serial-id = <0x02>;
+            rockchip,wake-irq = <0x00>;
+            rockchip,irq-mode-enable = <0x01>;
+            rockchip,baudrate = <1500000>;
+            interrupts = <GIC_SPI 220 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY>;
+            status = "okay";
+        };
+
     };
 
     /*TODO: The device that used by vm will be added below. */

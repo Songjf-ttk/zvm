@@ -17,6 +17,7 @@
 #include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/vdev/vgic_common.h>
 #include <virtualization/vm_irq.h>
+#include <virtualization/vdev/fiq_debugger.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
@@ -24,6 +25,11 @@ LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 	((const struct virt_device_config * const)(dev)->config)
 #define DEV_DATA(dev) \
 	((struct virt_device_data *)(dev)->data)
+
+void __weak vm_debugger_softirq_inject(void *user_data)
+{
+	ARG_UNUSED(user_data);
+}
 
 /**
  * @brief init vm serial device for the vm. Including:
@@ -91,6 +97,7 @@ void virt_serial_isr(const struct device *dev)
 	if (data->irq_cb) {
 		uart_irq_update(dev);
 		data->irq_cb(dev, data->irq_cb, data->irq_cb_data);
+		vm_debugger_softirq_inject(data->irq_cb_data);
 	}
 }
 #endif

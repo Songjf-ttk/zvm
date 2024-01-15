@@ -13,3 +13,8 @@ zephyr_sources_ifdef(
     CONFIG_VM_VIRTIO_MMIO
     virtio_mmio.c
 )
+
+zephyr_sources_ifdef(
+    CONFIG_VM_FIQ_DEBUGGER
+    fiq_debugger.c
+)
