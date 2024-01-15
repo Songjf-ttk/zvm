@@ -15,19 +15,16 @@ struct getopt_state;
 #define OS_NAME_LENGTH 32
 
 /* Default vcpu num is 1 */
-#define VM_DEFAULT_VCPU_NUM     (1)
+#define VM_DEFAULT_VCPU_NUM (1)
 
+#define OS_TYPE_ZEPHYR      (0)
+#define OS_TYPE_LINUX       (1)
+#define OS_TYPE_OTHERS      (2)
+#define OS_TYPE_MAX         (3)
 
 /* For clear warning for unknow reason */
 struct z_vm_info;
 struct vm;
-
-enum {
-    OS_TYPE_ZEPHYR = 0,
-    OS_TYPE_LINUX  = 1,
-    OS_TYPE_OTHERS = 2,
-    OS_TYPE_MAX = 3,
-};
 
 struct os {
     char *name;

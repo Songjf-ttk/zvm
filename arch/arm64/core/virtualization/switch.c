@@ -106,13 +106,18 @@ void get_zvm_host_context(void)
 
 static inline void print_list_register(void)
 {
+    ZVM_LOG_INFO("\n -------List register:------- \n");
+
     if(read_sysreg(ICH_LR0_EL2)){
         ZVM_LOG_INFO("ICH_LR0_EL2: %08llx \n", read_sysreg(ICH_LR0_EL2));
-    }else if(read_sysreg(ICH_LR0_EL2)){
+    }
+    if(read_sysreg(ICH_LR1_EL2)){
         ZVM_LOG_INFO("ICH_LR1_EL2: %08llx \n", read_sysreg(ICH_LR1_EL2));
-    }else if(read_sysreg(ICH_LR1_EL2)){
+    }
+    if(read_sysreg(ICH_LR2_EL2)){
         ZVM_LOG_INFO("ICH_LR2_EL2: %08llx \n", read_sysreg(ICH_LR2_EL2));
-    }else if(read_sysreg(ICH_LR2_EL2)){
+    }
+    if(read_sysreg(ICH_LR3_EL2)){
         ZVM_LOG_INFO("ICH_LR3_EL2: %08llx \n", read_sysreg(ICH_LR3_EL2));
     }
 }
@@ -131,7 +136,7 @@ int arch_vcpu_run(struct vcpu *vcpu)
     switch_to_guest_sysreg(vcpu);
     dsb();
     isb();
-    // print_list_register();
+    //print_list_register();
     // ZVM_LOG_INFO("hcr_el2: %08lx \n",read_hcr_el2());
     // ZVM_LOG_INFO("ich_hcr_el2: %08lx, ich_vtr_el2:  %08lx \n",read_sysreg(ICH_HCR_EL2),read_sysreg(ICH_VTR_EL2));
     // ZVM_LOG_INFO("ich_vmcr_el2: %08lx \n",read_sysreg(ICH_VMCR_EL2));
