@@ -25,7 +25,7 @@
  * flag is unset when virt irq is inject to hardware device, which
  * will assert vm's irq.
 */
-#define VIRQ_HW_FLAG                BIT(0)
+#define VIRQ_HW_FLAG                BIT(0)      /*@TODO: HW_FLAG may not enbaled for each spi.*/
 #define VIRQ_PENDING_FLAG		    BIT(1)
 #define VIRQ_ACTIVED_FLAG           BIT(2)
 #define VIRQ_ENABLED_FLAG		    BIT(3)
