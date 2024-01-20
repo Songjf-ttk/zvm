@@ -25,6 +25,8 @@ macro(include_boilerplate location)
   endif()
 endmacro()
 
+set(CMAKE_CONFIGURATION ${CMAKE_CURRENT_SOURCE_DIR})
+
 set(ENV_ZEPHYR_BASE $ENV{ZEPHYR_BASE})
 if((NOT DEFINED ZEPHYR_BASE) AND (DEFINED ENV_ZEPHYR_BASE))
   # Get rid of any double folder string before comparison, as example, user provides

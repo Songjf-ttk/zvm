@@ -256,9 +256,7 @@ static bool vgic_set_sgi2vcpu(struct vcpu *vcpu, struct virt_irq_desc *desc)
 static int vgic_gicd_mem_read(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
                                 uint32_t offset, uint64_t *v)
 {
-	int i, irq;
-	uint64_t *value = v;
-	struct virt_irq_desc *desc;
+	uint32_t *value = (uint32_t *)v;
 
 	offset += GIC_DIST_BASE;
 	switch (offset) {
@@ -273,10 +271,10 @@ static int vgic_gicd_mem_read(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
 		case GICD_STATUSR:
 			*value = 0;
 			break;
-		case GICD_ISENABLERn...(GIC_DIST_BASE + GICD_ICENABLERn - 1):
+		case GICD_ISENABLERn...(GICD_ICENABLERn - 1):
 			*value = 0;
 			break;
-		case GICD_ICENABLERn...(GIC_DIST_BASE + GICD_ISPENDRn - 1):
+		case GICD_ICENABLERn...(GICD_ISPENDRn - 1):
 			*value = 0;
 			break;
 		case (GIC_DIST_BASE+VGIC_RESERVED)...(GIC_DIST_BASE+VGIC_INMIRn - 1):
@@ -298,7 +296,6 @@ static int vgic_gicd_mem_read(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
 static int vgic_gicd_mem_write(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
                                 uint32_t offset, uint64_t *v)
 {
-	int i;
 	uint32_t x, y, bit, t;
 	uint32_t *value = (uint32_t *)v;
     k_spinlock_key_t key;
@@ -313,12 +310,12 @@ static int vgic_gicd_mem_write(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
 			break;
 		case GICD_STATUSR:
 			break;
-		case GICD_ISENABLERn...(GIC_DIST_BASE + GICD_ICENABLERn - 1):
+		case GICD_ISENABLERn...(GICD_ICENABLERn - 1):
 			x = (offset - GICD_ISENABLERn) / 4;
 			y = x * 32;
 			vgic_irq_test_and_set_bit(vcpu, y, value, 32, 1);
 			break;
-		case GICD_ICENABLERn...(GIC_DIST_BASE + GICD_ISPENDRn - 1):
+		case GICD_ICENABLERn...(GICD_ISPENDRn - 1):
 			x = (offset - GICD_ICENABLERn) / 4;
 			y = x * 32;
 			vgic_irq_test_and_set_bit(vcpu, y, value, 32, 0);
