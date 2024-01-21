@@ -259,22 +259,21 @@ static ALWAYS_INLINE bool is_vmid_full(void){
     return zvm_overall_info->alloced_vmid == BIT_MASK(CONFIG_MAX_VM_NUM);
 }
 
-static ALWAYS_INLINE uint32_t find_next_vmid(struct z_vm_info *vm_info,uint32_t *vmid){
-    uint32_t id,maxid;
+static ALWAYS_INLINE uint32_t find_next_vmid(struct z_vm_info *vm_info, uint32_t *vmid) {
+    uint32_t id, maxid;
 
-    if(vm_info->vm_os_type == OS_TYPE_ZEPHYR){
+    if (vm_info->vm_os_type == OS_TYPE_ZEPHYR) {
         *vmid = 0;
         id = BIT(0);
         maxid = BIT(ZVM_ZEPHYR_VM_NUM);
-    }
-    else{
+    } else {
         *vmid = ZVM_ZEPHYR_VM_NUM;
         id = BIT(ZVM_ZEPHYR_VM_NUM);
         maxid = BIT(CONFIG_MAX_VM_NUM);
     }
 
-    for(; id < maxid; id <<= 1,(*vmid)++){
-        if(!(id & zvm_overall_info->alloced_vmid)){
+    for (; id < maxid; id <<= 1,(*vmid)++) {
+        if (!(id & zvm_overall_info->alloced_vmid)) {
             zvm_overall_info->alloced_vmid |= id;
             return 0;
         }
@@ -296,7 +295,7 @@ static ALWAYS_INLINE uint32_t allocate_vmid(struct z_vm_info *vm_info) {
     }
 
     key = k_spin_lock(&zvm_overall_info->spin_zmi);
-    err = find_next_vmid(vm_info,&res);
+    err = find_next_vmid(vm_info, &res);
     if (err) {
         k_spin_unlock(&zvm_overall_info->spin_zmi, key);
         return CONFIG_MAX_VM_NUM;
