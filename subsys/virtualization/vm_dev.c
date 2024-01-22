@@ -20,6 +20,11 @@
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
+int __weak vm_init_bdspecific_device(struct vm *vm)
+{
+    return 0;
+}
+
 static int vm_vdev_mem_add(struct vm *vm, struct virt_dev *vdev)
 {
     uint32_t attrs = 0;
@@ -217,7 +222,15 @@ int vm_device_init(struct vm *vm)
         return -EMMAO;
     }
 
-    /* @TODO: scan the dtb and get the device's node. */
+    /* Board specific device init, for example fig debugger. */
+    switch (vm->os->type){
+    case OS_TYPE_LINUX:
+        ret = vm_init_bdspecific_device(vm);
+        break;
+    default:
+        break;
+    }
 
-    return 0;
+    /* @TODO: scan the dtb and get the device's node. */
+    return ret;
 }
