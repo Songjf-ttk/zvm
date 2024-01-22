@@ -53,7 +53,7 @@ int vm_console_create(struct vm *vm)
         vm_device_irq_init(vm, chosen_dev);
         dev = (struct device *)vm_dev->priv_data;
         vdev_irq_callback_user_data_set(dev, vm_device_callback_func, chosen_dev);
-
+        ZVM_LOG_INFO("** Add %s device to vm successful. \n", dev->name);
         return 0;
     }
     return -ENODEV;
