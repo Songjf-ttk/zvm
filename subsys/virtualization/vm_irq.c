@@ -62,6 +62,7 @@ static int vm_virq_desc_init(struct vm *vm)
         desc->pirq_num = i;
         desc->id = VM_INVALID_DESC_ID;
         desc->virq_states = VIRQ_STATE_INVALID;
+        desc->type = 0;
 
         sys_dnode_init(&(desc->desc_node));
     }
