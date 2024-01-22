@@ -288,10 +288,38 @@ int arch_vcpu_timer_init(struct vcpu *vcpu)
 	return 0;
 }
 
+static void zvm_virt_vtimer_init(void)
+{
+	uint64_t cntv_ctl;
+
+	IRQ_CONNECT(ARM_ARCH_VIRT_VTIMER_IRQ, ARM_ARCH_VIRT_VTIMER_PRIO,
+	arm_arch_virt_vtimer_compare_isr, NULL, ARM_ARCH_VIRT_VTIMER_FLAGS);
+	/* disable vtimer for vm */
+#if defined(CONFIG_HAS_ARM_VHE_EXTN)
+	cntv_ctl = read_cntv_ctl_el02();
+	cntv_ctl &= ~CNTV_CTL_ENABLE_BIT;
+	write_cntv_ctl_el02(cntv_ctl);
+#endif
+}
+
+static void zvm_virt_ptimer_init(void)
+{
+	uint64_t cntp_ctl;
+
+	IRQ_CONNECT(ARM_ARCH_VIRT_PTIMER_IRQ, ARM_ARCH_VIRT_PTIMER_PRIO,
+	arm_arch_virt_ptimer_compare_isr, NULL, ARM_ARCH_VIRT_PTIMER_FLAGS);
+	/* disable ptimer for vm */
+#if defined(CONFIG_HAS_ARM_VHE_EXTN)
+	cntp_ctl = read_cntp_ctl_el02();
+	cntp_ctl &= ~CNTP_CTL_ENABLE_BIT;
+	write_cntp_ctl_el02(cntp_ctl);
+#endif
+}
+
 /**
  * @brief Get virtual timer irq number, it should be done when ZVM init.
  */
-int zvm_arch_vtimer_init()
+int zvm_arch_vtimer_init(void)
 {
     /* get vtimer irq */
     zvm_global_vtimer_info.virt_irq = ARM_ARCH_VIRT_VTIMER_IRQ;
@@ -307,11 +335,8 @@ int zvm_arch_vtimer_init()
 		return -EVIRQ;
     }
 
-	IRQ_CONNECT(ARM_ARCH_VIRT_VTIMER_IRQ, ARM_ARCH_VIRT_VTIMER_PRIO,
-		    arm_arch_virt_vtimer_compare_isr, NULL, ARM_ARCH_VIRT_VTIMER_FLAGS);
-
-	IRQ_CONNECT(ARM_ARCH_VIRT_PTIMER_IRQ, ARM_ARCH_VIRT_PTIMER_PRIO,
-		    arm_arch_virt_ptimer_compare_isr, NULL, ARM_ARCH_VIRT_PTIMER_FLAGS);
+	zvm_virt_vtimer_init();
+	zvm_virt_ptimer_init();
 
 	return 0;
 }
