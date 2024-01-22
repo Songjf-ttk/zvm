@@ -15,6 +15,7 @@
 #include <virtualization/vm_mm.h>
 #include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/vm_console.h>
+#include <virtualization/vdev/fiq_debugger.h>
 #include <virtualization/vdev/virt_device.h>
 #include <virtualization/vdev/virtio/virtio_mmio.h>
 

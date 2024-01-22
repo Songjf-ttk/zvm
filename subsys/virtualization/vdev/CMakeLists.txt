@@ -19,3 +19,8 @@ zephyr_sources_ifdef(
     CONFIG_VM_VIRTIO_BLOCK
     virtio_blk.c
 )
+
+zephyr_sources_ifdef(
+    CONFIG_VM_FIQ_DEBUGGER
+    fiq_debugger.c
+)
