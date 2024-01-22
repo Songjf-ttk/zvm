@@ -1,4 +1,5 @@
-# Copyright 2022 HNU
+# Copyright 2022 HNU-ESNL
+# Copyright 2022 openEuler SIG-Zephyrs
 # SPDX-License-Identifier: Apache-2.0
 
 config SOC_SERIES_RK3568
