@@ -11,7 +11,7 @@
 #include <init.h>
 
 #include <drivers/syscon.h>
-
+#include <virtualization/vdev/virt_device.h>
 #include "syscon_common.h"
 
 struct syscon_generic_config {
@@ -23,6 +23,16 @@ struct syscon_generic_data {
 	DEVICE_MMIO_RAM;
 	size_t size;
 };
+
+static int syscon_generic_init(const struct device *dev)
+{
+	DEVICE_MMIO_MAP(dev, K_MEM_CACHE_NONE);
+#ifdef CONFIG_SOC_RK3568
+	/*Set flag as the idle device which can bind to vm */
+	dev->state->init_res = VM_DEVICE_INIT_RES;
+#endif
+	return 0;
+}
 
 static int syscon_generic_get_base(const struct device *dev, uintptr_t *addr)
 {
@@ -125,23 +135,27 @@ static const struct syscon_driver_api syscon_generic_driver_api = {
 	.get_size = syscon_generic_get_size,
 };
 
-static int syscon_generic_init(const struct device *dev)
+static int vm_syscon_init(const struct device *dev, struct vm *vm, struct virt_dev *vdev_desc)
 {
-	DEVICE_MMIO_MAP(dev, K_MEM_CACHE_NONE);
-
 	return 0;
 }
 
-#define SYSCON_INIT(inst)                                                                          \
-	static const struct syscon_generic_config syscon_generic_config_##inst = {                 \
-		DEVICE_MMIO_ROM_INIT(DT_DRV_INST(inst)),                                           \
-		.reg_width = DT_INST_PROP_OR(inst, reg_io_width, 4),                               \
-	};                                                                                         \
-	static struct syscon_generic_data syscon_generic_data_##inst = {                           \
+static const struct virt_device_api virt_syscon_api = {
+	.init_fn = vm_syscon_init,
+	.device_driver_api = &syscon_generic_driver_api,
+};
+
+#define SYSCON_INIT(inst)                                                                  \
+	static const struct virt_device_config syscon_generic_config_##inst = {                 \
+		.reg_base = DT_INST_REG_ADDR(inst),                          \
+		.reg_size = DT_INST_REG_SIZE(inst),                          \
+		.hirq_num = VM_DEVICE_INVALID_VIRQ,                          \
+	};                                                                                   \
+	static struct syscon_generic_data syscon_generic_data_##inst = {                      \
 		.size = DT_INST_REG_SIZE(inst),                                                    \
-	};                                                                                         \
-	DEVICE_DT_INST_DEFINE(inst, syscon_generic_init, NULL, &syscon_generic_data_##inst,        \
+	};                                                                                      \
+	DEVICE_DT_INST_DEFINE(inst, syscon_generic_init, NULL, &syscon_generic_data_##inst,      \
 			      &syscon_generic_config_##inst, PRE_KERNEL_1,                         \
-			      CONFIG_SYSCON_INIT_PRIORITY, &syscon_generic_driver_api);
+			      CONFIG_SYSCON_INIT_PRIORITY, &virt_syscon_api);
 
 DT_INST_FOREACH_STATUS_OKAY(SYSCON_INIT);

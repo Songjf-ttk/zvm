@@ -1,9 +1,0 @@
-# MCUXpresso SDK CRU
-
-# Copyright (c) 2017, HNU
-# SPDX-License-Identifier: Apache-2.0
-
-config CLOCK_CONTROL_RK3568_CRU
-	bool "RK3568 CRU driver"
-	help
-	  Enable support for rk3568 cru driver.
