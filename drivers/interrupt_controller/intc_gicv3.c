@@ -10,7 +10,6 @@
 #include <drivers/interrupt_controller/gic.h>
 #include "intc_gic_common_priv.h"
 #include "intc_gicv3_priv.h"
-#include <arch/arm64/debug_uart.h>
 
 #include <string.h>
 
@@ -174,6 +173,13 @@ void arm_gic_irq_enable(unsigned int intid)
 			else
 				sys_write64(vcpu->cpu << 8, IROUTER(GET_DIST_BASE(intid), intid));
 		}
+#elif	defined(CONFIG_ZVM) && defined(CONFIG_SOC_RK3568)
+		struct vcpu *vcpu = _current_vcpu;
+		if(vcpu == NULL){
+			sys_write64(0x00000000, IROUTER(GET_DIST_BASE(intid), intid));
+		}else{
+			sys_write64(vcpu->cpu << 8, IROUTER(GET_DIST_BASE(intid), intid));
+		}
 #elif	defined(CONFIG_ZVM)
 		struct vcpu *vcpu = _current_vcpu;
 		if(vcpu == NULL){
@@ -271,7 +277,7 @@ void gic_raise_sgi(unsigned int sgi_id, uint64_t target_aff,
 	/**
 	 * In this stage, we call all the cpu except itself @TODO try to figure out why the
 	 * affx cannot work well , I guess it may need to find the differece affx mechanism
-	 * between qemu and fvp.
+	 * between qemu and fvp. When enable affx for cpu, system can not boot up!
 	*/
 	sgi_val |= BIT(40);
 	write_sysreg(sgi_val, ICC_SGI1R);
@@ -494,7 +500,11 @@ static void __arm_gic_init(void)
 	uint8_t cpu;
 
 	cpu = arch_curr_cpu()->id;
+#if defined(CONFIG_SOC_RK3568)
+	gic_rdists[cpu] = GIC_RDIST_BASE + (MPIDR_TO_CORE(GET_MPIDR())>>8) * 0x20000;
+#else
 	gic_rdists[cpu] = GIC_RDIST_BASE + MPIDR_TO_CORE(GET_MPIDR()) * 0x20000;
+#endif
 
 #ifdef CONFIG_GIC_V3_ITS
 	/* Enable LPIs in Redistributor */

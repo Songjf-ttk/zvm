@@ -25,6 +25,7 @@
 #define MT_S2_NORMAL_NC			3U
 #define MT_S2_NORMAL			4U
 #define MT_S2_NORMAL_WT			5U
+#define MT_S2_NORMAL_WB			6U
 
 /* Reuse host's mair for configure */
 #define MEMORY_S2_ATTRIBUTES	((0x00 << (MT_S2_DEVICE_nGnRnE * 8)) |	\
@@ -69,6 +70,14 @@
  * Block and Page descriptor attributes fields for stage-2
  */
 #define S2_PTE_BLOCK_DESC_MEMTYPE(x)	(x << 2)
+#define S2_PTE_BLOCK_DESC_I_DEV_CACHE	(0ULL << 2)
+#define S2_PTE_BLOCK_DESC_I_NO_CACHE	(1ULL << 2)
+#define S2_PTE_BLOCK_DESC_I_WT_CACHE	(2ULL << 2)
+#define S2_PTE_BLOCK_DESC_I_WB_CACHE	(3ULL << 2)
+#define S2_PTE_BLOCK_DESC_O_DEV_CACHE	(0ULL << 4)
+#define S2_PTE_BLOCK_DESC_O_NO_CACHE	(1ULL << 4)
+#define S2_PTE_BLOCK_DESC_O_WT_CACHE	(2ULL << 4)
+#define S2_PTE_BLOCK_DESC_O_WB_CACHE	(3ULL << 4)
 #define S2_PTE_BLOCK_DESC_AP_NO_RW		(0ULL << 6)
 #define S2_PTE_BLOCK_DESC_AP_RO			(1ULL << 6)
 #define S2_PTE_BLOCK_DESC_AP_WO			(2ULL << 6)

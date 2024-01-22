@@ -9,7 +9,6 @@
 #include <sys_clock.h>
 #include <spinlock.h>
 #include <arch/cpu.h>
-#include <arch/arm64/debug_uart.h>
 
 #ifdef CONFIG_ZVM
 #include <virtualization/arm/vtimer.h>

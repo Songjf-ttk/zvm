@@ -13,8 +13,6 @@
 #include <virtualization/vm.h>
 #include <virtualization/vm_dev.h>
 
-#define CONFIG_VIRT_DEVICE_INTERRUPT_DRIVEN 1
-
 #define VM_DEVICE_INIT_RES      (0xFF)
 #define VM_DEVICE_INVALID_BASE  (0xFFFFFFFF)
 #define VM_DEVICE_INVALID_VIRQ  (0xFF)

@@ -15,9 +15,9 @@
 #include <virtualization/zvm.h>
 
 /* VM debug console uart hardware info. */
-#define VM_DEBUG_CONSOLE_BASE   DT_REG_ADDR(DT_CHOSEN(zephyr_shell_uart))
-#define VM_DEBUG_CONSOLE_SIZE   DT_REG_SIZE(DT_CHOSEN(zephyr_shell_uart))
-#define VM_DEBUG_CONSOLE_IRQ    DT_IRQN(DT_CHOSEN(zephyr_shell_uart))
+#define VM_DEBUG_CONSOLE_BASE   DT_REG_ADDR(DT_CHOSEN(vm_console))
+#define VM_DEBUG_CONSOLE_SIZE   DT_REG_SIZE(DT_CHOSEN(vm_console))
+#define VM_DEBUG_CONSOLE_IRQ    DT_IRQN(DT_CHOSEN(vm_console))
 
 #define VM_DEFAULT_CONSOLE_NAME     "UART"
 #define VM_DEFAULT_CONSOLE_NAME_LEN (4)
