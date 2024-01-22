@@ -17,6 +17,7 @@
 #include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/vdev/vgic_common.h>
 #include <virtualization/vm_irq.h>
+#include <virtualization/vdev/fiq_debugger.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
@@ -24,6 +25,11 @@ LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 	((const struct virt_device_config * const)(dev)->config)
 #define DEV_DATA(dev) \
 	((struct virt_device_data *)(dev)->data)
+
+void __weak vm_debugger_softirq_inject(void *user_data)
+{
+	ARG_UNUSED(user_data);
+}
 
 /**
  * @brief init vm serial device for the vm. Including:
@@ -75,6 +81,7 @@ static const struct virt_device_api virt_serial_api = {
 static int serial_init(const struct device *dev)
 {
 	dev->state->init_res = VM_DEVICE_INIT_RES;
+	ZVM_LOG_INFO("** Ready to init vm serial, dev name is: %s. \n", dev->name);
 #ifdef CONFIG_UART_INTERRUPT_DRIVEN
 	((const struct uart_device_config * const)(DEV_CFG(dev)->device_config))->irq_config_func(dev);
 #endif
@@ -86,11 +93,11 @@ static int serial_init(const struct device *dev)
 void virt_serial_isr(const struct device *dev)
 {
 	struct virt_device_data *data = DEV_DATA(dev);
-
 	/* Verify if the callback has been registered */
 	if (data->irq_cb) {
 //		uart_irq_update(dev);
 		data->irq_cb(dev, data->irq_cb, data->irq_cb_data);
+		vm_debugger_softirq_inject(data->irq_cb_data);
 	}
 }
 #endif

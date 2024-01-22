@@ -70,9 +70,8 @@ struct virt_dev *allocate_device_to_vm(const struct device *dev, struct vm *vm,
 void vm_device_callback_func(const struct device *dev, void *cb,
                 void *user_data)
 {
-    uint32_t virq, pirq;
+    uint32_t virq;
     ARG_UNUSED(cb);
-    ARG_UNUSED(pirq);
     int err = 0;
     const struct virt_dev *vdev = (const struct virt_dev *)user_data;
 

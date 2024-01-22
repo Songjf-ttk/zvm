@@ -18,8 +18,8 @@
 #define HCR_NVHE_FLAGS (HCR_RW_BIT | HCR_API_BIT | HCR_APK_BIT | HCR_ATA_BIT)  /* Host os NVHE flag */
 
 /* Ignored bit: HCR_TVM, and ignore HCR_TSW to avoid cache DC trap */
-#define HCR_VM_FLAGS (0UL | HCR_VM_BIT | HCR_FB_BIT |   HCR_AMO_BIT |  \
-		HCR_FMO_BIT |  HCR_IMO_BIT | HCR_BSU_IS_BIT | HCR_TAC_BIT | HCR_E2H_BIT |\
+#define HCR_VM_FLAGS (0UL | HCR_VM_BIT | HCR_FB_BIT |   HCR_AMO_BIT | \
+		HCR_FMO_BIT |  HCR_IMO_BIT | HCR_BSU_IS_BIT | HCR_TAC_BIT | HCR_E2H_BIT | \
 		    HCR_TIDCP_BIT | HCR_RW_BIT | HCR_PTW_BIT )
 
 #define VTTBR_VMID_SHIFT	(48UL)
@@ -40,6 +40,7 @@
 #define ICH_SRE_EL2			S3_4_C12_C9_5
 
 #define ICH_HCR_EL2			S3_4_C12_C11_0
+#define ICH_EISR_EL2     	S3_4_C12_C11_3
 #define ICH_VTR_EL2     	S3_4_C12_C11_1
 #define ICH_VMCR_EL2        S3_4_C12_C11_7
 

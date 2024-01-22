@@ -7,9 +7,16 @@
 # described by dts file, and bind to aliases.
 menuconfig ZVM_DEVICE_SUPPORT
 	bool "Zephyr Based Virtualization device menu"
-	default n
+	default y
 	help
 	  	Zephyr device virtualization support.
+
+config VIRT_DEVICE_INTERRUPT_DRIVEN
+	bool "Virt device interrupt flag"
+	default y
+	help
+		When VM devices need interrupts, this option must be
+		chosen for set callback function.
 
 config VM_VGICV3
 	bool "VM gicv3 device that get from vm."
@@ -61,5 +68,21 @@ config VIRTIO_MMIO_INIT_PRIORITY
 	default 60
 	help
 		When virtio is init, it judge the initialization priority in POST_KERNLE.
+
+endif
+
+config VM_FIQ_DEBUGGER
+	bool "Linux VM debugger console on rk3568."
+	help
+		When booting linux VM on rk3568, a debugger console must be inited,
+		this option is used to map irq to linux vm.
+
+if VM_FIQ_DEBUGGER
+
+config VM_FIQ_DEBUGGER_INIT_PRIORITY
+	int "VM fiq debugger init priority."
+	default 62
+	help
+		When fiq debugger is init, it judge the initialization priority in POST_KERNLE.
 
 endif

@@ -73,12 +73,12 @@ void* z_vm_lower_sync_handler(uint64_t esr_elx);
 void* z_vm_lower_irq_handler(z_arch_esf_t *esf_ctxt);
 
 
-static ALWAYS_INLINE uint64_t get_fault_ipa(uint64_t hpfar_ipa, uint64_t far_ipa)
+static ALWAYS_INLINE uint64_t get_fault_ipa(uint64_t hpfar_el2, uint64_t far_el2)
 {
     uint64_t fault_ipa;
-    fault_ipa = hpfar_ipa & HPFAR_EL2_MASK;
+    fault_ipa = hpfar_el2 & HPFAR_EL2_MASK;
     fault_ipa = (fault_ipa >> HPFAR_EL2_SHIFT) << HPFAR_EL2_PAGE_SHIFT;
-    fault_ipa |= far_ipa & HPFAR_EL2_PAGE_MASK;
+    fault_ipa |= far_el2 & HPFAR_EL2_PAGE_MASK;
 
     return fault_ipa;
 }

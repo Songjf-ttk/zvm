@@ -10,6 +10,7 @@
 #include <zephyr.h>
 #include <device.h>
 #include <kernel_structs.h>
+#include <irq.h>
 #include <arch/cpu.h>
 #include <arch/arm64/lib_helpers.h>
 #include <arch/common/sys_bitops.h>
@@ -97,24 +98,68 @@ static int vgic_irq_disable(struct vcpu *vcpu, uint32_t virt_irq)
 	return 0;
 }
 
-static int virt_irq_set_type(struct vcpu *vcpu, uint32_t virt_irq, int value)
+static int virt_irq_set_type(struct vcpu *vcpu, uint32_t offset, uint32_t *value)
 {
+	uint8_t lowbit_value;
+	int i, irq, idx_base;
+	uint32_t reg_val;
+	mem_addr_t base;
 	struct virt_irq_desc *desc;
 
-	desc = vgic_get_virt_irq_desc(vcpu, virt_irq);
-	if (!desc) {
-		return -ENOENT;
-	}
+	/* Get the register base. */
+	idx_base = (offset-GICD_ICFGRn) / 4;
+	irq = 16 * idx_base;
+	base = GIC_DIST_BASE;
 
-	if (desc->type != value) {
-		desc->type = value;
-		if (desc->virq_flags & VIRQ_HW_FLAG) {
-			if (value) {
-				value = IRQ_TYPE_EDGE;
-			} else {
-				value = IRQ_TYPE_LEVEL;
+	/**
+	 * Per-register control 16 interrupt signals.
+	 * @TODO: This may be more simple for reduce
+	 * time.
+	*/
+	for (i = 0; i < 16; i++, irq++) {
+		desc = vgic_get_virt_irq_desc(vcpu, irq);
+		if (!desc) {
+			return -ENOENT;
+		}
+		lowbit_value = (*value>>2*i) & GICD_ICFGR_MASK;
+		if (desc->type != lowbit_value) {
+			desc->type = lowbit_value;
+			/* If it is a hardware device interrupt */
+			if (desc->virq_flags & VIRQ_HW_FLAG) {
+				/* may be need to set to hardware. */
+				reg_val = sys_read32(GICD_ICFGRn + (idx_base*4));
+				reg_val &= ~(GICD_ICFGR_MASK << 2*i);
+				if (lowbit_value){
+					reg_val |= (GICD_ICFGR_TYPE << 2*i);
+				}
+				/* clear the enabled flag of interrupt */
+				irq_disable(irq);
+				sys_write32(reg_val, GICD_ICFGRn + (idx_base*4));
 			}
 		}
+	}
+	return 0;
+}
+
+/**
+ * @breif: this type value is got from desc.
+ * @TODO: may be direct read from vgic register.
+*/
+static int virt_irq_get_type(struct vcpu *vcpu, uint32_t offset, uint32_t *value)
+{
+	int i, irq, idx_base;
+	struct virt_irq_desc *desc;
+
+	idx_base = (offset-GICD_ICFGRn) / 4;
+	irq = 16 * idx_base;
+
+	/*Per-register control 16 interrupt signals.*/
+	for (i = 0; i < 16; i++, irq++) {
+		desc = vgic_get_virt_irq_desc(vcpu, irq);
+		if(!desc) {
+			continue;
+		}
+		*value = *value | (desc->type << i * 2);
 	}
 	return 0;
 }
@@ -149,6 +194,7 @@ static int vgic_set_virq(struct vcpu *vcpu, struct virt_irq_desc *desc)
 
     key = k_spin_lock(&vb->spinlock);
 	lr_state = desc->virq_states;
+
 	switch (lr_state) {
 	case VIRQ_STATE_INVALID:
         desc->virq_flags |= VIRQ_PENDING_FLAG;
@@ -187,6 +233,7 @@ static int vgic_set_virq(struct vcpu *vcpu, struct virt_irq_desc *desc)
 	if(vcpu->work->vcpu_thread != _current){
 		if(zvm_thread_active_elsewhere(vcpu->work->vcpu_thread)){
 #if defined(CONFIG_SMP) &&  defined(CONFIG_SCHED_IPI_SUPPORTED)
+			ZVM_LOG_INFO("Ready to send arch_sched_ipi \n");
 			arch_sched_ipi();
 #endif
 		}else{
@@ -209,10 +256,7 @@ static bool vgic_set_sgi2vcpu(struct vcpu *vcpu, struct virt_irq_desc *desc)
 static int vgic_gicd_mem_read(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
                                 uint32_t offset, uint64_t *v)
 {
-	int i, irq;
-	uint32_t tmp_value;
-	uint64_t *value = v;
-	struct virt_irq_desc *desc;
+	uint32_t *value = (uint32_t *)v;
 
 	offset += GIC_DIST_BASE;
 	switch (offset) {
@@ -222,29 +266,25 @@ static int vgic_gicd_mem_read(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
 		case GICD_TYPER:
 			*value = vgic_sysreg_read32(gicd->gicd_regs_base, VGICD_TYPER);
 			break;
+		case GICD_IIDR:
+			*value = vgic_sysreg_read32(gicd->gicd_regs_base, offset-GIC_DIST_BASE);
 		case GICD_STATUSR:
 			*value = 0;
 			break;
-		case GICD_ISENABLERn...(GIC_DIST_BASE + 0x017c - 1):
+		case GICD_ISENABLERn...(GICD_ICENABLERn - 1):
 			*value = 0;
 			break;
-		case GICD_ICENABLERn...(GIC_DIST_BASE + 0x01fc - 1):
+		case GICD_ICENABLERn...(GICD_ISPENDRn - 1):
 			*value = 0;
 			break;
-		case (GIC_DIST_BASE + 0xffe8):
-			*value = vgic_sysreg_read32(gicd->gicd_regs_base, VGICD_PIDR2);
+		case (GIC_DIST_BASE+VGIC_RESERVED)...(GIC_DIST_BASE+VGIC_INMIRn - 1):
+			*value = vgic_sysreg_read32(gicd->gicd_base, offset-GIC_DIST_BASE);
 			break;
 		case GICD_ICFGRn...(GIC_DIST_BASE + 0x0cfc - 1):
-			offset = (GIC_DIST_BASE+offset-GICD_ICFGRn) / 4;
-			irq = 16 * offset;
-			for (i = 0; i < 16; i++, irq++) {
-				desc = vgic_get_virt_irq_desc(vcpu, irq);
-				if(!desc) {
-					continue;
-				}
-				tmp_value = desc->type;
-				*value = *value | (tmp_value << i * 2);
-			}
+			virt_irq_get_type(vcpu, offset, value);
+			break;
+		case (GIC_DIST_BASE + VGICD_PIDR2):
+			*value = vgic_sysreg_read32(gicd->gicd_regs_base, VGICD_PIDR2);
 			break;
 		default:
 			*value = 0;
@@ -256,7 +296,6 @@ static int vgic_gicd_mem_read(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
 static int vgic_gicd_mem_write(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
                                 uint32_t offset, uint64_t *v)
 {
-	int i, irq;
 	uint32_t x, y, bit, t;
 	uint32_t *value = (uint32_t *)v;
     k_spinlock_key_t key;
@@ -271,12 +310,12 @@ static int vgic_gicd_mem_write(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
 			break;
 		case GICD_STATUSR:
 			break;
-		case GICD_ISENABLERn...(GIC_DIST_BASE + 0x017c - 1):
+		case GICD_ISENABLERn...(GICD_ICENABLERn - 1):
 			x = (offset - GICD_ISENABLERn) / 4;
 			y = x * 32;
 			vgic_irq_test_and_set_bit(vcpu, y, value, 32, 1);
 			break;
-		case GICD_ICENABLERn...(GIC_DIST_BASE + 0x01fc - 1):
+		case GICD_ICENABLERn...(GICD_ISPENDRn - 1):
 			x = (offset - GICD_ICENABLERn) / 4;
 			y = x * 32;
 			vgic_irq_test_and_set_bit(vcpu, y, value, 32, 0);
@@ -295,13 +334,10 @@ static int vgic_gicd_mem_write(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
 			vgic_virq_set_priority(vcpu, y + 4, bit);
 			break;
 		case GICD_ICFGRn...(GIC_DIST_BASE + 0x0cfc - 1):
-			offset = (GIC_DIST_BASE+offset-GICD_ICFGRn) / 4;
-			irq = 16 * offset;
-
-			for (i = 0; i < 16; i++, irq++) {
-				virt_irq_set_type(vcpu, irq, *value & 0x3);
-				*value = *value >> 2;
-			}
+			virt_irq_set_type(vcpu, offset, value);
+			break;
+		case (GIC_DIST_BASE+VGIC_RESERVED)...(GIC_DIST_BASE+VGIC_INMIRn - 1):
+			vgic_sysreg_write32(*value, gicd->gicd_base, offset-GIC_DIST_BASE);
 			break;
 		default:
 			break;
@@ -339,8 +375,6 @@ void arch_vdev_irq_enable(struct vcpu *vcpu)
     struct  _dnode *d_node, *ds_node;
 
 	SYS_DLIST_FOR_EACH_NODE_SAFE(&vm->vdev_list, d_node, ds_node) {
-
-		/* Find the virt dev */
         vdev = CONTAINER_OF(d_node, struct virt_dev, vdev_node);
 
 		/* enable spi interrupt */
@@ -361,8 +395,6 @@ void arch_vdev_irq_disable(struct vcpu *vcpu)
     struct  _dnode *d_node, *ds_node;
 
 	SYS_DLIST_FOR_EACH_NODE_SAFE(&vm->vdev_list, d_node, ds_node) {
-
-        /* Find the virt dev */
         vdev = CONTAINER_OF(d_node, struct virt_dev, vdev_node);
 
 		/* disable spi interrupt */
@@ -414,6 +446,9 @@ int vgic_vdev_mem_read(struct virt_dev *vdev, uint64_t addr, uint64_t *value)
 	struct virt_gic_gicd *gicd = &vgic->gicd;
 	struct virt_gic_gicr *gicr = vgic->gicr[vcpu->vcpu_id];
 
+	/*Avoid some case that we only just use '|' to get the value */
+	*value = 0;
+
 	if ((addr >= gicd->gicd_base) && (addr < gicd->gicd_base + gicd->gicd_size)) {
 		type = TYPE_GIC_GICD;
 		offset = addr - gicd->gicd_base;
@@ -449,7 +484,6 @@ int vgic_vdev_mem_read(struct virt_dev *vdev, uint64_t addr, uint64_t *value)
 			return vgic_gicrsgi_mem_read(vcpu, gicr, offset, value);
 	case TYPE_GIC_GICR_VLPI:
 			/* ignore vlpi register */
-			*value = 0;
             return 0;
 	default:
 		ZVM_LOG_WARN("unsupport gic type %d\n", type);
@@ -588,6 +622,7 @@ int virt_irq_sync_vgic(struct vcpu *vcpu)
 			}
 		case VIRQ_STATE_INVALID:
 			gicv3_update_lr(vcpu, desc, ACTION_CLEAR_VIRQ, 0);
+			vcpu->arch->hcr_el2 &= ~(uint64_t)HCR_VI_BIT;
 			sys_dlist_remove(&desc->desc_node);
 			/* if software irq is still triggered */
 			if (desc->vdev_trigger) {
@@ -625,7 +660,7 @@ int virt_irq_flush_vgic(struct vcpu *vcpu)
 	/* no idle list register */
 	if(vcpu->arch->list_regs_map == ((1<<VGIC_TYPER_LR_NUM) -1) ){
 		k_spin_unlock(&vb->spinlock, key);
-		ZVM_LOG_INFO("There is no idle list register! ");
+		ZVM_LOG_WARN("There is no idle list register! ");
 		return 0;
 	}
 

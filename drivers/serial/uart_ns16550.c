@@ -39,8 +39,6 @@
 
 #include "uart_ns16550.h"
 
-#include <arch/arm64/debug_uart.h>
-
 #define INST_HAS_PCP_HELPER(inst) DT_INST_NODE_HAS_PROP(inst, pcp) ||
 #define INST_HAS_DLF_HELPER(inst) DT_INST_NODE_HAS_PROP(inst, dlf) ||
 #define INST_HAS_REG_SHIFT_HELPER(inst) \

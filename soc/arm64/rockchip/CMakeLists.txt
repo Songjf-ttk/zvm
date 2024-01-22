@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2022, HNU
+# Copyright 2022 Huawei France Technologies SASU
 #
 # SPDX-License-Identifier: Apache-2.0
 #

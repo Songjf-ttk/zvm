@@ -15,12 +15,18 @@
 #include <virtualization/vm_mm.h>
 #include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/vm_console.h>
+#include <virtualization/vdev/fiq_debugger.h>
 #include <virtualization/vdev/virt_device.h>
 #include <virtualization/vdev/virtio/virtio.h>
 #include <virtualization/vdev/virtio/virtio_blk.h>
 #include <virtualization/vdev/virtio/virtio_mmio.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
+
+int __weak vm_init_bdspecific_device(struct vm *vm)
+{
+    return 0;
+}
 
 static int vm_vdev_mem_add(struct vm *vm, struct virt_dev *vdev)
 {
@@ -224,6 +230,15 @@ int vm_device_init(struct vm *vm)
     zvm_virtio_emu_register();
 #endif
     /* @TODO: scan the dtb and get the device's node. */
+    /* Board specific device init, for example fig debugger. */
+    switch (vm->os->type){
+    case OS_TYPE_LINUX:
+        ret = vm_init_bdspecific_device(vm);
+        break;
+    default:
+        break;
+    }
 
-    return 0;
+    /* @TODO: scan the dtb and get the device's node. */
+    return ret;
 }

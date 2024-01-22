@@ -16,7 +16,6 @@
 
 #include <kernel_internal.h>
 #include <linker/linker-defs.h>
-#include <arch/arm64/debug_uart.h>
 
 __weak void z_arm64_mm_init(bool is_primary_core) { }
 
@@ -44,11 +43,6 @@ static inline void z_arm64_bss_zero(void)
  */
 void z_arm64_prep_c(void)
 {
-	/* init uart for output, for rk3568 */
-#if defined(CONFIG_SOC_RK3568) && defined(CONFIG_NS16650_EARLYPRINT_DEBUG)
-	tpl_main();
-#endif
-
 	/* Initialize tpidrro_el0 with our struct _cpu instance address */
 	write_tpidrro_el0((uintptr_t)&_kernel.cpus[0]);
 #if defined(CONFIG_HAS_ARM_VHE_EXTN) && defined(CONFIG_ZVM)

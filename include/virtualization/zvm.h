@@ -71,8 +71,17 @@
 #ifdef CONFIG_LOG
 #define ZVM_LOG_ERR(...)    LOG_ERR(__VA_ARGS__)
 #define ZVM_LOG_WARN(...)   LOG_WRN(__VA_ARGS__)
+
+/* print system log info */
+#ifdef CONFIG_ZVM_DEBUG_LOG_INFO
 #define ZVM_LOG_INFO(...)   LOG_PRINTK(__VA_ARGS__)
 #else
+#define ZVM_LOG_INFO(...)
+#endif
+#define ZVM_PRINTK(...)     LOG_PRINTK(__VA_ARGS__)
+
+#else
+
 #define ZVM_LOG_ERR(format, ...) \
 do {\
     DEBUG("\033[36m[ERR:]File:%s Line:%d. " format "\n\033[0m", __FILE__, \
@@ -84,6 +93,7 @@ do {\
             __LINE__, ##__VA_ARGS__);\
 } while(0);
 #define ZVM_LOG_INFO(...)   printk(__VA_ARGS__)
+
 #endif
 
 

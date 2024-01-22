@@ -15,10 +15,6 @@
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
-
-/**
- * @brief Initialize OS basic information of a virtual machine
- */
 int vm_os_create(struct vm* vm, struct z_vm_info *vm_info)
 {
     struct os* os = vm->os;

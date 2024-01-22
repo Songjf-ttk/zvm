@@ -6,6 +6,7 @@
 #include <toolchain.h>
 #include <linker/sections.h>
 #include <arch/arm64/tpidrro_el0.h>
+#include <arch/arm64/cpu.h>
 #include <linker/sections.h>
 #include <offsets.h>
 #include <arch/cpu.h>

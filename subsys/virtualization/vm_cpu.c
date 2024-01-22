@@ -30,7 +30,7 @@ static void init_vcpu_virt_irq_desc(struct vcpu_virt_irq_block *virq_block)
         desc->id = VM_INVALID_DESC_ID;
         desc->pirq_num = i;
         desc->virq_num = i;
-        desc->prio = VM_DEFAULT_LOCAL_VIRQ_PRIO;
+        desc->prio = 0;
         desc->vdev_trigger = 0;
         desc->vcpu_id = DEFAULT_VCPU;
         desc->virq_flags = VIRQ_NOUSED_FLAG;
@@ -99,7 +99,7 @@ static void vcpu_context_switch(struct k_thread *new_thread,
             break;
         }
     }
-
+    ZVM_LOG_INFO("** load_vcpu_context, thread: %p, new vcpu thread? : %d \n ", new_thread, VCPU_THREAD(new_thread));
     if (VCPU_THREAD(new_thread)) {
         struct vcpu *new_vcpu = new_thread->vcpu_struct;
 
@@ -315,11 +315,11 @@ int vcpu_ipi_scheduler(uint32_t cpu_mask, uint32_t timeout)
 int z_vcpu_run(struct vcpu *vcpu)
 {
     int ret = 0;
-
+    ZVM_LOG_INFO("\n** Start running vcpu: %s-%d. \n", vcpu->vm->vm_name, vcpu->vcpu_id);
     do{
         ret = arch_vcpu_run(vcpu);
     }while(ret >= 0);
-
+    ZVM_LOG_INFO("** Stop running vcpu: %s-%d. \n", vcpu->vm->vm_name, vcpu->vcpu_id);
     vm_delete(vcpu->vm);
 
     return ret;

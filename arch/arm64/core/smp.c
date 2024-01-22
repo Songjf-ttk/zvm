@@ -110,7 +110,6 @@ void arch_start_cpu(int cpu_num, k_thread_stack_t *stack, int sz,
 		return;
 	}
 
-//	sys_cache_data_all(K_CACHE_INVD);
 	sctlr_reg = SCTLR_C_BIT | read_sctlr_el1();
 	write_sctlr_el1(sctlr_reg);
 	isb();
@@ -129,7 +128,8 @@ void z_arm64_secondary_start(void)
 	int cpu_num = arm64_cpu_boot_params.cpu_num;
 	arch_cpustart_t fn;
 	void *arg;
-
+	/* Warning: DO NOT USE prink() IN SMP, WHICH WILL CAUSE BOOT ERROR
+	 	printk("Ready to init arm64_secondary_start\n "); */
 	__ASSERT(arm64_cpu_boot_params.mpid == MPIDR_TO_CORE(GET_MPIDR()), "");
 
 	/* Initialize tpidrro_el0 with our struct _cpu instance address */
@@ -150,10 +150,6 @@ void z_arm64_secondary_start(void)
 #ifdef CONFIG_FPU_SHARING
 	irq_enable(SGI_FPU_IPI);
 #endif
-#endif
-
-#if defined(CONFIG_SOC_RK3568) && defined(CONFIG_NS16650_EARLYPRINT_DEBUG)
-	printascii("Init secondary core successful! \r\n");
 #endif
 
 	fn = arm64_cpu_boot_params.fn;

@@ -21,9 +21,7 @@
 #include <linker/linker-defs.h>
 #include <spinlock.h>
 #include <sys/util.h>
-#include <arch/arm64/debug_uart.h>
 #include "mmu.h"
-#include <arch/arm64/debug_uart.h>
 
 
 LOG_MODULE_DECLARE(os, CONFIG_KERNEL_LOG_LEVEL);
@@ -825,7 +823,7 @@ void z_arm64_mm_init(bool is_primary_core)
 	__ASSERT(CONFIG_MMU_PAGE_SIZE == KB(4),
 		 "Only 4K page size is supported\n");
 
-#if defined(CONFIG_HAS_ARM_VHE_EXTN)
+#if defined(CONFIG_ZVM) && defined(CONFIG_HAS_ARM_VHE_EXTN)
 	__ASSERT(GET_EL(read_currentel()) == MODE_EL2,
 		 "Exception level not EL2, MMU not enabled!\n");
 

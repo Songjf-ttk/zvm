@@ -67,5 +67,4 @@ int load_linux_image(struct vm_mem_domain *vmem_domain)
     }
 
     return ret;
-
 }

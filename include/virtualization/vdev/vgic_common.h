@@ -40,6 +40,9 @@ struct virt_dev;
 #define VGICD_TYPER			0x0004
 #define VGICD_IIDR			0x0008
 #define VGICD_STATUSR		0x0010
+
+#define VGIC_RESERVED		0x0F30
+#define VGIC_INMIRn			0x0f80
 #define VGICD_PIDR2			0xFFE8
 
 /* Vgic control block flag */

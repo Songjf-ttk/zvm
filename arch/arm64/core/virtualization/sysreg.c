@@ -92,12 +92,15 @@ void switch_to_guest_sysreg(struct vcpu *vcpu)
     /* load stage-2 pgd for vm */
     write_vtcr_el2(vcpu->vm->arch->vtcr_el2);
     write_vttbr_el2(vcpu->vm->arch->vttbr);
+    isb();
 
     /* enable hyperviosr trap */
     write_hcr_el2(vcpu->arch->hcr_el2);
     reg_val = read_cpacr_el1();
+    reg_val |= CPACR_EL1_TTA;
     reg_val &= ~CPACR_EL1_ZEN;
-    reg_val = (CPACR_EL1_TTA | CPTR_EL2_TAM | CPACR_EL1_FPEN_NOTRAP);
+    reg_val |= CPTR_EL2_TAM;
+    reg_val |= CPACR_EL1_FPEN_NOTRAP;
     write_cpacr_el1(reg_val);
     write_vbar_el2((uint64_t)_hyp_vector_table);
 
@@ -111,7 +114,6 @@ void switch_to_guest_sysreg(struct vcpu *vcpu)
     reg_val &= ~(0x02);
     write_sysreg(reg_val, ICC_CTLR_EL1);
 
-    write_mdscr_el1(gcontext->sys_regs[VCPU_MDSCR_EL1]);
 }
 
 void switch_to_host_sysreg(struct vcpu *vcpu)
@@ -130,8 +132,6 @@ void switch_to_host_sysreg(struct vcpu *vcpu)
     reg_val |= (0x02);
     write_sysreg(reg_val, ICC_CTLR_EL1);
 
-    gcontext->sys_regs[VCPU_MDSCR_EL1] = read_mdscr_el1();
-
     /* disable hyperviosr trap */
     if (vcpu->arch->hcr_el2 & HCR_VSE_BIT) {
         vcpu->arch->hcr_el2 = read_hcr_el2();
@@ -142,6 +142,7 @@ void switch_to_host_sysreg(struct vcpu *vcpu)
     /* save vm's stage-2 pgd */
     vcpu->vm->arch->vtcr_el2 = read_vtcr_el2();
     vcpu->vm->arch->vttbr = read_vttbr_el2();
+    isb();
 
     /* load host context */
     write_mdscr_el1(hcontext->sys_regs[VCPU_MDSCR_EL1]);
