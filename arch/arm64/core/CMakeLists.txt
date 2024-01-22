@@ -33,5 +33,3 @@ zephyr_cc_option_ifdef(CONFIG_USERSPACE -mno-outline-atomics)
 
 add_subdirectory_ifdef(CONFIG_SOC_XENVM xen)
 add_subdirectory_ifdef(CONFIG_ZVM virtualization)
-
-add_subdirectory_ifdef(CONFIG_NS16650_EARLYPRINT_DEBUG rk3568)

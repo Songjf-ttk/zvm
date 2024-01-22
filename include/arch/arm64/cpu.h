@@ -9,8 +9,6 @@
 
 #include <sys/util.h>
 
-#define	RK3568_ASM_PRINTK	1
-
 #define DAIFSET_FIQ_BIT		BIT(0)
 #define DAIFSET_IRQ_BIT		BIT(1)
 #define DAIFSET_ABT_BIT		BIT(2)
@@ -74,7 +72,7 @@
 #define SCR_RES1		(BIT(4) | BIT(5))
 
 /* MPIDR */
-#define MPIDR_AFFLVL_MASK	(0xff)
+#define MPIDR_AFFLVL_MASK	(0xffff)
 
 #define MPIDR_AFF0_SHIFT	(0)
 #define MPIDR_AFF1_SHIFT	(8)
@@ -86,7 +84,7 @@
 
 #define GET_MPIDR()		read_sysreg(mpidr_el1)
 
-#if defined(CONFIG_SOC_FVP_BASE_A55X4_A75X2) || defined(CONFIG_SOC_RK3568)
+#if defined(CONFIG_SOC_FVP_BASE_A55X4_A75X2)
 #define MPIDR_TO_CORE(mpidr)	MPIDR_AFFLVL(mpidr, 1)
 #else
 #define MPIDR_TO_CORE(mpidr)	MPIDR_AFFLVL(mpidr, 0)
