@@ -119,7 +119,7 @@ static ALWAYS_INLINE void arm_arch_virt_timer_set_irq_mask(bool mask)
 /**
  * @brief Get virtual timer irq number
  */
-int zvm_arch_vtimer_init();
+int zvm_arch_vtimer_init(void);
 
 /**
  * @brief Simulate cntp_tval_el0 register
