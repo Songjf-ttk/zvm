@@ -11,8 +11,8 @@ linux
 - Image: v5.16 with simple filesystem made by busybox
 - Image_oee: openEuler Embeded v23.09
 - Image_debian: Debian v10
-    - login:root 
-    - passwd:123
+    - login1:root/123 
+    - login2:zvm/123456789zxcv!
 
 zephyr
 ------------------
