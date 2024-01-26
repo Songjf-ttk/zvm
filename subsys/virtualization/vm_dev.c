@@ -17,6 +17,8 @@
 #include <virtualization/vm_console.h>
 #include <virtualization/vdev/fiq_debugger.h>
 #include <virtualization/vdev/virt_device.h>
+#include <virtualization/vdev/virtio/virtio.h>
+#include <virtualization/vdev/virtio/virtio_blk.h>
 #include <virtualization/vdev/virtio/virtio_mmio.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
@@ -185,24 +187,23 @@ int handle_vm_device_emulate(struct vm *vm, uint64_t pa_addr)
         chosen_dev->priv_data = (void *)dev;
         vdev_irq_callback_user_data_set(dev, vm_device_callback_func, chosen_dev);
 
-        if(chosen_dev->shareable){
-            ret = ((struct virtio_mmio_driver_api *)((struct virt_device_api *)dev->api)->device_driver_api)->probe(vm, chosen_dev);
-            if (ret) {
-				ZVM_LOG_WARN(" Init virtio device error! \n");
-				return -EFAULT;
-			}
-
-            ret = ((struct virtio_mmio_driver_api *)((struct virt_device_api *)dev->api)->device_driver_api)->reset(chosen_dev);
-            if (ret) {
-				ZVM_LOG_WARN(" Reset Init virtio device error! \n");
-				return -EFAULT;
-			}
+        ret = ((struct virt_device_api *)dev->api)->init_fn(dev, vm, chosen_dev);
+        if (ret) {
+            ZVM_LOG_WARN(" Init device error! \n");
+            return -EFAULT;
         }
 
         return 0;
     }
 
     return -ENODEV;
+}
+
+static void zvm_virtio_emu_register(void)
+{
+#ifdef CONFIG_VM_VIRTIO_BLOCK
+    virtio_register_emulator(&virtio_blk);
+#endif
 }
 
 int vm_device_init(struct vm *vm)
@@ -223,6 +224,12 @@ int vm_device_init(struct vm *vm)
         return -EMMAO;
     }
 
+#ifdef CONFIG_VM_VIRTIO_MMIO
+	virtio_dev_list_init();
+    virtio_drv_list_init();
+    zvm_virtio_emu_register();
+#endif
+    /* @TODO: scan the dtb and get the device's node. */
     /* Board specific device init, for example fig debugger. */
     switch (vm->os->type){
     case OS_TYPE_LINUX:

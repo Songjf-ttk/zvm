@@ -397,7 +397,7 @@ static int virtio_blk_connect(struct virtio_device *dev,
 	}
 	vbdev->vdev = dev;
 
-	vbdev->config.capacity = 1024;
+	vbdev->config.capacity = 384;
 	vbdev->config.seg_max = VIRTIO_BLK_DISK_SEG_MAX,
 	vbdev->config.blk_size = VIRTIO_BLK_SECTOR_SIZE;
 
