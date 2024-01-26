@@ -221,7 +221,7 @@
         #address-cells = <2>;
         #size-cells = <2>;
         compatible = "linux-vm";
-        dtb_address = <0xfb000000>;
+        dtb_address = <0xf2a00000>;
         dtb_size = <DT_SIZE_M(2)>;
 
         linux_ddr: memory@f3000000 {
@@ -230,7 +230,7 @@
             address_type = "normal_memory";
             vm_reg_base = <0x40000000>;
             vm_reg_size = <DT_SIZE_M(1024)>;
-            reg = <0x0 0xf3000000 0x0 DT_SIZE_M(128)>;
+            reg = <0x0 0xf3000000 0x0 DT_SIZE_M(240)>;
             label = "VM1_MEM";
         };
     };

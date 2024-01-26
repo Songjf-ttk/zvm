@@ -30,18 +30,22 @@ LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
  * 1. Allocating virt device to vm, and build map.
  * 2. Setting the device's irq for binding virt interrupt with hardware interrupt.
 */
-static int vm_virio_mmio_init(const struct device *dev, struct vm *vm, struct virt_dev *vdev_desc)
+static int vm_virtio_mmio_init(const struct device *dev, struct vm *vm, struct virt_dev *vdev_desc)
 {
-	struct virt_dev *vdev;
-
-    vdev = allocate_device_to_vm(dev, vm, vdev_desc, true, true);
-	if(!vdev){
-		ZVM_LOG_WARN("Init virt serial device error\n");
-        return 0;
+	int ret;
+	
+	ret = ((struct virtio_mmio_driver_api *)((struct virt_device_api *)dev->api)->device_driver_api)->probe(vm, vdev_desc);
+	if (ret) {
+		ZVM_LOG_WARN(" Init virtio device error! \n");
+		return -EFAULT;
 	}
 
-	vdev_irq_callback_user_data_set(dev, vm_device_callback_func, vdev);
-
+	ret = ((struct virtio_mmio_driver_api *)((struct virt_device_api *)dev->api)->device_driver_api)->reset(vdev_desc);
+	if (ret) {
+		ZVM_LOG_WARN(" Reset Init virtio device error! \n");
+		return -EFAULT;
+	}
+	
 	return 0;
 }
 
@@ -317,19 +321,12 @@ static const struct virtio_mmio_driver_api virt_mmio_driver_api = {
 };
 
 static const struct virt_device_api virt_virtio_mmio_api = {
-	.init_fn = vm_virio_mmio_init,
+	.init_fn = vm_virtio_mmio_init,
 #ifdef CONFIG_VIRTIO_INTERRUPT_DRIVEN
     .virt_irq_callback_set = virt_virtio_mmio_irq_callback_set,
 #endif
 	.device_driver_api = &virt_mmio_driver_api,
 };
-
-static void zvm_virtio_emu_register(void)
-{
-#ifdef CONFIG_VM_VIRTIO_BLOCK
-    virtio_register_emulator(&virtio_blk);
-#endif
-}
 
 /**
  * @brief The init function of virt_mmio, what will not init
@@ -339,9 +336,6 @@ static void zvm_virtio_emu_register(void)
 static int virtio_mmio_init(const struct device *dev)
 {
 	dev->state->init_res = VM_DEVICE_INIT_RES;
-	virtio_dev_list_init();
-    virtio_drv_list_init();
-    zvm_virtio_emu_register();
 #ifdef CONFIG_VIRTIO_INTERRUPT_DRIVEN
 	((const struct virtio_device_config * const)(DEV_CFG(dev)->device_config))->irq_config_func(dev);
 #endif

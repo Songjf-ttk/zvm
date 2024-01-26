@@ -155,12 +155,6 @@ static int zvm_overall_init(void)
         return -ENOMEM;
     }
 
-    zvm_overall_info->hw_info = (struct zvm_hwsys_info *)
-            k_malloc(sizeof(struct zvm_hwsys_info));
-    if (!zvm_overall_info->hw_info) {
-        return -ENOMEM;
-    }
-    memset(zvm_overall_info, 0, (sizeof(struct zvm_manage_info)));
     zvm_overall_info->hw_info = (struct zvm_hwsys_info*)
             k_malloc(sizeof(struct zvm_hwsys_info));
     if (!zvm_overall_info->hw_info) {
@@ -169,11 +163,9 @@ static int zvm_overall_init(void)
          * Too cumbersome resource release way.
          * We can use resource stack way to manage these resouce.
          */
-        k_free(zvm_overall_info->hw_info);
         k_free(zvm_overall_info);
         return -ENOMEM;
     }
-    ZVM_SPINLOCK_INIT(&zvm_overall_info->spin_zmi);
 
     ret = zvm_hwsys_info_init(zvm_overall_info->hw_info);
     if (ret) {
@@ -181,9 +173,11 @@ static int zvm_overall_init(void)
         k_free(zvm_overall_info);
         return ret;
     }
-    /* Then initialize the last value in zvm_overall_info. */
+
+    memset(zvm_overall_info->vms, 0, sizeof(zvm_overall_info->vms));
     zvm_overall_info->alloced_vmid = 0;
     zvm_overall_info->vm_total_num = 0;
+    ZVM_SPINLOCK_INIT(&zvm_overall_info->spin_zmi);
 
     return ret;
 }
@@ -220,7 +214,7 @@ int zvm_init_idle_device(const struct device *dev, struct virt_dev *vdev,
 
     vm_dev->priv_data = (void *)dev;
 
-    printk("Init passthrough device %s successful! \n", vm_dev->name);
+    printk("Init device %s successful! \n", vm_dev->name);
 
     sys_dnode_init(&vm_dev->vdev_node);
     sys_dlist_append(&dev_list->dev_idle_list, &vm_dev->vdev_node);
