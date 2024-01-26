@@ -1,9 +1,9 @@
 主机开发环境构建
 ======================
 
-注：如果您是首次使用`Zephyr`进行开发，请遵照下面教程在您电脑上先安装`Zephyr`运行环境，并在`Zephyr`使用
-`Zephyr`简易sample进行测试。以避免开发环境本身对zvm运行产生影响。如果使用过Zephyr的就可以直接按照下面教程
-进行zvm环境配置。
+注：如果您是首次使用Zephyr RTOS，请遵照下面教程在您电脑上先安装Zephyr运行环境，并使用
+简易sample进行测试。以避免开发环境本身对ZVM运行产生影响。如果配置过Zephyr环境的就可以
+直接跳转到第7步进行zvm环境配置。
 
 开发环境配置
 ---------------
@@ -68,7 +68,7 @@ west 工具，本项目已经将west.yml文件进行了配置，只需要使用w
    cd zephyr-sdk-0.16.1
    ./setup.sh
 
-1. 安装west工具
+5. 安装west工具
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 (这里选择全局安装，若是想要在python-env中安装，参考[1]中资料)
 
@@ -78,7 +78,7 @@ west 工具，本项目已经将west.yml文件进行了配置，只需要使用w
    echo 'export PATH=~/.local/bin:"$PATH"' >> ~/.bashrc
    source ~/.bashrc
 
-6. 版本信息核对（请确保安装依赖的版本与文档所示一致）
+6. 版本信息核对
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code:: shell
@@ -87,17 +87,17 @@ west 工具，本项目已经将west.yml文件进行了配置，只需要使用w
    python3 --version
    dtc --version
 
-7. 创建并初始化工作区
+7. 创建并初始化ZVM工作区
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-（1）创建工作区并拉取zvm仓库镜像
+（1）创建工作区并拉取ZVM仓库镜像
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: shell
 
    cd ~
    mkdir zvm_workspace && cd zvm_workspace
-   git clone https://gitee.com/cocoeoli/zvm.git
+   git clone https://gitee.com/openeuler/zvm.git
 
 
 （2）初始化工作仓
@@ -106,9 +106,9 @@ west 工具，本项目已经将west.yml文件进行了配置，只需要使用w
 .. code:: shell
 
    cd zvm
-   west init -l /path-to/zvm
+   west init -l $(pwd)
 
-上面的'path-to'修改为自己的目录路径，执行完上面命令后，在'zvm_workspace'目录下将会生成.west文件夹，
+执行完上面命令后，在'zvm_workspace'目录下将会生成.west文件夹，
 其中'config'文件中存放了west的相关配置。此时可以通过执行如下命令查看'west'配置是否成功：
 
 .. code:: shell
@@ -125,9 +125,9 @@ west 工具，本项目已经将west.yml文件进行了配置，只需要使用w
 显示有west信息后，即说明工作仓初始化成功，可以进行主机操作系统和客户机操作系统的开发。
 
 
-`Prev>> 系统简介 <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/1_System_Overview.rst>`__
+`Prev>> 系统介绍 <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/1_System_Design.rst>`__
 
-`Next>> 核心模块介绍 <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/3_Key_Modules.rst>`__
+`Next>> 在QEMU上运行ZVM <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/3_Run_on_ARM64_QEMU.rst>`__
 
 
 
