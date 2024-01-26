@@ -10,7 +10,7 @@ ZVM 开源文档
 ZVM使用
 `zephyrproject-rtos <https://github.com/zephyrproject-rtos/zephyr>`__ 所遵守的
 `Apache 2.0 许可证 <https://github.com/zephyrproject-rtos/zephyr/blob/main/LICENSE>`__
-，主要开发语言为C（C++）语言。
+，主要开发语言为C/C++语言。
 
 
 介绍：什么是ZVM
@@ -19,17 +19,14 @@ ZVM使用
 是一款实时虚拟机，其面向高性能嵌入式计算环境，提供嵌入式平台上操作系统级别的资源隔离和共享服务。
 
 .. figure:: https://gitee.com/openeuler/zvm/raw/master/zvm_doc/figure/zvm_demo.png
+   :align: center
    :alt: zvm_demo
 
 
-   zvm_demo
-
-
-本项目以Zephyr实时操作系统为基础，使用C（C++）在Zephyr RTOS中实现一个面向嵌入式平台的虚拟机管理器。
-Zephyr RTOS是一个小型的实时操作系统，用于连接、资源受限和嵌入式设备，支持多种架构，发布于Apache License 2.0下。
-Zephyr包括内核、所有组件和库、设备驱动程序、协议栈、文件系统和固件更新，以开发连接、资源受限和嵌入式设备。
-Zephyr RTOS易于部署、安全、连接和管理。它具有不断增长的软件库集，可用于各种应用和行业领域，
-如工业物联网、可穿戴设备、机器学习等。
+本项目以Zephyr实时操作系统为基础，使用C/C++在Zephyr RTOS中实现一个面向嵌入式平台的虚拟机管理器。
+Zephyr RTOS是一个小型的实时操作系统，用于连接、资源受限和嵌入式设备，支持多种架构。
+Zephyr包括内核、所有组件和库、设备驱动程序、协议栈、文件系统和固件更新，以开发连接、资源受限和嵌入式设备，
+可用于各种应用和行业领域，如工业物联网、可穿戴设备、机器学习等。
 
 文档目录
 ------------------
@@ -37,39 +34,29 @@ Zephyr RTOS易于部署、安全、连接和管理。它具有不断增长的软
 下面目录中内容包含ZVM系统介绍及系统的使用说明。
 
 具体内容及简介：
-^^^^^^^^^^^
+^^^^^^^^^^^^^^
 
-`1.系统简介： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/1_System_Overview.rst>`__
+`1.系统介绍： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/1_System_Design.rst>`__
 *****************************************************************************************************
 ZVM的整个系统各个模块的整体架构介绍，以及一些其他的功能介绍。
 
 `2.主机开发环境搭建： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/2_Environment_Configuration.rst>`__
-****************************************************************************************************************************
-Linux主机开发环境的配置，zephyrproject SDK的配置及zvm仓库的初始化和简单sample的构建与测试等。
+***************************************************************************************************************
+Linux/Ubuntu主机开发环境的配置，zephyrproject SDK的配置及zvm仓库的初始化和简单sample的构建与测试等。
 
-`3.核心模块介绍： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/3_Key_Modules.rst>`__
+`3.在QEMU上运行ZVM： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/3_Run_on_ARM64_QEMU.rst>`__
 ********************************************************************************************************
-各个模块的详细实现介绍，包括虚拟处理器、虚拟内存、虚拟设备等各个模块的技术实现。
+在QEMU ARM64上面运行ZVM的教程。
 
-`4.ZVM系统构建： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/4_System_Build.rst>`__
+`4.在RK3568上运行ZVM <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/4_Run_on_ROC_RK3568_PC.rst>`__
 ********************************************************************************************************
-ZVM主机的构建、Linux和zephyr虚拟机的构建以及其他ZVM运行所需要环境的配置流程。
+在ROC_RK3568_PC上面运行ZVM的教程。
 
-`5.ZVM运行与调试： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/5_Running_and_Debugging.rst>`__
+`5.加入我们： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/5_Join_us.rst>`__
 ********************************************************************************************************
-说明如何在主机中运行及调试相应的模块，包括基础指令的测试，以及如何对系统进行调试的步骤。
-
-`6.拓展技术介绍： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/6_Expansion_Technology.rst>`__
-*******************************************************************************************************
-为了优化ZVM在嵌入式系统中的运行支持，我们拟支持一些额外的技术，保证ZVM系统能更好的支持各类应用场景。
-
-`7.ZVM后续规划： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/7_Todo_List.rst>`__
-**************************************************************************************************
-我们对ZVM的后续发展制定了一些计划安排，你可以在这里找到。
-
-`8.加入我们： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/8_Join_us.rst>`__
-************************************************************************************************
 最后，我们介绍了我们团队的一些成员、如何加入ZVM进行开发以及开发过程中需要遵循的一些基本编码规则。
+以及ZVM的后续发展制定了一些计划安排，你可以在这里找到。
+
 
 
 视频介绍
