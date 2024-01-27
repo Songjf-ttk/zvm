@@ -50,7 +50,8 @@
     cp -r zvm_vm_image/qemu_max/zephyr/* zvm/zvm_config/qemu_platform/hub
 
 此时，在zvm_config/qemu_platform/hub目录下有Linux和zephyr虚拟机的镜像，直接执行如下命令即可运行：
-（注：上述仓库中镜像可以选择下单个或者多个）
+（注1：上述仓库中镜像可以选择下单个或者多个）
+（注2：如果要运行linux guest os，请修改auto_zvm.sh:47行处linux镜像名为自己想运行的linux镜像）
 
 .. code:: shell
 
