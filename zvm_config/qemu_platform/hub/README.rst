@@ -13,7 +13,10 @@ linux
 - Image_debian: Debian v10
     - login1:root/123 
     - login2:zvm/123456789zxcv!
-
+- Image_ubuntu: Ubuntu 20
+    - login:root/123
+- Image_ubuntu16_base: Ubuntu 16
+    - login:root/123
 zephyr
 ------------------
 - zephyr.bin: Zephyr version 2.7.99
