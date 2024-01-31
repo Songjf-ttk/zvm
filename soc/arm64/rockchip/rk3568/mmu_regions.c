@@ -36,6 +36,16 @@ static const struct arm_mmu_region mmu_regions[] = {
 			      DT_REG_ADDR(DT_NODELABEL(uart9)),
 			      DT_REG_SIZE(DT_NODELABEL(uart9)),
 			      MT_DEVICE_nGnRnE | MT_P_RW_U_NA | MT_DEFAULT_SECURE_STATE),
+
+	MMU_REGION_FLAT_ENTRY("PMCRU",
+			      DT_REG_ADDR(DT_NODELABEL(pmucru)),
+			      DT_REG_SIZE(DT_NODELABEL(pmucru)),
+			      MT_DEVICE_nGnRnE | MT_P_RW_U_NA | MT_DEFAULT_SECURE_STATE),
+
+	MMU_REGION_FLAT_ENTRY("CRU",
+			      DT_REG_ADDR(DT_NODELABEL(cru)),
+			      DT_REG_SIZE(DT_NODELABEL(cru)),
+			      MT_DEVICE_nGnRnE | MT_P_RW_U_NA | MT_DEFAULT_SECURE_STATE),
 #endif
 };
 
