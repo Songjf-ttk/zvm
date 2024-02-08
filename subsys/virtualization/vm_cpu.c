@@ -465,6 +465,11 @@ int vm_vcpu_run(struct vcpu *vcpu)
     return 0;
 }
 
+int vm_vcpu_ready(struct vcpu *vcpu)
+{
+    return vcpu_state_switch(vcpu->work->vcpu_thread, _VCPU_STATE_READY);
+}
+
 int vm_vcpu_pause(struct vcpu *vcpu)
 {
     return vcpu_state_switch(vcpu->work->vcpu_thread, _VCPU_STATE_PAUSED);

@@ -114,7 +114,7 @@ do {\
 	lock->locked = 0x0;                 \
 })
 #else
-#define ZVM_SPINLOCK_INIT(dev) (dev = NULL)
+#define ZVM_SPINLOCK_INIT(dev)
 #endif
 
 extern struct z_kernel _kernel;

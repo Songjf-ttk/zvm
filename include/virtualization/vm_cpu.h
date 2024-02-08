@@ -33,9 +33,12 @@ struct vcpu;
 struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name);
 
 /**
- * @brief start the vcpu instance.
- */
+ * @brief the vcpu has below state:
+ * running: vcpu is running, and is allocated to physical cpu.
+ * ready: prepare to running.
+*/
 int vm_vcpu_run(struct vcpu *vcpu);
+int vm_vcpu_ready(struct vcpu *vcpu);
 int vm_vcpu_pause(struct vcpu *vcpu);
 int vm_vcpu_halt(struct vcpu *vcpu);
 
