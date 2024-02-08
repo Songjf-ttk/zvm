@@ -37,7 +37,6 @@ struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name);
  * running: vcpu is running, and is allocated to physical cpu.
  * ready: prepare to running.
 */
-int vm_vcpu_run(struct vcpu *vcpu);
 int vm_vcpu_ready(struct vcpu *vcpu);
 int vm_vcpu_pause(struct vcpu *vcpu);
 int vm_vcpu_halt(struct vcpu *vcpu);
@@ -45,7 +44,7 @@ int vm_vcpu_halt(struct vcpu *vcpu);
 /**
  * @brief vcpu run func entry.
  */
-int z_vcpu_run(struct vcpu *vcpu);
+int vcpu_thread_entry(struct vcpu *vcpu);
 
 int vcpu_irq_exit(struct vcpu *vcpu);
 int vcpu_state_switch(struct k_thread *thread, uint16_t new_state);

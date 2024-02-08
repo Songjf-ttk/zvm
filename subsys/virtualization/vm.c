@@ -329,7 +329,7 @@ int vm_vcpus_run(struct vm *vm)
             k_spin_unlock(&vm->spinlock, key);
             return -ENODEV;
         }
-        vm_vcpu_run(vcpu);
+        vm_vcpu_ready(vcpu);
     }
     vm->vm_status = VM_STATE_RUNNING;
     k_spin_unlock(&vm->spinlock, key);

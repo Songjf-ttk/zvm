@@ -118,9 +118,14 @@ static void vcpu_state_to_ready(struct vcpu *vcpu)
     uint16_t cur_state = vcpu->vcpu_state;
     struct k_thread *thread = vcpu->work->vcpu_thread;
 
+    vcpu->hcpu_cycles = sys_clock_cycle_get_32();
+
     switch (cur_state)
     {
+    case _VCPU_STATE_UNKNOWN:
     case _VCPU_STATE_READY:
+        k_thread_start(thread);
+        vcpu->vcpu_state = _VCPU_STATE_READY;
         break;
     case _VCPU_STATE_RUNNING:
         vcpu->resume_signal = true;
@@ -130,7 +135,7 @@ static void vcpu_state_to_ready(struct vcpu *vcpu)
         k_wakeup(thread);
         break;
     default:
-        ZVM_LOG_WARN("Invalid cpu state here. \n");
+        ZVM_LOG_WARN("Invalid cpu state! \n");
         break;
     }
 
@@ -310,9 +315,9 @@ int vcpu_ipi_scheduler(uint32_t cpu_mask, uint32_t timeout)
 }
 
 /**
- * @brief vcpu run func entry_point.
+ * @brief vcpu entry_point.
  */
-int z_vcpu_run(struct vcpu *vcpu)
+int vcpu_thread_entry(struct vcpu *vcpu)
 {
     int ret = 0;
     ZVM_LOG_INFO("\n** Start running vcpu: %s-%d. \n", vcpu->vm->vm_name, vcpu->vcpu_id);
@@ -391,7 +396,7 @@ struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name)
     /*TODO: In this stage, the thread is marked as a kernel thread,
     For system safe, we will modified it later.*/
     k_tid_t tid = k_thread_create(vwork->vcpu_thread, vwork->vt_stack,
-            VCPU_THREAD_STACKSIZE,(void *)z_vcpu_run, vcpu, NULL, NULL,
+            VCPU_THREAD_STACKSIZE,(void *)vcpu_thread_entry, vcpu, NULL, NULL,
 			vm_prio, 0, K_FOREVER);
     strcpy(tid->name, vcpu_name);
 
@@ -437,32 +442,6 @@ struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name)
     }
 
     return vcpu;
-}
-
-int vm_vcpu_run(struct vcpu *vcpu)
-{
-    uint16_t cur_state = vcpu->vcpu_state;
-    struct k_thread *thread;
-
-    /*vcpu life time cycles*/
-    vcpu->hcpu_cycles = sys_clock_cycle_get_32();
-    thread = vcpu->work->vcpu_thread;
-
-    switch (cur_state) {
-    case _VCPU_STATE_READY:
-    case _VCPU_STATE_UNKNOWN:
-        k_thread_start(thread);
-        vcpu->vcpu_state = _VCPU_STATE_READY;
-        break;
-    case _VCPU_STATE_PAUSED:
-        vcpu_state_switch(thread, _VCPU_STATE_READY);
-        break;
-    default:
-        /* Handle invalid state */
-        ZVM_LOG_WARN("Unknow vcpu states! \n");
-        break;
-    }
-    return 0;
 }
 
 int vm_vcpu_ready(struct vcpu *vcpu)
