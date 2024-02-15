@@ -7,12 +7,11 @@ zephyr_library()
 zephyr_library_sources(
   hyp_entry.S
   hyp_vector.S
-  arm.c
+  cpu.c
   mm.c
   vtimer.c
   trap_handler.c
   switch.c
-  sysreg.c
   cpu_irq.c
 )
 

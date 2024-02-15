@@ -11,6 +11,16 @@
 #include <kernel/thread.h>
 #include <kernel_structs.h>
 #include <virtualization/zvm.h>
+#ifdef CONFIG_ARM64
+#include <virtualization/arm/asm.h>
+#include <virtualization/arm/cpu.h>
+#include <virtualization/arm/cpu_irq.h>
+#include <virtualization/arm/mm.h>
+#include <virtualization/arm/switch.h>
+#include <virtualization/arm/sysreg.h>
+#include <virtualization/arm/trap_handler.h>
+#include <virtualization/arm/vtimer.h>
+#endif
 
 #ifdef CONFIG_PREEMPT_ENABLED
 /* positive num */

@@ -11,11 +11,6 @@
 #include <stdint.h>
 
 /**
- * @brief vcpu_sysreg_loads_vhe - Load guest system registers to the physical CPU.
- */
-void vcpu_sysreg_load(struct vcpu *vcpu);
-
-/**
  * @brief store system register to vcpu struct for keeping the VM state.
  */
 void vcpu_sysreg_save(struct vcpu *vcpu);
