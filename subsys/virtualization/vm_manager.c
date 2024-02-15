@@ -130,7 +130,7 @@ int zvm_run_guest(size_t argc, char **argv)
 		if (vm->vm_status & VM_STATE_NEVER_RUN) {
 			load_os_image(vm);
 		}
-		vm_vcpus_run(vm);
+		vm_vcpus_ready(vm);
 	} else {
 		ZVM_LOG_WARN("The VM has a invalid status, abort! \n");
         return -ENODEV;

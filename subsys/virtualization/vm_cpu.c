@@ -330,20 +330,6 @@ int vcpu_thread_entry(struct vcpu *vcpu)
     return ret;
 }
 
-/**
- * @brief Judge whether this vcpu has irq need to handle...
- */
-int vcpu_irq_exit(struct vcpu *vcpu)
-{
-    bool pend, active;
-	struct vcpu_virt_irq_block *vb = &vcpu->virq_block;
-
-	pend = sys_dlist_is_empty(&vb->pending_irqs);
-	active = sys_dlist_is_empty(&vb->active_irqs);
-
-	return !(pend && active);
-}
-
 static int created_vm_num = 0;
 
 struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name)

@@ -13,6 +13,7 @@ zephyr_library_sources(
   trap_handler.c
   switch.c
   sysreg.c
+  cpu_irq.c
 )
 
 

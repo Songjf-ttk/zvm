@@ -11,7 +11,9 @@
 #include <sys/dlist.h>
 #include <arch/arm64/lib_helpers.h>
 #include <virtualization/zvm.h>
+#include <virtualization/vm.h>
 #include <virtualization/arm/trap_handler.h>
+#include <virtualization/arm/cpu_irq.h>
 #include <virtualization/vm_dev.h>
 
 /**
@@ -49,7 +51,6 @@
 #define VM_GLOBAL_VIRQ_NR   (VM_LOCAL_VIRQ_NR + VM_SPI_VIRQ_NR)
 
 struct vm;
-struct vcpu;
 struct virt_dev;
 
 /**
@@ -83,6 +84,14 @@ struct virt_irq_desc {
     sys_dnode_t desc_node;
 };
 
+/* vcpu wfi struct */
+struct vcpu_wfi {
+    bool state;
+    uint16_t yeild_count;
+    struct k_spinlock wfi_lock;
+    void *priv;
+};
+
 /**
  * @brief vm's irq block to describe this all the device interrup
  * for vm. In this struct, it called `VM_LOCAL_VIRQ_NR`;
@@ -96,6 +105,7 @@ struct vcpu_virt_irq_block {
     uint32_t virq_pending_counts;
 
     struct virt_irq_desc vcpu_virt_irq_desc[VM_LOCAL_VIRQ_NR];
+    struct vcpu_wfi *vwfi;
 
     struct k_spinlock spinlock;
 
@@ -120,12 +130,17 @@ struct vm_virt_irq_block {
 	uint32_t irq_target[VM_GLOBAL_VIRQ_NR];
 	uint32_t ipi_vcpu_source[CONFIG_MP_NUM_CPUS][VM_SGI_VIRQ_NR];
 
+    /* virtual irq block. */
+    struct k_spinlock vm_virq_lock;
+
     /* desc for this vm */
     struct virt_irq_desc vm_virt_irq_desc[VM_GLOBAL_VIRQ_NR-VM_LOCAL_VIRQ_NR];
 
     /* bind to interrupt controller */
     void *virt_priv_date;
 };
+
+bool vcpu_irq_exist(struct vcpu *vcpu);
 
 /**
  * @brief init the irq desc when add @vm_dev.

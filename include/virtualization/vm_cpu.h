@@ -46,7 +46,6 @@ int vm_vcpu_halt(struct vcpu *vcpu);
  */
 int vcpu_thread_entry(struct vcpu *vcpu);
 
-int vcpu_irq_exit(struct vcpu *vcpu);
 int vcpu_state_switch(struct k_thread *thread, uint16_t new_state);
 
 void do_vcpu_swap(struct k_thread *new_thread, struct k_thread *old_thread);

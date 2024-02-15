@@ -312,7 +312,7 @@ int vm_vcpus_init(struct vm *vm)
     return 0;
 }
 
-int vm_vcpus_run(struct vm *vm)
+int vm_vcpus_ready(struct vm *vm)
 {
     uint16_t i=0;
     struct vcpu *vcpu;

@@ -29,7 +29,7 @@ struct virt_dev {
     /* Is this dev pass-through device? */
     bool dev_pt_flag;
     /* Is this dev virtio device?*/
-    bool shareable; 
+    bool shareable;
 
     uint32_t hirq;
     uint32_t virq;

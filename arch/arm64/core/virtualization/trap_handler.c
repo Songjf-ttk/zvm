@@ -127,11 +127,6 @@ static int cpu_wfi_wfe_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_elx)
     uint32_t condition, esr_iss;
     struct vcpu *vcpu = _current_vcpu;
 
-    /* judge whether the vcpu has pending or active irq */
-    ret = vcpu_irq_exit(vcpu);
-    if(ret){
-        return 0;   /* There are some irq need to process */
-    }
     esr_iss = GET_ESR_ISS(esr_elx);
     if(esr_iss & BIT(ESR_ISS_CV_SHIFT)){
         condition = GET_ESR_ISS_COND(esr_elx);
@@ -147,7 +142,7 @@ static int cpu_wfi_wfe_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_elx)
         if(vcpu->vcpu_state == _VCPU_STATE_RUNNING){
             vm_vcpu_ready(vcpu);
         }
-    }else{
+    }else{  /* WFI */
 
     }
 
