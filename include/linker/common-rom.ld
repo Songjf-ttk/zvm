@@ -226,3 +226,10 @@
 #endif /* LINKER_DEVICE_HANDLES_PASS1 */
 		__device_handles_end = .;
 	} GROUP_ROM_LINK_IN(RAMABLE_REGION, ROMABLE_REGION)
+
+	SECTION_DATA_PROLOGUE(virtual_device_instances_sections,,)
+	{
+		__virtual_device_instances_start = .;
+		KEEP(*("._virtual_device_instance.*"));
+		__virtual_device_instances_end = .;
+	} GROUP_ROM_LINK_IN(RAMABLE_REGION, ROMABLE_REGION)

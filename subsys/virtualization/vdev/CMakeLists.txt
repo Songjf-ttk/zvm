@@ -24,3 +24,8 @@ zephyr_sources_ifdef(
     CONFIG_VM_FIQ_DEBUGGER
     fiq_debugger.c
 )
+
+zephyr_sources_ifdef(
+    CONFIG_VM_CLOCK_SYSTEM_CONTROLLER
+    virt_clock_syscon.c
+)

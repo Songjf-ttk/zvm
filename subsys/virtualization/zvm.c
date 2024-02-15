@@ -190,7 +190,7 @@ int zvm_init_idle_device(const struct device *dev, struct virt_dev *vdev,
 {
     uint16_t name_len;
     struct virt_dev *vm_dev = vdev;
-    
+
     /*TODO：Determine whether to connect directly based on device type*/
     vm_dev->dev_pt_flag = true;
 

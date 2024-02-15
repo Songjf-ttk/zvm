@@ -30,8 +30,6 @@ LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
 #define DEV_CFG(dev) \
 	((const struct virt_device_config * const)(dev)->config)
-#define DEV_DATA(dev) \
-	((struct virt_device_data *)(dev)->data)
 
 #define DEV_VGICV3(dev) \
 	((const struct gicv3_vdevice * const)(DEV_CFG(dev)->device_config))
@@ -501,7 +499,6 @@ static int vm_vgicv3_init(const struct device *dev, struct vm *vm, struct virt_d
 	virt_dev = vm_virt_dev_add(vm, dev->name, false, false, gicd_base,
 						gicd_base, gicr_base+gicr_size-gicd_base, 0, 0);
 	if(!virt_dev){
-		ZVM_LOG_WARN("Init virt gic device error\n");
         return -ENODEV;
 	}
 
@@ -544,7 +541,9 @@ static struct virt_device_config virt_gicv3_cfg = {
 	.device_config = &vgicv3_cfg_port,
 };
 
-static struct virt_device_data virt_gicv3_data_port;
+static struct virt_device_data virt_gicv3_data_port = {
+	.vdevice_type = 0,
+};
 
 /**
  * @brief vgic device operations api.

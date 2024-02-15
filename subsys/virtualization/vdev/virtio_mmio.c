@@ -33,7 +33,7 @@ LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 static int vm_virtio_mmio_init(const struct device *dev, struct vm *vm, struct virt_dev *vdev_desc)
 {
 	int ret;
-	
+
 	ret = ((struct virtio_mmio_driver_api *)((struct virt_device_api *)dev->api)->device_driver_api)->probe(vm, vdev_desc);
 	if (ret) {
 		ZVM_LOG_WARN(" Init virtio device error! \n");
@@ -45,7 +45,7 @@ static int vm_virtio_mmio_init(const struct device *dev, struct vm *vm, struct v
 		ZVM_LOG_WARN(" Reset Init virtio device error! \n");
 		return -EFAULT;
 	}
-	
+
 	return 0;
 }
 
@@ -229,7 +229,7 @@ static int virtio_mmio_notify(struct virtio_device *dev, uint32_t vq)
 		return -EFAULT;
 	}
 
-	return 0; 
+	return 0;
 }
 
 static struct virtio_transport mmio_tra = {
@@ -253,9 +253,9 @@ int virtio_mmio_probe(struct vm *guest, struct virt_dev *edev) {
 	name_len = strlen(guest->vm_name) < VIRTIO_DEVICE_MAX_NAME_LEN ? strlen(guest->vm_name) : VIRTIO_DEVICE_MAX_NAME_LEN;
 	strncpy(m->dev.name, guest->vm_name, name_len);
 	name_len = name_len + strlen(edev->name) < VIRTIO_DEVICE_MAX_NAME_LEN ? strlen(edev->name) : VIRTIO_DEVICE_MAX_NAME_LEN - name_len;
-	strncat(m->dev.name, edev->name, name_len); 
+	strncat(m->dev.name, edev->name, name_len);
 	m->dev.name[strlen(m->dev.name)] = '\0';
-	
+
 	m->dev.edev = edev;
 	m->dev.id.type = ((struct virtio_device_config *)((struct virt_device_config *)((struct device *)edev->priv_data)->config)->device_config)->virtio_type;
 	m->dev.tra = &mmio_tra;
@@ -300,7 +300,7 @@ static int virtio_mmio_remove(struct virt_dev *edev)
 }
 
 static int virtio_mmio_reset(struct virt_dev *edev)
-{	
+{
 	struct virtio_mmio_dev *m = edev->priv_vdev;
 
 	m->config.host_features_sel = 0x0;

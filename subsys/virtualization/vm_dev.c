@@ -77,10 +77,18 @@ struct virt_dev *vm_virt_dev_add(struct vm *vm, const char *dev_name, bool pt_fl
     vm_dev->virq = dev_virq;
     vm_dev->hirq = dev_hirq;
     vm_dev->vm = vm;
+
+    /*Init private data and vdev*/
+    vm_dev->priv_data = NULL;
+    vm_dev->priv_vdev = NULL;
+
     sys_dlist_append(&vm->vdev_list, &vm_dev->vdev_node);
 
     return vm_dev;
 }
+
+#define DEV_DATA(dev) \
+	((struct virt_device_data *)(dev)->data)
 
 int vdev_mmio_abort(arch_commom_regs_t *regs, int write, uint64_t addr,
                 uint64_t *value, uint16_t size)
@@ -89,23 +97,27 @@ int vdev_mmio_abort(arch_commom_regs_t *regs, int write, uint64_t addr,
     struct vm *vm;
     struct virt_dev *vdev;
     struct  _dnode *d_node, *ds_node;
+    struct virtual_device_instance *vdevice_instance;
     const struct device *dev;
 
     vm = get_current_vm();
 
     SYS_DLIST_FOR_EACH_NODE_SAFE(&vm->vdev_list, d_node, ds_node){
         vdev = CONTAINER_OF(d_node, struct virt_dev, vdev_node);
+        vdevice_instance = (struct virtual_device_instance *)vdev->priv_data;
 
         if (vdev->shareable) {
 			if ((addr >= vdev->vm_vdev_vaddr) && (addr < vdev->vm_vdev_vaddr + vdev->vm_vdev_size)) {
                 dev = (const struct device* const)vdev->priv_data;
 				if (write) {
-					return ((struct virtio_mmio_driver_api *)((struct virt_device_api *)dev->api)->device_driver_api)->write(vdev, addr - vdev->vm_vdev_vaddr, 0, (uint32_t)*reg_value, size);
+					return ((struct virtio_mmio_driver_api *)((struct virt_device_api \
+                    *)dev->api)->device_driver_api)->write(vdev, addr - vdev->vm_vdev_vaddr, 0, (uint32_t)*reg_value, size);
 				} else {
-					return ((struct virtio_mmio_driver_api *)((struct virt_device_api *)dev->api)->device_driver_api)->read(vdev, addr - vdev->vm_vdev_vaddr, (uint32_t *)reg_value, size);
+					return ((struct virtio_mmio_driver_api *)((struct virt_device_api \
+                    *)dev->api)->device_driver_api)->read(vdev, addr - vdev->vm_vdev_vaddr, (uint32_t *)reg_value, size);
 				}
 			}
-		} else {
+		} else if (!strcmp(vdev->name, "VM_VGIC")) {
             if ((addr >= vdev->vm_vdev_paddr) && (addr < vdev->vm_vdev_paddr + vdev->vm_vdev_size)) {
                 dev = (const struct device* const)vdev->priv_vdev;
                 if (write) {
@@ -114,6 +126,18 @@ int vdev_mmio_abort(arch_commom_regs_t *regs, int write, uint64_t addr,
                 }else{
                     return ((const struct virt_device_api * \
                         const)(dev->api))->virt_device_read(vdev, addr, reg_value);
+                }
+            }
+        } else if(vdevice_instance != NULL){
+            if(DEV_DATA(vdevice_instance)->vdevice_type & VM_DEVICE_PRE_KERNEL_1){
+                if ((addr >= vdev->vm_vdev_paddr) && (addr < vdev->vm_vdev_paddr + vdev->vm_vdev_size)) {
+                    if (write) {
+                        return ((const struct virt_device_api * \
+                            const)(vdevice_instance->api))->virt_device_write(vdev, addr, reg_value);
+                    }else{
+                        return ((const struct virt_device_api * \
+                            const)(vdevice_instance->api))->virt_device_read(vdev, addr, reg_value);
+                    }
                 }
             }
         }
@@ -208,7 +232,7 @@ static void zvm_virtio_emu_register(void)
 
 int vm_device_init(struct vm *vm)
 {
-    int ret;
+    int ret, i;
 
     sys_dlist_init(&vm->vdev_list);
 
@@ -223,6 +247,16 @@ int vm_device_init(struct vm *vm)
         ZVM_LOG_WARN("Init vm debug console error! \n");
         return -EMMAO;
     }
+
+	/* Assign ids to virtual devices. */
+	for (i = 0; i < zvm_virtual_devices_count_get(); i++) {
+		const struct virtual_device_instance *virtual_device = zvm_virtual_device_get(i);
+        ZVM_LOG_INFO("Device name: %s. \n", virtual_device->name);
+        /*If the virtual device is nessenary for vm*/
+        if(virtual_device->data->vdevice_type & VM_DEVICE_PRE_KERNEL_1){
+            virtual_device->api->init_fn(NULL, vm, NULL);
+        }
+	}
 
 #ifdef CONFIG_VM_VIRTIO_MMIO
 	virtio_dev_list_init();
