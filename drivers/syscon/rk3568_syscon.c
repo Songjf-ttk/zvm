@@ -15,7 +15,7 @@
 #define DT_DRV_COMPAT syscon
 
 void rk3568_syscon_generic_init(const struct device *dev)
-{	
+{
 	/*Set flag as the idle device which can bind to vm */
 	dev->state->init_res = VM_DEVICE_INIT_RES;
 }

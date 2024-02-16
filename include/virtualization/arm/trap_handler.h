@@ -16,8 +16,6 @@
 #define VM_PPI_VIRQ_NR		(16)
 #define VM_SPI_VIRQ_NR 		(256 - VM_SGI_VIRQ_NR - VM_PPI_VIRQ_NR)
 
-#define   AARCH64_INST_ADJUST    (0x04)
-
 /* HPFAR_EL2 addr mask */
 #define HPFAR_EL2_MASK			GENMASK(39,4)
 #define HPFAR_EL2_SHIFT			(4)

@@ -18,13 +18,15 @@
 #include <virtualization/zvm.h>
 #include <virtualization/vdev/vgic_common.h>
 
+#include "../../../drivers/interrupt_controller/intc_gicv3_priv.h"
+
 /* SGI mode */
-#define SGI_SIG_TO_LIST		(0)
-#define SGI_SIG_TO_OTHERS	(1)
+#define SGI_SIG_TO_LIST			(0)
+#define SGI_SIG_TO_OTHERS		(1)
 
 /* vgic macro here */
-#define VGIC_MAX_VCPU       64
-#define VGIC_UNDEFINE_ADDR  0xFFFFFFFF
+#define VGIC_MAX_VCPU       	64
+#define VGIC_UNDEFINE_ADDR  	0xFFFFFFFF
 
 /* vgic action */
 #define ACTION_CLEAR_VIRQ	    BIT(0)
@@ -52,13 +54,13 @@
 #define LIST_REG_HW_VIRQ		(1)
 
 /* GICR registers offset from RDIST_base(n) */
-#define VGICR_CTLR				0x0000
-#define VGICR_IIDR				0x0004
-#define VGICR_TYPER				0x0008
-#define VGICR_STATUSR			0x0010
-#define VGICR_WAKER				0x0014
-#define VGICR_PROPBASER			0x0070
-#define VGICR_PENDBASER			0x0078
+#define VGICR_CTLR				GICR_CTLR
+#define VGICR_IIDR				GICR_IIDR
+#define VGICR_TYPER				GICR_TYPER
+#define VGICR_STATUSR			GICR_STATUSR
+#define VGICR_WAKER				GICR_WAKER
+#define VGICR_PROPBASER			GICR_PROPBASER
+#define VGICR_PENDBASER			GICR_PENDBASER
 #define VGICR_ISENABLER0		0x0100
 #define VGICR_ICENABLER0		0x0180
 #define VGICR_SGI_PENDING		0x0200

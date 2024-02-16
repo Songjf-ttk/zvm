@@ -15,6 +15,21 @@
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
+bool vcpu_irq_exist(struct vcpu *vcpu)
+{
+    bool pend, active;
+	struct vcpu_virt_irq_block *vb = &vcpu->virq_block;
+
+	pend = sys_dlist_is_empty(&vb->pending_irqs);
+	active = sys_dlist_is_empty(&vb->active_irqs);
+
+    if((!(pend && active)) || arch_irq_ispending(vcpu)){
+        return true;
+    }
+
+	return false;
+}
+
 /**
  * @brief Init call for creating interrupt control block for vm.
  */
@@ -100,4 +115,15 @@ int vm_irq_block_init(struct vm *vm)
     ret = vm_virq_desc_init(vm);
 
     return ret;
+}
+
+int vcpu_wait_for_irq(struct vcpu *vcpu)
+{
+    int ret;
+
+    /* judge whether the vcpu has pending or active irq */
+    ret = vcpu_irq_exist(vcpu);
+    if(ret){
+        return 0;   /* There are some irq need to process */
+    }
 }

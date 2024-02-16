@@ -11,6 +11,15 @@
 #include <kernel/thread.h>
 #include <kernel_structs.h>
 #include <virtualization/zvm.h>
+#ifdef CONFIG_ARM64
+#include <virtualization/arm/asm.h>
+#include <virtualization/arm/cpu.h>
+#include <virtualization/arm/cpu_irq.h>
+#include <virtualization/arm/mm.h>
+#include <virtualization/arm/switch.h>
+#include <virtualization/arm/trap_handler.h>
+#include <virtualization/arm/vtimer.h>
+#endif
 
 #ifdef CONFIG_PREEMPT_ENABLED
 /* positive num */
@@ -33,18 +42,19 @@ struct vcpu;
 struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name);
 
 /**
- * @brief start the vcpu instance.
- */
-int vm_vcpu_run(struct vcpu *vcpu);
+ * @brief the vcpu has below state:
+ * running: vcpu is running, and is allocated to physical cpu.
+ * ready: prepare to running.
+*/
+int vm_vcpu_ready(struct vcpu *vcpu);
 int vm_vcpu_pause(struct vcpu *vcpu);
 int vm_vcpu_halt(struct vcpu *vcpu);
 
 /**
  * @brief vcpu run func entry.
  */
-int z_vcpu_run(struct vcpu *vcpu);
+int vcpu_thread_entry(struct vcpu *vcpu);
 
-int vcpu_irq_exit(struct vcpu *vcpu);
 int vcpu_state_switch(struct k_thread *thread, uint16_t new_state);
 
 void do_vcpu_swap(struct k_thread *new_thread, struct k_thread *old_thread);

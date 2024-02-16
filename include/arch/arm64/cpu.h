@@ -36,6 +36,10 @@
 
 /* Additional SPSR bits */
 #define SPSR_IL_BIT			BIT(20)
+#define SPSR_VF_BIT			BIT(28)
+#define SPSR_CF_BIT			BIT(29)
+#define SPSR_ZF_BIT			BIT(30)
+#define SPSR_NF_BIT			BIT(31)
 
 
 #define SCTLR_EL3_RES1		(BIT(29) | BIT(28) | BIT(23) | \
@@ -103,15 +107,20 @@
 #define GET_EL(_mode)		(((_mode) >> MODE_EL_SHIFT) & MODE_EL_MASK)
 
 #define ESR_EC_SHIFT		(26)
-#define ESR_EC_MASK		BIT_MASK(6)
+#define ESR_EC_MASK			BIT_MASK(6)
 #define ESR_ISS_SHIFT		(0)
 #define ESR_ISS_MASK		BIT_MASK(25)
+#define ESR_ISS_COND_SHIFT	(15)
+#define ESR_ISS_COND_MASK	BIT_MASK(4)
+#define ESR_ISS_CV_SHIFT	(24)
+#define ESR_ISS_CV_MASK		BIT_MASK(1)
 #define ESR_IL_SHIFT		(25)
-#define ESR_IL_MASK		BIT_MASK(1)
+#define ESR_IL_MASK			BIT_MASK(1)
 
 #define GET_ESR_EC(esr)		(((esr) >> ESR_EC_SHIFT) & ESR_EC_MASK)
 #define GET_ESR_IL(esr)		(((esr) >> ESR_IL_SHIFT) & ESR_IL_MASK)
 #define GET_ESR_ISS(esr)	(((esr) >> ESR_ISS_SHIFT) & ESR_ISS_MASK)
+#define GET_ESR_ISS_COND(esr)	(((esr) >> ESR_ISS_COND_SHIFT) & ESR_ISS_COND_MASK)
 
 #define CNTV_CTL_ENABLE_BIT	BIT(0)
 #define CNTV_CTL_IMASK_BIT	BIT(1)

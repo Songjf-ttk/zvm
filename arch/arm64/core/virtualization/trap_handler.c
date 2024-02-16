@@ -39,6 +39,7 @@ static int handle_ftrans_desc(int iss_dfsc, uint64_t pa_addr,
 {
     int ret = 0;
     struct vcpu *vcpu = _current_vcpu;
+    uint64_t esr_elx = vcpu->arch->fault.esr_el2;
 
 #ifdef CONFIG_VM_DYNAMIC_MEMORY
     /* TODO: Add dynamic memory allocate. */
@@ -58,7 +59,7 @@ static int handle_ftrans_desc(int iss_dfsc, uint64_t pa_addr,
         */
     }else{
         vm_mem_domain_partitions_add(vcpu->vm->vmem_domain);
-        vcpu->arch->ctxt.regs.pc -= AARCH64_INST_ADJUST;
+        vcpu->arch->ctxt.regs.pc -= (GET_ESR_IL(esr_elx)) ? 4 : 2;
     }
 #endif
     return ret;
@@ -123,15 +124,28 @@ static int cpu_unknwn_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_elx)
 static int cpu_wfi_wfe_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_elx)
 {
     int ret;
+    uint32_t condition, esr_iss;
     struct vcpu *vcpu = _current_vcpu;
 
-    /* judge whether the vcpu has pending or active irq */
-    ret = vcpu_irq_exit(vcpu);
-    if(ret){
-        return 0;   /* There are some irq need to process */
+    esr_iss = GET_ESR_ISS(esr_elx);
+    if(esr_iss & BIT(ESR_ISS_CV_SHIFT)){
+        condition = GET_ESR_ISS_COND(esr_elx);
+        if((condition & 0x1) && (condition != 0xf)){
+            return -ESRCH;
+        }
+    }else{
+        /* TODO: support aarch32 VM.*/
+        return -ESRCH;
+    }
+    /* WFE */
+    if(esr_iss & 0x01){
+        if(vcpu->vcpu_state == _VCPU_STATE_RUNNING){
+            vm_vcpu_ready(vcpu);
+        }
+    }else{  /* WFI */
+
     }
 
-    /* TODO: support wfi and wfe for system.*/
 	return 0;
 }
 
@@ -300,7 +314,7 @@ static int cpu_misaligned_sp_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_el
 int arch_vm_trap_sync(struct vcpu *vcpu)
 {
     int err = 0;
-    uint32_t fix_esr_elx;
+    uint32_t fix_esr_elx, il_flag;
     uint64_t esr_elx;
     arch_commom_regs_t *arch_ctxt;
 
@@ -374,8 +388,7 @@ int arch_vm_trap_sync(struct vcpu *vcpu)
         default:
             goto handler_failed;
 	}
-    fix_esr_elx = AARCH64_INST_ADJUST;
-    vcpu->arch->ctxt.regs.pc += fix_esr_elx;
+    vcpu->arch->ctxt.regs.pc += (GET_ESR_IL(esr_elx)) ? 4 : 2;
     return err;
 
 handler_failed:

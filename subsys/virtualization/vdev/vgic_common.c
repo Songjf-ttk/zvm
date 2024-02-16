@@ -30,74 +30,6 @@
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
-static struct virt_irq_desc *vgic_get_virt_irq_desc(struct vcpu *vcpu, uint32_t virq)
-{
-	struct vm *vm = vcpu->vm;
-
-    /* sgi virq num */
-	if (virq < VM_LOCAL_VIRQ_NR) {
-        return &vcpu->virq_block.vcpu_virt_irq_desc[virq];
-    }
-
-    /* spi virq num */
-    if((virq >= VM_LOCAL_VIRQ_NR) && (virq < VM_GLOBAL_VIRQ_NR)) {
-		return &vm->vm_irq_block.vm_virt_irq_desc[virq - VM_LOCAL_VIRQ_NR];
-    }
-
-	return NULL;
-}
-
-static int vgic_irq_enable(struct vcpu *vcpu, uint32_t virt_irq)
-{
-	struct virt_irq_desc *desc;
-
-	desc = vgic_get_virt_irq_desc(vcpu, virt_irq);
-	if (!desc) {
-        return -ENOENT;
-    }
-
-    desc->virq_flags |= VIRQ_ENABLED_FLAG;
-	if (virt_irq > VM_LOCAL_VIRQ_NR) {
-		if (desc->virq_flags & VIRQ_HW_FLAG) {
-            if (desc->pirq_num > VM_LOCAL_VIRQ_NR)
-                irq_enable(desc->pirq_num);
-            else {
-                ZVM_LOG_WARN("Not a spi interrupt!");
-                return -ENODEV;
-            }
-        }
-	} else {
-        irq_enable(virt_irq);
-    }
-
-	return 0;
-}
-
-static int vgic_irq_disable(struct vcpu *vcpu, uint32_t virt_irq)
-{
-	struct virt_irq_desc *desc;
-
-	desc = vgic_get_virt_irq_desc(vcpu, virt_irq);
-	if (!desc) {
-		return -ENOENT;
-	}
-
-	desc->virq_flags &= ~VIRQ_ENABLED_FLAG;
-	if (virt_irq > VM_LOCAL_VIRQ_NR) {
-		if (desc->virq_flags & VIRQ_HW_FLAG) {
-            if (desc->pirq_num > VM_LOCAL_VIRQ_NR) {
-				irq_disable(desc->pirq_num);
-			} else {
-                ZVM_LOG_WARN("Not a spi interrupt!");
-                return -ENODEV;
-            }
-        }
-	} else {
-        irq_disable(virt_irq);
-    }
-	return 0;
-}
-
 static int virt_irq_set_type(struct vcpu *vcpu, uint32_t offset, uint32_t *value)
 {
 	uint8_t lowbit_value;
@@ -346,25 +278,6 @@ static int vgic_gicd_mem_write(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
 	k_spin_unlock(&gicd->gicd_lock, key);
 
 	return 0;
-}
-
-void vgic_irq_test_and_set_bit(struct vcpu *vcpu, uint32_t spi_nr_count, uint32_t *value,
-						uint32_t bit_size, bool enable)
-{
-	int bit;
-	uint32_t reg_mem_addr = (uint64_t)value;
-	for (bit=0; bit<bit_size; bit++) {
-		if (sys_test_bit(reg_mem_addr, bit)) {
-			if (enable) {
-				vgic_irq_enable(vcpu, spi_nr_count + bit);
-			} else {
-				/* TODO: add a situation for disable irq interrupt later */
-				if (*value != 0xFFFFFFFF) {
-					vgic_irq_disable(vcpu, spi_nr_count + bit);
-				}
-			}
-		}
-	}
 }
 
 void arch_vdev_irq_enable(struct vcpu *vcpu)

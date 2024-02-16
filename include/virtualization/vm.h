@@ -213,7 +213,7 @@ int vm_mem_init(struct vm *vm);
 
 int vm_vcpus_create(uint16_t vcpu_num, struct vm *vm);
 int vm_vcpus_init(struct vm *vm);
-int vm_vcpus_run(struct vm *vm);
+int vm_vcpus_ready(struct vm *vm);
 int vm_vcpus_pause(struct vm *vm);
 int vm_vcpus_halt(struct vm *vm);
 int vm_delete(struct vm *vm);
