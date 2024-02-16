@@ -15,7 +15,6 @@
 #include <arch/arm64/lib_helpers.h>
 #include <irq.h>
 #include <logging/log.h>
-
 #include <virtualization/zvm.h>
 #include <virtualization/vm_cpu.h>
 #include <virtualization/vdev/vgic_v3.h>

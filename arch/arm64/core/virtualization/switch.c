@@ -9,15 +9,9 @@
 #include <kernel/sched_priq.h>
 #include <arch/arm64/lib_helpers.h>
 #include <arch/cpu.h>
-
-#include <virtualization/arm/cpu.h>
-#include <virtualization/arm/asm.h>
+#include <virtualization/vm_cpu.h>
 #include <virtualization/zvm.h>
-#include <virtualization/arm/sysreg.h>
-#include <virtualization/arm/switch.h>
-#include <virtualization/arm/trap_handler.h>
 #include <virtualization/vdev/vgic_common.h>
-
 #include <drivers/interrupt_controller/gic.h>
 #include <arch/arm64/cpu.h>
 #include <stdint.h>

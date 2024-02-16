@@ -17,7 +17,6 @@
 #include <virtualization/arm/cpu_irq.h>
 #include <virtualization/arm/mm.h>
 #include <virtualization/arm/switch.h>
-#include <virtualization/arm/sysreg.h>
 #include <virtualization/arm/trap_handler.h>
 #include <virtualization/arm/vtimer.h>
 #endif
