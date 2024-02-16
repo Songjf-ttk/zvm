@@ -225,7 +225,7 @@ int zvm_init_idle_device(const struct device *dev, struct virt_dev *vdev,
 /**
  * @brief Provide physical dev info to zvm system:
  * 1. Find all available devices information on the board;
- * 2. Build a idle dev list for the system;
+ * 2. Build a idle hardwar device list for the system;
  * 3. VM init function can get dev info from it.
  * @return int
  */

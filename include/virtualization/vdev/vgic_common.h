@@ -75,7 +75,11 @@ struct virt_dev;
  * struct for each vm.
 */
 struct virt_gic_gicd {
-	/* gicd address base and size */
+	/**
+	 * gicd address base and size which
+	 * are used to locate vdev access from
+	 * vm.
+	*/
 	uint32_t gicd_base;
 	uint32_t gicd_size;
 	/* virtual gicr for emulating device for vm. */

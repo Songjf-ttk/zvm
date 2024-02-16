@@ -20,8 +20,6 @@
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
-#define STRINGIFY(x) #x
-#define TOSTRING(x) STRINGIFY(x)
 #define VM_CLKCON_NAME			vm_clock_syscon
 
 #define DEV_DATA(dev) \
@@ -79,6 +77,7 @@ static int virt_clock_syscon_init(const struct device *dev)
 		}
 		DEV_DATA(virtual_device)->vdevice_type |= VM_DEVICE_PRE_KERNEL_1;
 		clk_virtual_device_instance = virtual_device;
+		break;
 	}
 	return 0;
 }

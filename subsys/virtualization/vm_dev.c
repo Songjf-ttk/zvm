@@ -54,7 +54,6 @@ struct virt_dev *vm_virt_dev_add(struct vm *vm, const char *dev_name, bool pt_fl
 
     vm_dev = (struct virt_dev *)k_malloc(sizeof(struct virt_dev));
 	if (!vm_dev) {
-        ZVM_LOG_ERR("Allocate memory for vm device error!\n");
         return NULL;
     }
 
@@ -71,7 +70,6 @@ struct virt_dev *vm_virt_dev_add(struct vm *vm, const char *dev_name, bool pt_fl
 
     ret = vm_vdev_mem_add(vm, vm_dev);
     if(ret){
-        ZVM_LOG_ERR("Map vm device memory error!\n");
         return NULL;
     }
     vm_dev->virq = dev_virq;
@@ -105,7 +103,7 @@ int vdev_mmio_abort(arch_commom_regs_t *regs, int write, uint64_t addr,
     SYS_DLIST_FOR_EACH_NODE_SAFE(&vm->vdev_list, d_node, ds_node){
         vdev = CONTAINER_OF(d_node, struct virt_dev, vdev_node);
         vdevice_instance = (struct virtual_device_instance *)vdev->priv_data;
-
+        /*shareable device, which is used for virtio mmio. */
         if (vdev->shareable) {
 			if ((addr >= vdev->vm_vdev_vaddr) && (addr < vdev->vm_vdev_vaddr + vdev->vm_vdev_size)) {
                 dev = (const struct device* const)vdev->priv_data;
@@ -117,18 +115,7 @@ int vdev_mmio_abort(arch_commom_regs_t *regs, int write, uint64_t addr,
                     *)dev->api)->device_driver_api)->read(vdev, addr - vdev->vm_vdev_vaddr, (uint32_t *)reg_value, size);
 				}
 			}
-		} else if (!strcmp(vdev->name, "VM_VGIC")) {
-            if ((addr >= vdev->vm_vdev_paddr) && (addr < vdev->vm_vdev_paddr + vdev->vm_vdev_size)) {
-                dev = (const struct device* const)vdev->priv_vdev;
-                if (write) {
-                    return ((const struct virt_device_api * \
-                        const)(dev->api))->virt_device_write(vdev, addr, reg_value);
-                }else{
-                    return ((const struct virt_device_api * \
-                        const)(dev->api))->virt_device_read(vdev, addr, reg_value);
-                }
-            }
-        } else if(vdevice_instance != NULL){
+		}else if(vdevice_instance != NULL){
             if(DEV_DATA(vdevice_instance)->vdevice_type & VM_DEVICE_PRE_KERNEL_1){
                 if ((addr >= vdev->vm_vdev_paddr) && (addr < vdev->vm_vdev_paddr + vdev->vm_vdev_size)) {
                     if (write) {
@@ -235,13 +222,6 @@ int vm_device_init(struct vm *vm)
     int ret, i;
 
     sys_dlist_init(&vm->vdev_list);
-
-    ret = vm_intctrl_vdev_create(vm);
-    if (ret) {
-        ZVM_LOG_WARN(" Init interrupt controller device error! \n");
-		return -ENODEV;
-    }
-
     ret = vm_console_create(vm);
 	if (ret) {
         ZVM_LOG_WARN("Init vm debug console error! \n");

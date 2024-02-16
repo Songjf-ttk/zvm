@@ -22,6 +22,8 @@
 #define DEV_TYPE_VIRTIO_DEVICE      (0x02)
 #define DEV_TYPE_PASSTHROUGH_DEVICE (0x03)
 
+#define TOSTRING(x) STRINGIFY(x)
+
 struct virt_dev {
     /* name of virtual device */
 	char name[VIRT_DEV_NAME_LENGTH];
@@ -43,7 +45,8 @@ struct virt_dev {
 
     /**
      * Device private data may be usefull,
-     * 1. For full virtual device, it store the emulated device private data.
+     * 1. For full virtual device, it store the emulated device's driver,
+     * for example: virt_device instance.
      * 2. For passthrough device, it store the hardware instance data.
     */
     void *priv_data;

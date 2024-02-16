@@ -280,6 +280,15 @@ static int vgic_gicd_mem_write(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
 	return 0;
 }
 
+
+uint32_t arm_gic_get_distbase(struct virt_dev *vdev)
+{
+	struct vgicv3_dev *vgic = (struct vgicv3_dev *)vdev->priv_vdev;
+	struct virt_gic_gicd gicd = vgic->gicd;
+
+	return (uint32_t)gicd.gicd_regs_base;
+}
+
 void arch_vdev_irq_enable(struct vcpu *vcpu)
 {
 	uint32_t irq;
@@ -355,7 +364,7 @@ int vgic_vdev_mem_read(struct virt_dev *vdev, uint64_t addr, uint64_t *value)
     int i;
 	int type = TYPE_GIC_INVAILD;
 	struct vcpu *vcpu = _current_vcpu;
-	struct vgicv3_dev *vgic = (struct vgicv3_dev *)vdev->priv_data;
+	struct vgicv3_dev *vgic = (struct vgicv3_dev *)vdev->priv_vdev;
 	struct virt_gic_gicd *gicd = &vgic->gicd;
 	struct virt_gic_gicr *gicr = vgic->gicr[vcpu->vcpu_id];
 
@@ -412,7 +421,7 @@ int vgic_vdev_mem_write(struct virt_dev *vdev, uint64_t addr, uint64_t *value)
     int i;
 	int type = TYPE_GIC_INVAILD;
 	struct vcpu *vcpu = _current_vcpu;
-	struct vgicv3_dev *vgic = (struct vgicv3_dev *)vdev->priv_data;
+	struct vgicv3_dev *vgic = (struct vgicv3_dev *)vdev->priv_vdev;
 	struct virt_gic_gicd *gicd = &vgic->gicd;
 	struct virt_gic_gicr *gicr = vgic->gicr[vcpu->vcpu_id];
 
@@ -622,19 +631,4 @@ int virt_irq_flush_vgic(struct vcpu *vcpu)
 struct virt_irq_desc *get_virt_irq_desc(struct vcpu *vcpu, uint32_t virq)
 {
 	return vgic_get_virt_irq_desc(vcpu, virq);
-}
-
-int vm_intctrl_vdev_create(struct vm *vm)
-{
-	int ret = 0;
-	const struct device *dev = DEVICE_DT_GET(DT_ALIAS(vmvgic));
-
-	if(((const struct virt_device_api * const)(dev->api))->init_fn){
-		((const struct virt_device_api * const)(dev->api))->init_fn(dev, vm, NULL);
-	}else{
-		ZVM_LOG_ERR("No gic device api! \n");
-		return -ENODEV;
-	}
-
-	return ret;
 }

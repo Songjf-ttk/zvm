@@ -6,7 +6,6 @@
 
 /{
 	aliases {
-        vmvgic = "/soc/vgic@8000000";
 		vmserial1 = "/soc/uart@9001000";
 		vmserial2 = "/soc/uart@9002000";
         vmplatform = "/soc/platform@c000000";
@@ -33,13 +32,6 @@
 	};
 
     soc {
-
-		vgic: vgic@8000000 {
-			compatible = "arm,gic";
-			reg = <0x00 0x8000000 0x00 0x010000>,
-			      <0x00 0x80a0000 0x00 0xf60000>;
-            label = "VM_VGIC";
-		};
 
         uart1: uart@9001000 {
 			compatible = "arm,pl011";

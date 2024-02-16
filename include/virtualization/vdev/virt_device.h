@@ -73,9 +73,7 @@ struct virt_device_api {
  * @brief Virtual devices backend instance in zvm.
 */
 struct virtual_device_instance {
-
     const char *name;
-
     struct virt_device_data *data;
     struct virt_device_config *cfg;
     const struct virt_device_api *api;

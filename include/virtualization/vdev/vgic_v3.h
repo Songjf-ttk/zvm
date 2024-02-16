@@ -139,7 +139,11 @@ struct virt_gic_gicr {
 	uint32_t *gicr_rd_reg_base;
 	uint32_t *gicr_sgi_reg_base;
 
-	/* vm's physical gicr address. */
+	/**
+	 * gicr address base and size which
+	 * are used to locate vdev access from
+	 * vm.
+	*/
 	uint32_t gicr_rd_base;
 	uint32_t gicr_sgi_base;
 	uint32_t gicr_rd_size;
