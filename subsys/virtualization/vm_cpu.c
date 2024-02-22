@@ -33,7 +33,7 @@ static void init_vcpu_virt_irq_desc(struct vcpu_virt_irq_block *virq_block)
         desc->prio = 0;
         desc->vdev_trigger = 0;
         desc->vcpu_id = DEFAULT_VCPU;
-        desc->virq_flags = VIRQ_NOUSED_FLAG;
+        desc->virq_flags = 0;
         desc->virq_states = 0;
         desc->vm_id = DEFAULT_VM;
 
@@ -269,10 +269,12 @@ int vcpu_state_switch(struct k_thread *thread, uint16_t new_state)
 
 void do_vcpu_swap(struct k_thread *new_thread, struct k_thread *old_thread)
 {
-    uint32_t cur_state;
     struct vcpu *vcpu;
-    ARG_UNUSED(cur_state);
     ARG_UNUSED(vcpu);
+
+    if(new_thread == old_thread){
+        return;
+    }
 
 #ifdef CONFIG_SMP
     vcpu_context_switch(new_thread, old_thread);
@@ -280,7 +282,7 @@ void do_vcpu_swap(struct k_thread *new_thread, struct k_thread *old_thread)
     if (old_thread && VCPU_THREAD(old_thread)) {
         save_vcpu_context(old_thread);
     }
-    else if (new_thread && VCPU_THREAD(new_thread)) {
+    if (new_thread && VCPU_THREAD(new_thread)) {
         load_vcpu_context(new_thread);
     }
 #endif /* CONFIG_SMP */
@@ -335,7 +337,7 @@ static int created_vm_num = 0;
 struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name)
 {
     uint16_t vm_prio;
-    int pcpu_num;
+    int pcpu_num = 0;
     struct vcpu *vcpu;
     struct vcpu_work *vwork;
 
@@ -354,6 +356,10 @@ struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name)
 
     /* init vcpu virt irq block. */
     vcpu->virq_block.virq_pending_counts = 0;
+    vcpu->virq_block.vwfi.priv = NULL;
+    vcpu->virq_block.vwfi.state = false;
+    vcpu->virq_block.vwfi.yeild_count = 0;
+    ZVM_SPINLOCK_INIT(&vcpu->virq_block.vwfi.wfi_lock);
     sys_dlist_init(&vcpu->virq_block.pending_irqs);
     sys_dlist_init(&vcpu->virq_block.active_irqs);
     ZVM_SPINLOCK_INIT(&vcpu->virq_block.spinlock);
@@ -388,6 +394,11 @@ struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name)
 
     /* SMP support*/
 #ifdef CONFIG_SCHED_CPU_MASK
+    /**
+     * Due to the default 'new_thread->base.cpu_mask=1',
+     * BIT(0) must be cleared when enable other mask bit
+     * when CONFIG_SCHED_CPU_MASK_PIN_ONLY=y.
+    */
     k_thread_cpu_mask_disable(tid, 0);
 
     if (vm->is_rtos) {
@@ -404,6 +415,8 @@ struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name)
         pcpu_num = CONFIG_MP_NUM_CPUS-1;
     }
     k_thread_cpu_mask_enable(tid, pcpu_num);
+    vcpu->cpu = pcpu_num;
+#else
     vcpu->cpu = pcpu_num;
 #endif /* CONFIG_SCHED_CPU_MASK */
 

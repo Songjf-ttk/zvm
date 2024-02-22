@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 HNU
+ * Copyright 2021-2022 HNU-ESNL
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -53,7 +53,7 @@ struct esr_sysreg_area {
 	uint64_t op1	:3;    /* Op1 */
 	uint64_t op2	:3;    /* Op2 */
 	uint64_t op0	:2;    /* Op0 */
-	uint64_t res0	:3;		/* reserved file */
+	uint64_t res0	:3;	   /* reserved file */
 	uint64_t il		:1;    /* Instruction length */
 	uint64_t ec		:6;	   /* Exception Class */
 };
