@@ -351,13 +351,8 @@ void arch_vcpu_context_load(struct vcpu *vcpu)
     vcpu_vtimer_load(vcpu);
     vcpu_vgic_load(vcpu);
 
-#ifdef CONFIG_SCHED_CPU_MASK_PIN_ONLY
 	vcpu->arch->hcr_el2 &= ~HCR_TWE_BIT;
     vcpu->arch->hcr_el2 &= ~HCR_TWI_BIT;
-#else
-    vcpu->arch->hcr_el2 |= HCR_TWE_BIT;
-    vcpu->arch->hcr_el2 |= HCR_TWI_BIT;
-#endif
 }
 
 int arch_vcpu_init(struct vcpu *vcpu)

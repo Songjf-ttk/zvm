@@ -220,6 +220,11 @@ void z_arm64_el2_vhe_init(void)
 			"99: 	\n"
 		);
 	}
+	/* enable EOI mode, for passthrough device.  */
+	reg = read_sysreg(ICC_CTLR_EL1);
+	reg |= 0x02;
+	write_sysreg(reg, ICC_CTLR_EL1);
+
 #endif
 
 	/* Get identification information for the PE from midr_el1,

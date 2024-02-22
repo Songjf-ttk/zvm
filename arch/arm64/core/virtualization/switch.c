@@ -163,22 +163,22 @@ int arch_vcpu_run(struct vcpu *vcpu)
     return ret;
 }
 
-void z_vm_switch_handle_pre(uint32_t irq)
+bool zvm_switch_handle_pre(uint32_t irq)
 {
-    bool *bit_addr;
     struct k_thread *thread;
     struct vcpu *vcpu;
 
     if( (vcpu = _current_vcpu) == NULL){
-        return;
+        return false;
     }
 
-    bit_addr = vcpu->vm->vm_irq_block.irq_bitmap;
     /* If it is a vcpu thread, judge whether the signal is send to it */
-    if(!bit_addr[irq]){
-        return;
+    if(!vcpu->vm->vm_irq_block.irq_bitmap[irq]){
+        return false;
     }
 
     thread = vcpu->work->vcpu_thread;
     thread->base.thread_state |= _THREAD_VCPU_NO_SWITCH;
+
+    return true;
 }

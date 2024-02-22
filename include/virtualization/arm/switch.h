@@ -26,9 +26,13 @@ void get_zvm_host_context(void);
 int arch_vcpu_run(struct vcpu *vcpu);
 
 /**
- * @brief Avoid switch handle when current thread is a vcpu thread.
+ * @brief Avoid switch handle when current thread is a vcpu thread,
+ * and curretn irq is send to vcpu.
+ * @retval
+ * true: this irq is sent to vcpu.
+ * false: this irq is a normal irq.
  */
-void z_vm_switch_handle_pre(uint32_t irq);
+bool zvm_switch_handle_pre(uint32_t irq);
 
 
 #endif /* ZEPHYR_INCLUDE_ZVM_ARM_SWITCH_H__ */

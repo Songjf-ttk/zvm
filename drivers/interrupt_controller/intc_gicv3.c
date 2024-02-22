@@ -257,6 +257,20 @@ void arm_gic_eoi(unsigned int intid)
 
 }
 
+void arm_gic_eoi_deactive(unsigned int intid, bool no_deactive)
+{
+	/**
+	 * For VM passthrough device's intid, write dir to this intid
+	 * may be cause unpredictable action. And When ICC_CTLR_EL1.eoimode
+	 * is set to '1', host os's intid must use deactive operation.
+	*/
+	__DSB();
+	if(!no_deactive){
+		write_sysreg(intid, ICC_DIR_EL1);
+	}
+	isb();
+}
+
 void gic_raise_sgi(unsigned int sgi_id, uint64_t target_aff,
 		   uint16_t target_list)
 {

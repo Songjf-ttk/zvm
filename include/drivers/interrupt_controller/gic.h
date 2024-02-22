@@ -325,6 +325,14 @@ unsigned int arm_gic_get_active(void);
  */
 void arm_gic_eoi(unsigned int irq);
 
+/**
+ * @brief Deactive interrupt after eoi
+ *
+ * @param intid interrupt ID
+ * @param no_deactive no need deactive flag
+ */
+void arm_gic_eoi_deactive(unsigned int intid, bool no_deactive);
+
 #ifdef CONFIG_SMP
 /**
  * @brief Initialize GIC of secondary cores

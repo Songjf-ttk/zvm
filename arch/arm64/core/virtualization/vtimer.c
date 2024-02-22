@@ -9,7 +9,6 @@
 #include <drivers/timer/arm_arch_timer.h>
 #include <drivers/timer/system_timer.h>
 #include <arch/arm64/timer.h>
-
 #include <virtualization/arm/vtimer.h>
 #include <virtualization/vdev/vgic_common.h>
 #include <virtualization/vm.h>
@@ -247,9 +246,10 @@ void simulate_timer_cntp_ctl(struct vcpu *vcpu, int read, uint64_t *value)
  */
 int arch_vcpu_timer_init(struct vcpu *vcpu)
 {
-	bool *bit_addr;
+	bool *bit_map;
 	struct virt_timer_context *ctxt;
 	struct vcpu_arch *arch = vcpu->arch;
+	struct virt_irq_desc *irq_desc;
 
 	arch->vtimer_context = (struct virt_timer_context *)k_malloc(sizeof(struct virt_timer_context));
     if(!arch->vtimer_context) {
@@ -281,9 +281,14 @@ int arch_vcpu_timer_init(struct vcpu *vcpu)
 	init_virt_timer_timeout(&ctxt->vtimer_timeout, virt_vtimer_expiry);
 	init_virt_timer_timeout(&ctxt->ptimer_timeout, virt_ptimer_expiry);
 
-	bit_addr = vcpu->vm->vm_irq_block.irq_bitmap;
-	bit_addr[ctxt->virt_virq] = true;
-	bit_addr[ctxt->virt_pirq] = true;
+	/*El1 physical and virtual timer. */
+	bit_map = vcpu->vm->vm_irq_block.irq_bitmap;
+	bit_map[ctxt->virt_virq] = true;
+	bit_map[ctxt->virt_pirq] = true;
+
+	/*Make VM directly access virt timer register.*/
+	irq_desc = vgic_get_virt_irq_desc(vcpu, ctxt->virt_virq);
+	irq_desc->virq_flags |= VIRQ_HW_FLAG;
 
 	return 0;
 }
