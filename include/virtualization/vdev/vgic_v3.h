@@ -17,7 +17,6 @@
 #include <virtualization/vm_irq.h>
 #include <virtualization/zvm.h>
 #include <virtualization/vdev/vgic_common.h>
-
 #include "../../../drivers/interrupt_controller/intc_gicv3_priv.h"
 
 /* SGI mode */
@@ -229,6 +228,51 @@ int vgicv3_raise_sgi(struct vcpu *vcpu, unsigned long sgi_value);
  * @brief init vgicv3 device for the vm.
 */
 struct vgicv3_dev *vgicv3_dev_init(struct vm *vm);
+
+/**
+ * @brief When VMs enable or disable register, zvm will test
+ * related bit and set it to correct value. This function is used
+ * for irq enable or disable flag;
+*/
+static ALWAYS_INLINE void vgic_test_and_set_enable_bit(struct vcpu *vcpu, uint32_t spi_nr_count,
+						uint32_t *value, uint32_t bit_size, bool enable, void *vgic_priv)
+{
+	int bit;
+	uint32_t reg_mem_addr = (uint32_t)value;
+	struct virt_gic_gicd *gicd = NULL;
+	struct virt_gic_gicr *gicr = NULL;
+
+	for (bit=0; bit<bit_size; bit++) {
+		if (sys_test_bit(reg_mem_addr, bit)) {
+			if (enable) {
+				vgic_irq_enable(vcpu, spi_nr_count + bit);
+				if(spi_nr_count < VM_LOCAL_VIRQ_NR){
+					gicr = (struct virt_gic_gicr *)vgic_priv;
+					vgic_sysreg_write32(vgic_sysreg_read32(gicr->gicr_sgi_reg_base, VGICR_ISENABLER0) | BIT(bit),\
+					gicr->gicr_sgi_reg_base, VGICR_ISENABLER0);
+				}else{
+					gicd = (struct virt_gic_gicd *)vgic_priv;
+					vgic_sysreg_write32(vgic_sysreg_read32(gicd->gicd_regs_base, VGICD_ISENABLERn) | BIT(bit),\
+					gicd->gicd_regs_base, VGICD_ISENABLERn);
+				}
+			} else {
+				/* TODO: add a situation for disable irq interrupt later */
+				if (*value != DEFAULT_DISABLE_IRQVAL) {
+					vgic_irq_disable(vcpu, spi_nr_count + bit);
+				}
+				if(spi_nr_count < VM_LOCAL_VIRQ_NR){
+					gicr = (struct virt_gic_gicr *)vgic_priv;
+					vgic_sysreg_write32(vgic_sysreg_read32(gicr->gicr_sgi_reg_base, VGICR_ICENABLER0) & ~BIT(bit),\
+					gicr->gicr_sgi_reg_base, VGICR_ICENABLER0);
+				}else{
+					gicd = (struct virt_gic_gicd *)vgic_priv;
+					vgic_sysreg_write32(vgic_sysreg_read32(gicd->gicd_regs_base, VGICD_ICENABLERn) | ~BIT(bit),\
+					gicd->gicd_regs_base, VGICD_ICENABLERn);
+				}
+			}
+		}
+	}
+}
 
 static ALWAYS_INLINE uint64_t gicv3_read_lr(uint8_t register_id)
 {

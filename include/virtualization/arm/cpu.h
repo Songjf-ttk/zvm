@@ -12,6 +12,7 @@
 #include <arch/arm64/cpu.h>
 #include <arch/arm64/exc.h>
 #include <arch/arm64/thread.h>
+#include <virtualization/arm/asm.h>
 
 
 #define HCR_VHE_FLAGS (HCR_RW_BIT | HCR_TGE_BIT | HCR_E2H_BIT)
@@ -104,13 +105,14 @@
      ((__SYSREG_##crm) << ESR_SYSINS_CRM_SHIFT) | \
      ((__SYSREG_##op2) << ESR_SYSINS_OP2_SHIFT))
 
-#define ESR_SYSINSREG_SGI1R_EL1  ESR_SYSINS(3,0,c12,c11,5)
-#define ESR_SYSINSREG_ASGI1R_EL1 ESR_SYSINS(3,1,c12,c11,6)
-#define ESR_SYSINSREG_SGI0R_EL1  ESR_SYSINS(3,2,c12,c11,7)
-#define ESR_SYSINSREG_CNTPCT_EL0     ESR_SYSINS(3,3,c14,c0,0)
-#define ESR_SYSINSREG_CNTP_TVAL_EL0  ESR_SYSINS(3,3,c14,c2,0)
-#define ESR_SYSINSREG_CNTP_CTL_EL0   ESR_SYSINS(3,3,c14,c2,1)
-#define ESR_SYSINSREG_CNTP_CVAL_EL0  ESR_SYSINS(3,3,c14,c2,2)
+#define ESR_SYSINSREG_SGI1R_EL1         ESR_SYSINS(3,0,c12,c11,5)
+#define ESR_SYSINSREG_ASGI1R_EL1        ESR_SYSINS(3,1,c12,c11,6)
+#define ESR_SYSINSREG_SGI0R_EL1         ESR_SYSINS(3,2,c12,c11,7)
+#define ESR_SYSINSERG_CTLR_EL1          ESR_SYSINS(3,0,c12,c12,4)
+#define ESR_SYSINSREG_CNTPCT_EL0        ESR_SYSINS(3,3,c14,c0,0)
+#define ESR_SYSINSREG_CNTP_TVAL_EL0     ESR_SYSINS(3,3,c14,c2,0)
+#define ESR_SYSINSREG_CNTP_CTL_EL0      ESR_SYSINS(3,3,c14,c2,1)
+#define ESR_SYSINSREG_CNTP_CVAL_EL0     ESR_SYSINS(3,3,c14,c2,2)
 
 
 /* Emulate ASM UBFX operation*/
@@ -118,36 +120,36 @@
 #define ASM_UBFX(start, width, src) ((ASM_MASK_BIT(start, width) & src)>>start)
 
 
-/* below value is caculated from vcpu_sysreg on '../arm64/kvm_host.h'
-for the base value with 149 */
-#define VCPU_SYS_REG_NUM    (126)
-#define VCPU_MPIDR_EL1      (1)
-#define VCPU_CSSELR_EL1     (2)
-#define VCPU_SCTLR_EL1      (3)
-#define VCPU_ACTLR_EL1      (4)
-#define VCPU_CPACR_EL1      (5)
-#define VCPU_TTBR0_EL1      (6)
-#define VCPU_TTBR1_EL1      (7)
-#define VCPU_TCR_EL1        (8)
-#define VCPU_ESR_EL1        (10)
-#define VCPU_AFSR0_EL1      (11)
-#define VCPU_AFSR1_EL1      (12)
-#define VCPU_FAR_EL1        (13)
-#define VCPU_MAIR_EL1       (14)
-#define VCPU_VBAR_EL1       (15)
-#define VCPU_CONTEXTIDR_EL1 (16)
-#define VCPU_TPIDR_EL0      (17)
-#define VCPU_TPIDRRO_EL0    (18)
-#define VCPU_TPIDR_EL1      (19)
-#define VCPU_AMAIR_EL1      (20)
-#define VCPU_CNTKCTL_EL1    (21)
-#define VCPU_PAR_EL1        (22)
-#define VCPU_MDSCR_EL1      (23)
-#define VCPU_DISR_EL1       (25)
-#define VCPU_ELR_EL1        (106)
-#define VCPU_SP_EL1         (107)
-#define VCPU_SPSR_EL1       (108)
-#define VCPU_VPIDR          (125)
+enum {
+    VCPU_MPIDR_EL1,
+    VCPU_CSSELR_EL1,
+    VCPU_SCTLR_EL1,
+    VCPU_ACTLR_EL1,
+    VCPU_CPACR_EL1,
+    VCPU_TTBR0_EL1,
+    VCPU_TTBR1_EL1,
+    VCPU_TCR_EL1,
+    VCPU_ESR_EL1,
+    VCPU_AFSR0_EL1,
+    VCPU_AFSR1_EL1,
+    VCPU_FAR_EL1,
+    VCPU_MAIR_EL1,
+    VCPU_VBAR_EL1,
+    VCPU_CONTEXTIDR_EL1,
+    VCPU_TPIDR_EL0,
+    VCPU_TPIDRRO_EL0,
+    VCPU_TPIDR_EL1,
+    VCPU_AMAIR_EL1,
+    VCPU_CNTKCTL_EL1,
+    VCPU_PAR_EL1,
+    VCPU_MDSCR_EL1,
+    VCPU_DISR_EL1,
+    VCPU_ELR_EL1,
+    VCPU_SP_EL1,
+    VCPU_SPSR_EL1,
+    VCPU_VPIDR,
+    VCPU_SYS_REG_NUM
+};
 
 #define DEFAULT_VCPU         (0)
 #define DEFAULT_PCPU         (1)

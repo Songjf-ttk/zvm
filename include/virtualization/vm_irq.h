@@ -32,7 +32,6 @@
 #define VIRQ_ACTIVED_FLAG           BIT(2)
 #define VIRQ_ENABLED_FLAG		    BIT(3)
 #define VIRQ_WAKEUP_FLAG            BIT(4)
-#define VIRQ_NOUSED_FLAG            BIT(5)
 
 /* Hardware irq states */
 #define VIRQ_STATE_INVALID		        (0b00)
@@ -105,7 +104,7 @@ struct vcpu_virt_irq_block {
     uint32_t virq_pending_counts;
 
     struct virt_irq_desc vcpu_virt_irq_desc[VM_LOCAL_VIRQ_NR];
-    struct vcpu_wfi *vwfi;
+    struct vcpu_wfi vwfi;
 
     struct k_spinlock spinlock;
 
@@ -141,6 +140,8 @@ struct vm_virt_irq_block {
 };
 
 bool vcpu_irq_exist(struct vcpu *vcpu);
+
+int vcpu_wait_for_irq(struct vcpu *vcpu);
 
 /**
  * @brief init the irq desc when add @vm_dev.

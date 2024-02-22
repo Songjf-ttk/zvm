@@ -12,7 +12,6 @@
 #include <kernel_structs.h>
 #include <virtualization/zvm.h>
 #ifdef CONFIG_ARM64
-#include <virtualization/arm/asm.h>
 #include <virtualization/arm/cpu.h>
 #include <virtualization/arm/cpu_irq.h>
 #include <virtualization/arm/mm.h>

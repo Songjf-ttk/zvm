@@ -14,8 +14,8 @@
 #include <virtualization/zvm.h>
 #include <virtualization/vm_console.h>
 #include <virtualization/vdev/virt_device.h>
-#include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/vdev/vgic_common.h>
+#include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/vm_irq.h>
 #include <virtualization/vdev/fiq_debugger.h>
 
@@ -105,6 +105,10 @@ void virt_serial_isr(const struct device *dev)
 #ifdef CONFIG_VM_SERIAL1
 
 #ifdef CONFIG_UART_INTERRUPT_DRIVEN
+/**
+ * @TODO: Maybe no need to enable serial port
+ * when vm is not start.
+*/
 static void serial1_irq_config_func(const struct device *dev)
 {
 	IRQ_CONNECT(DT_IRQN(DT_ALIAS(vmserial1)),

@@ -72,5 +72,4 @@ elif [ "$OPS" = "$ops_debug" ]; then
     else
         echo "Error arguments for this auto.sh! \n Please input command like: ./z_auto.sh build qemu. "
     fi
-
 fi

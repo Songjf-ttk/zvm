@@ -13,15 +13,12 @@
 #include <irq.h>
 #include <arch/cpu.h>
 #include <arch/arm64/lib_helpers.h>
-#include <arch/common/sys_bitops.h>
 #include <dt-bindings/interrupt-controller/arm-gic.h>
-#include <drivers/interrupt_controller/gic.h>
 #include <logging/log.h>
 #include <../drivers/interrupt_controller/intc_gicv3_priv.h>
 #include <virtualization/arm/cpu.h>
-#include <virtualization/arm/asm.h>
-#include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/vdev/vgic_common.h>
+#include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/zvm.h>
 #include <virtualization/vm_irq.h>
 #include <virtualization/vm_console.h>
@@ -245,12 +242,12 @@ static int vgic_gicd_mem_write(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
 		case GICD_ISENABLERn...(GICD_ICENABLERn - 1):
 			x = (offset - GICD_ISENABLERn) / 4;
 			y = x * 32;
-			vgic_irq_test_and_set_bit(vcpu, y, value, 32, 1);
+			vgic_test_and_set_enable_bit(vcpu, y, value, 32, 1, gicd);
 			break;
 		case GICD_ICENABLERn...(GICD_ISPENDRn - 1):
 			x = (offset - GICD_ICENABLERn) / 4;
 			y = x * 32;
-			vgic_irq_test_and_set_bit(vcpu, y, value, 32, 0);
+			vgic_test_and_set_enable_bit(vcpu, y, value, 32, 0, gicd);
 			break;
 		case GICD_IPRIORITYRn...(GIC_DIST_BASE + 0x07f8 - 1):
 			t = *value;
@@ -280,15 +277,6 @@ static int vgic_gicd_mem_write(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
 	return 0;
 }
 
-
-uint32_t arm_gic_get_distbase(struct virt_dev *vdev)
-{
-	struct vgicv3_dev *vgic = (struct vgicv3_dev *)vdev->priv_vdev;
-	struct virt_gic_gicd gicd = vgic->gicd;
-
-	return (uint32_t)gicd.gicd_regs_base;
-}
-
 void arch_vdev_irq_enable(struct vcpu *vcpu)
 {
 	uint32_t irq;
@@ -298,14 +286,14 @@ void arch_vdev_irq_enable(struct vcpu *vcpu)
 
 	SYS_DLIST_FOR_EACH_NODE_SAFE(&vm->vdev_list, d_node, ds_node) {
         vdev = CONTAINER_OF(d_node, struct virt_dev, vdev_node);
-
-		/* enable spi interrupt */
-		irq = vdev->hirq;
-
-		if (irq > CONFIG_NUM_IRQS) {
-			continue;
+		if(vdev->dev_pt_flag){
+			/* enable spi interrupt */
+			irq = vdev->hirq;
+			if (irq > CONFIG_NUM_IRQS) {
+				continue;
+			}
+			arm_gic_irq_enable(irq);
 		}
-		arm_gic_irq_enable(irq);
     }
 }
 
@@ -318,15 +306,14 @@ void arch_vdev_irq_disable(struct vcpu *vcpu)
 
 	SYS_DLIST_FOR_EACH_NODE_SAFE(&vm->vdev_list, d_node, ds_node) {
         vdev = CONTAINER_OF(d_node, struct virt_dev, vdev_node);
-
-		/* disable spi interrupt */
-		irq = vdev->hirq;
-
-		if(irq > CONFIG_NUM_IRQS){
-			continue;
+		if(vdev->dev_pt_flag){
+			/* disable spi interrupt */
+			irq = vdev->hirq;
+			if(irq > CONFIG_NUM_IRQS){
+				continue;
+			}
+			arm_gic_irq_disable(irq);
 		}
-
-		arm_gic_irq_disable(irq);
     }
 }
 

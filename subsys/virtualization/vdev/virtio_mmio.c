@@ -12,8 +12,8 @@
 #include <devicetree.h>
 #include <virtualization/zvm.h>
 #include <virtualization/vdev/virt_device.h>
-#include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/vdev/vgic_common.h>
+#include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/vdev/virtio/virtio.h>
 #include <virtualization/vdev/virtio/virtio_mmio.h>
 #include <virtualization/vdev/virtio/virtio_blk.h>

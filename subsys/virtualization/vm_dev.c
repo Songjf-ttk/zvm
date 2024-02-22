@@ -246,6 +246,8 @@ int vm_device_init(struct vm *vm)
     /* @TODO: scan the dtb and get the device's node. */
     /* Board specific device init, for example fig debugger. */
     switch (vm->os->type){
+    case OS_TYPE_ZEPHYR:
+        break;
     case OS_TYPE_LINUX:
         ret = vm_init_bdspecific_device(vm);
         break;

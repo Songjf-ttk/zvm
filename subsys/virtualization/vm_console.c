@@ -12,8 +12,8 @@
 #include <virtualization/vm_console.h>
 #include <virtualization/zvm.h>
 #include <virtualization/arm/mm.h>
-#include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/vdev/vgic_common.h>
+#include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/vm_mm.h>
 #include <virtualization/vdev/virt_device.h>
 

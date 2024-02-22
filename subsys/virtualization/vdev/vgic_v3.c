@@ -18,8 +18,8 @@
 #include <logging/log.h>
 #include <../drivers/interrupt_controller/intc_gicv3_priv.h>
 #include <virtualization/arm/cpu.h>
-#include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/vdev/vgic_common.h>
+#include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/zvm.h>
 #include <virtualization/vm_irq.h>
 #include <virtualization/vm_console.h>
@@ -96,8 +96,6 @@ static void vgicv3_prios_load(struct gicv3_vcpuif_ctxt *ctxt)
 static void vgicv3_ctrls_load(struct gicv3_vcpuif_ctxt *ctxt)
 {
     write_sysreg(ctxt->icc_sre_el1, ICC_SRE_EL1);
-	write_sysreg(ctxt->icc_ctlr_el1, ICC_CTLR_EL1);
-
 	write_sysreg(ctxt->ich_vmcr_el2, ICH_VMCR_EL2);
 	write_sysreg(ctxt->ich_hcr_el2, ICH_HCR_EL2);
 }
@@ -191,8 +189,6 @@ static void vgicv3_prios_save(struct gicv3_vcpuif_ctxt *ctxt)
 static void vgicv3_ctrls_save(struct gicv3_vcpuif_ctxt *ctxt)
 {
     ctxt->icc_sre_el1 = read_sysreg(ICC_SRE_EL1);
-	ctxt->icc_ctlr_el1 = read_sysreg(ICC_CTLR_EL1);
-
 	ctxt->ich_vmcr_el2 = read_sysreg(ICH_VMCR_EL2);
 	ctxt->ich_hcr_el2 = read_sysreg(ICH_HCR_EL2);
 }
@@ -365,6 +361,14 @@ ZVM_VIRTUAL_DEVICE_DEFINE(virt_gic_v3_init,
 			virt_gicv3_cfg,
 			virt_gicv3_api);
 
+uint32_t *arm_gic_get_distbase(struct virt_dev *vdev)
+{
+	struct vgicv3_dev *vgic = (struct vgicv3_dev *)vdev->priv_vdev;
+	struct virt_gic_gicd *gicd = &vgic->gicd;
+
+	return gicd->gicd_regs_base;
+}
+
 int gicv3_inject_virq(struct vcpu *vcpu, struct virt_irq_desc *desc)
 {
 	uint64_t value = 0;
@@ -431,22 +435,10 @@ int vgic_gicrsgi_mem_write(struct vcpu *vcpu, struct virt_gic_gicr *gicr, uint32
 
 	switch (offset) {
 	case GICR_SGI_ISENABLER:
-		vgic_irq_test_and_set_bit(vcpu, 0, value, 32, 1);
-		for (bit = 0; bit < 32; bit++) {
-			if (sys_test_bit(mem_addr, bit)) {
-				vgic_sysreg_write32(vgic_sysreg_read32(gicr->gicr_sgi_reg_base, VGICR_ISENABLER0) | BIT(bit),\
-				 gicr->gicr_sgi_reg_base, VGICR_ISENABLER0);
-			}
-		}
+		vgic_test_and_set_enable_bit(vcpu, 0, value, 32, 1, gicr);
 		break;
 	case GICR_SGI_ICENABLER:
-		vgic_irq_test_and_set_bit(vcpu, 0, value, 32, 0);
-		for(bit = 0; bit < 32; bit++) {
-			if (sys_test_bit(mem_addr, bit)) {
-				vgic_sysreg_write32(vgic_sysreg_read32(gicr->gicr_sgi_reg_base, VGICR_ICENABLER0) & ~BIT(bit),\
-				 gicr->gicr_sgi_reg_base, VGICR_ICENABLER0);
-			}
-		}
+		vgic_test_and_set_enable_bit(vcpu, 0, value, 32, 0, gicr);
 		break;
 	case GICR_SGI_PENDING:
 		/* clear pending state */
@@ -563,7 +555,6 @@ int vcpu_gicv3_init(struct gicv3_vcpuif_ctxt *ctxt)
 
     ctxt->icc_sre_el1 = 0x07;
 	ctxt->icc_ctlr_el1 = read_sysreg(ICC_CTLR_EL1);
-	ctxt->icc_ctlr_el1 |= 0x02;
 
     ctxt->ich_vmcr_el2 = GICH_VMCR_VENG1 | GICH_VMCR_DEFAULT_MASK;
     ctxt->ich_hcr_el2 = GICH_HCR_EN;
