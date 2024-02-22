@@ -210,12 +210,14 @@ int handle_vm_device_emulate(struct vm *vm, uint64_t pa_addr)
     return -ENODEV;
 }
 
+#ifdef CONFIG_VM_VIRTIO_MMIO
 static void zvm_virtio_emu_register(void)
 {
 #ifdef CONFIG_VM_VIRTIO_BLOCK
     virtio_register_emulator(&virtio_blk);
 #endif
 }
+#endif
 
 int vm_device_init(struct vm *vm)
 {

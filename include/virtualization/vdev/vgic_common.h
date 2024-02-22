@@ -268,7 +268,7 @@ static ALWAYS_INLINE bool vgic_irq_test_bit(struct vcpu *vcpu, uint32_t spi_nr_c
 	ARG_UNUSED(enable);
 	ARG_UNUSED(spi_nr_count);
 	int bit;
-	uint32_t reg_mem_addr = (uint32_t)value;
+	uint32_t reg_mem_addr = (uint64_t)value;
 	for (bit=0; bit<bit_size; bit++) {
 		if (sys_test_bit(reg_mem_addr, bit)) {
 			return true;

@@ -36,7 +36,7 @@ LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 #define DEV_CFG(dev) \
 	((const struct virt_device_config * const)(dev)->config)
 
-static struct virtual_device_instance *gic_virtual_device_instance;
+static const struct virtual_device_instance *gic_virtual_device_instance;
 
 /**
  * @brief load list register for vcpu interface.

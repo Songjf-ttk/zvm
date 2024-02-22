@@ -49,7 +49,7 @@ struct virt_dev {
      * for example: virt_device instance.
      * 2. For passthrough device, it store the hardware instance data.
     */
-    void *priv_data;
+    const void *priv_data;
 
     /**
      * Binding to full virtual device driver.

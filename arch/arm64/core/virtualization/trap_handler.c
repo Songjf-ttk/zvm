@@ -122,7 +122,6 @@ static int cpu_unknwn_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_elx)
 
 static int cpu_wfi_wfe_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_elx)
 {
-    int ret;
     uint32_t condition, esr_iss;
     struct vcpu *vcpu = _current_vcpu;
 
@@ -311,7 +310,6 @@ static int cpu_misaligned_sp_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_el
 int arch_vm_trap_sync(struct vcpu *vcpu)
 {
     int err = 0;
-    uint32_t fix_esr_elx, il_flag;
     uint64_t esr_elx;
     arch_commom_regs_t *arch_ctxt;
 

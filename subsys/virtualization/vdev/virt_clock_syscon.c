@@ -27,7 +27,7 @@ LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
 struct virt_clk_syscon_list overall_clock_syscons;
 
-static struct virtual_device_instance *clk_virtual_device_instance;
+static const struct virtual_device_instance *clk_virtual_device_instance;
 
 static bool first_entry_flag = false;
 

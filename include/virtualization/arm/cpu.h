@@ -212,17 +212,27 @@ typedef struct vcpu_arch vcpu_arch_t;
 extern void *_vector_table[];
 extern void _hyp_vector_table(void);
 
+void arch_vcpu_context_save(struct vcpu *vcpu);
+void arch_vcpu_context_load(struct vcpu *vcpu);
+
 /**
- * @brief Check if ZVM supports ARM64.
+ * @brief Load guest system register.
+*/
+void switch_to_guest_sysreg(struct vcpu *vcpu);
+
+/**
+ * @brief switch_to_host_sysreg aim to save guest sysreg before exit.
  */
-int zvm_arch_init(void *op);
+void switch_to_host_sysreg(struct vcpu *vcpu);
 
 /**
  * @brief init vcpu arch related struct here.
  */
 int arch_vcpu_init(struct vcpu *vcpu);
-void arch_vcpu_context_save(struct vcpu *vcpu);
-void arch_vcpu_context_load(struct vcpu *vcpu);
 
+/**
+ * @brief Check if ZVM supports ARM64.
+ */
+int zvm_arch_init(void *op);
 
 #endif  /*ZEPHYR_INCLUDE_ZVM_ARM_CPU_H_*/

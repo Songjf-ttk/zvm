@@ -38,8 +38,8 @@ bool arch_irq_ispending(struct vcpu *vcpu)
         return false;
     }
     mem_addr_base += VGICD_ISPENDRn;
-    pend_addrend = (uint32_t)mem_addr_base+(VGICD_ICPENDRn-VGICD_ISPENDRn);
-    for(mem_addr_base; (uint32_t)mem_addr_base < pend_addrend; mem_addr_base++){
+    pend_addrend = (uint64_t)mem_addr_base+(VGICD_ICPENDRn-VGICD_ISPENDRn);
+    for(; (uint64_t)mem_addr_base < pend_addrend; mem_addr_base++){
         if(vgic_irq_test_bit(vcpu, 0, mem_addr_base, 32, 0)){
             return true;
         }

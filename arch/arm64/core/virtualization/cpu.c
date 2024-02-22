@@ -131,9 +131,6 @@ void switch_to_guest_sysreg(struct vcpu *vcpu)
 
 }
 
-/**
- * @brief switch_to_host_sysreg aim to save guest sysreg before exit.
- */
 void switch_to_host_sysreg(struct vcpu *vcpu)
 {
     uint32_t reg_val;

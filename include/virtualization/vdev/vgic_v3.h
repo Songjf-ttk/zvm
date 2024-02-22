@@ -238,7 +238,7 @@ static ALWAYS_INLINE void vgic_test_and_set_enable_bit(struct vcpu *vcpu, uint32
 						uint32_t *value, uint32_t bit_size, bool enable, void *vgic_priv)
 {
 	int bit;
-	uint32_t reg_mem_addr = (uint32_t)value;
+	uint32_t reg_mem_addr = (uint64_t)value;
 	struct virt_gic_gicd *gicd = NULL;
 	struct virt_gic_gicr *gicr = NULL;
 

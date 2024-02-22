@@ -12,6 +12,7 @@
 #include <virtualization/vm_cpu.h>
 #include <virtualization/zvm.h>
 #include <virtualization/vdev/vgic_common.h>
+#include <virtualization/arm/cpu.h>
 #include <drivers/interrupt_controller/gic.h>
 #include <arch/arm64/cpu.h>
 #include <stdint.h>

@@ -35,7 +35,6 @@ bool vcpu_irq_exist(struct vcpu *vcpu)
 int vcpu_wait_for_irq(struct vcpu *vcpu)
 {
     bool irq_exist, vcpu_will_yeild=false, vcpu_will_pause=false;
-    int ret;
     k_spinlock_key_t key;
 
     /* judge whether the vcpu has pending or active irq */
