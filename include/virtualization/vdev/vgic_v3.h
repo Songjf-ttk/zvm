@@ -17,14 +17,15 @@
 #include <virtualization/vm_irq.h>
 #include <virtualization/zvm.h>
 #include <virtualization/vdev/vgic_common.h>
+#include "../../../drivers/interrupt_controller/intc_gicv3_priv.h"
 
 /* SGI mode */
-#define SGI_SIG_TO_LIST		(0)
-#define SGI_SIG_TO_OTHERS	(1)
+#define SGI_SIG_TO_LIST			(0)
+#define SGI_SIG_TO_OTHERS		(1)
 
 /* vgic macro here */
-#define VGIC_MAX_VCPU       64
-#define VGIC_UNDEFINE_ADDR  0xFFFFFFFF
+#define VGIC_MAX_VCPU       	64
+#define VGIC_UNDEFINE_ADDR  	0xFFFFFFFF
 
 /* vgic action */
 #define ACTION_CLEAR_VIRQ	    BIT(0)
@@ -52,13 +53,13 @@
 #define LIST_REG_HW_VIRQ		(1)
 
 /* GICR registers offset from RDIST_base(n) */
-#define VGICR_CTLR				0x0000
-#define VGICR_IIDR				0x0004
-#define VGICR_TYPER				0x0008
-#define VGICR_STATUSR			0x0010
-#define VGICR_WAKER				0x0014
-#define VGICR_PROPBASER			0x0070
-#define VGICR_PENDBASER			0x0078
+#define VGICR_CTLR				GICR_CTLR
+#define VGICR_IIDR				GICR_IIDR
+#define VGICR_TYPER				GICR_TYPER
+#define VGICR_STATUSR			GICR_STATUSR
+#define VGICR_WAKER				GICR_WAKER
+#define VGICR_PROPBASER			GICR_PROPBASER
+#define VGICR_PENDBASER			GICR_PENDBASER
 #define VGICR_ISENABLER0		0x0100
 #define VGICR_ICENABLER0		0x0180
 #define VGICR_SGI_PENDING		0x0200
@@ -137,7 +138,11 @@ struct virt_gic_gicr {
 	uint32_t *gicr_rd_reg_base;
 	uint32_t *gicr_sgi_reg_base;
 
-	/* vm's physical gicr address. */
+	/**
+	 * gicr address base and size which
+	 * are used to locate vdev access from
+	 * vm.
+	*/
 	uint32_t gicr_rd_base;
 	uint32_t gicr_sgi_base;
 	uint32_t gicr_rd_size;
@@ -223,6 +228,51 @@ int vgicv3_raise_sgi(struct vcpu *vcpu, unsigned long sgi_value);
  * @brief init vgicv3 device for the vm.
 */
 struct vgicv3_dev *vgicv3_dev_init(struct vm *vm);
+
+/**
+ * @brief When VMs enable or disable register, zvm will test
+ * related bit and set it to correct value. This function is used
+ * for irq enable or disable flag;
+*/
+static ALWAYS_INLINE void vgic_test_and_set_enable_bit(struct vcpu *vcpu, uint32_t spi_nr_count,
+						uint32_t *value, uint32_t bit_size, bool enable, void *vgic_priv)
+{
+	int bit;
+	uint32_t reg_mem_addr = (uint64_t)value;
+	struct virt_gic_gicd *gicd = NULL;
+	struct virt_gic_gicr *gicr = NULL;
+
+	for (bit=0; bit<bit_size; bit++) {
+		if (sys_test_bit(reg_mem_addr, bit)) {
+			if (enable) {
+				vgic_irq_enable(vcpu, spi_nr_count + bit);
+				if(spi_nr_count < VM_LOCAL_VIRQ_NR){
+					gicr = (struct virt_gic_gicr *)vgic_priv;
+					vgic_sysreg_write32(vgic_sysreg_read32(gicr->gicr_sgi_reg_base, VGICR_ISENABLER0) | BIT(bit),\
+					gicr->gicr_sgi_reg_base, VGICR_ISENABLER0);
+				}else{
+					gicd = (struct virt_gic_gicd *)vgic_priv;
+					vgic_sysreg_write32(vgic_sysreg_read32(gicd->gicd_regs_base, VGICD_ISENABLERn) | BIT(bit),\
+					gicd->gicd_regs_base, VGICD_ISENABLERn);
+				}
+			} else {
+				/* TODO: add a situation for disable irq interrupt later */
+				if (*value != DEFAULT_DISABLE_IRQVAL) {
+					vgic_irq_disable(vcpu, spi_nr_count + bit);
+				}
+				if(spi_nr_count < VM_LOCAL_VIRQ_NR){
+					gicr = (struct virt_gic_gicr *)vgic_priv;
+					vgic_sysreg_write32(vgic_sysreg_read32(gicr->gicr_sgi_reg_base, VGICR_ICENABLER0) & ~BIT(bit),\
+					gicr->gicr_sgi_reg_base, VGICR_ICENABLER0);
+				}else{
+					gicd = (struct virt_gic_gicd *)vgic_priv;
+					vgic_sysreg_write32(vgic_sysreg_read32(gicd->gicd_regs_base, VGICD_ICENABLERn) | ~BIT(bit),\
+					gicd->gicd_regs_base, VGICD_ICENABLERn);
+				}
+			}
+		}
+	}
+}
 
 static ALWAYS_INLINE uint64_t gicv3_read_lr(uint8_t register_id)
 {

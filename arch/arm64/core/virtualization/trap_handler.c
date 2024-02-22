@@ -12,7 +12,6 @@
 #include <virtualization/arm/mm.h>
 #include <virtualization/arm/trap_handler.h>
 #include <virtualization/arm/cpu.h>
-#include <virtualization/arm/asm.h>
 #include <virtualization/arm/vtimer.h>
 #include <virtualization/vdev/vgic_v3.h>
 
@@ -39,6 +38,7 @@ static int handle_ftrans_desc(int iss_dfsc, uint64_t pa_addr,
 {
     int ret = 0;
     struct vcpu *vcpu = _current_vcpu;
+    uint64_t esr_elx = vcpu->arch->fault.esr_el2;
 
 #ifdef CONFIG_VM_DYNAMIC_MEMORY
     /* TODO: Add dynamic memory allocate. */
@@ -58,7 +58,7 @@ static int handle_ftrans_desc(int iss_dfsc, uint64_t pa_addr,
         */
     }else{
         vm_mem_domain_partitions_add(vcpu->vm->vmem_domain);
-        vcpu->arch->ctxt.regs.pc -= AARCH64_INST_ADJUST;
+        vcpu->arch->ctxt.regs.pc -= (GET_ESR_IL(esr_elx)) ? 4 : 2;
     }
 #endif
     return ret;
@@ -122,16 +122,28 @@ static int cpu_unknwn_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_elx)
 
 static int cpu_wfi_wfe_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_elx)
 {
-    int ret;
+    uint32_t condition, esr_iss;
     struct vcpu *vcpu = _current_vcpu;
 
-    /* judge whether the vcpu has pending or active irq */
-    ret = vcpu_irq_exit(vcpu);
-    if(ret){
-        return 0;   /* There are some irq need to process */
+    esr_iss = GET_ESR_ISS(esr_elx);
+    if(esr_iss & BIT(ESR_ISS_CV_SHIFT)){
+        condition = GET_ESR_ISS_COND(esr_elx);
+        if((condition & 0x1) && (condition != 0xf)){
+            return -ESRCH;
+        }
+    }else{
+        /* TODO: support aarch32 VM.*/
+        return -ESRCH;
+    }
+    /* WFE */
+    if(esr_iss & 0x01){
+        if(vcpu->vcpu_state == _VCPU_STATE_RUNNING){
+            vm_vcpu_ready(vcpu);
+        }
+    }else{  /* WFI */
+        vcpu_wait_for_irq(vcpu);
     }
 
-    /* TODO: support wfi and wfe for system.*/
 	return 0;
 }
 
@@ -190,15 +202,13 @@ static int cpu_system_msr_mrs_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_e
     reg_name = this_esr & ESR_SYSINS_REGS_MASK;
     switch (reg_name) {
     /* supporte sgi related register here */
+    case ESR_SYSINSREG_SGI0R_EL1:
     case ESR_SYSINSREG_SGI1R_EL1:
 	case ESR_SYSINSREG_ASGI1R_EL1:
-	case ESR_SYSINSREG_SGI0R_EL1:
 		if (!esr_sysreg->dire) {
             vgicv3_raise_sgi(vcpu, *reg_value);
         }
 		break;
-	/* supporte timer related register here,
-        Other registe is treated as invailed. Add other reg later */
 	case ESR_SYSINSREG_CNTPCT_EL0:
     /* The process for VM's timer, emulate timer register access */
 	case ESR_SYSINSREG_CNTP_TVAL_EL0:
@@ -300,7 +310,6 @@ static int cpu_misaligned_sp_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_el
 int arch_vm_trap_sync(struct vcpu *vcpu)
 {
     int err = 0;
-    uint32_t fix_esr_elx;
     uint64_t esr_elx;
     arch_commom_regs_t *arch_ctxt;
 
@@ -374,8 +383,7 @@ int arch_vm_trap_sync(struct vcpu *vcpu)
         default:
             goto handler_failed;
 	}
-    fix_esr_elx = AARCH64_INST_ADJUST;
-    vcpu->arch->ctxt.regs.pc += fix_esr_elx;
+    vcpu->arch->ctxt.regs.pc += (GET_ESR_IL(esr_elx)) ? 4 : 2;
     return err;
 
 handler_failed:

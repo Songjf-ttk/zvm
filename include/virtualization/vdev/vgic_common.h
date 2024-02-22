@@ -11,7 +11,9 @@
 #include <kernel.h>
 #include <devicetree.h>
 #include <virtualization/vm.h>
+#include <arch/common/sys_bitops.h>
 #include <virtualization/arm/trap_handler.h>
+#include <drivers/interrupt_controller/gic.h>
 
 struct virt_dev;
 
@@ -19,8 +21,8 @@ struct virt_dev;
 #define VGIC_CONTROL_BLOCK_NAME		vm_irq_control_block
 
 /* GIC version */
-#define VGIC_V2     BIT(0)
-#define VGIC_V3     BIT(8)
+#define VGIC_V2     		BIT(0)
+#define VGIC_V3     		BIT(8)
 
 /* GIC dev type */
 #define TYPE_GIC_GICD		BIT(0)
@@ -36,10 +38,14 @@ struct virt_dev;
 #define VGIC_RDIST_SIZE	DT_REG_SIZE_BY_IDX(DT_INST(0, arm_gic), 1)
 
 /* GICD registers offset from DIST_base(n) */
-#define VGICD_CTLR			0x0000
-#define VGICD_TYPER			0x0004
-#define VGICD_IIDR			0x0008
-#define VGICD_STATUSR		0x0010
+#define VGICD_CTLR			(GICD_CTLR-GIC_DIST_BASE)
+#define VGICD_TYPER			(GICD_TYPER-GIC_DIST_BASE)
+#define VGICD_IIDR			(GICD_IIDR-GIC_DIST_BASE)
+#define VGICD_STATUSR		(GICD_STATUSR-GIC_DIST_BASE)
+#define VGICD_ISENABLERn	(GICD_ISENABLERn-GIC_DIST_BASE)
+#define VGICD_ICENABLERn	(GICD_ICENABLERn-GIC_DIST_BASE)
+#define VGICD_ISPENDRn		(GICD_ISPENDRn-GIC_DIST_BASE)
+#define VGICD_ICPENDRn		(GICD_ICPENDRn-GIC_DIST_BASE)
 
 #define VGIC_RESERVED		0x0F30
 #define VGIC_INMIRn			0x0f80
@@ -69,12 +75,18 @@ struct virt_dev;
 #define vgic_sysreg_read64(data, base, offset)		sys_read64(data, (long unsigned int)(base+((offset)/4)))
 #define vgic_sysreg_write64(data, base, offset)		sys_write64(data, (long unsigned int)(base+((offset)/4)))
 
+#define DEFAULT_DISABLE_IRQVAL	(0xFFFFFFFF)
+
 /**
  * @brief Virtual generatic interrupt controller distributor
  * struct for each vm.
 */
 struct virt_gic_gicd {
-	/* gicd address base and size */
+	/**
+	 * gicd address base and size which
+	 * are used to locate vdev access from
+	 * vm.
+	*/
 	uint32_t gicd_base;
 	uint32_t gicd_size;
 	/* virtual gicr for emulating device for vm. */
@@ -116,13 +128,9 @@ __subsystem struct vm_irq_handler_api {
     vm_irq_enter_t irq_enter_to_vm;
 };
 
-void z_ready_thread(struct k_thread *thread);
+uint32_t *arm_gic_get_distbase(struct virt_dev *vdev);
 
-/**
- * @brief test and set vgic bits.
- */
-void vgic_irq_test_and_set_bit(struct vcpu *vcpu, uint32_t spi_nr_count, uint32_t *value,
-						uint32_t bit_size, bool enable);
+void z_ready_thread(struct k_thread *thread);
 
 /**
  * @brief Just for enable menopoly irq for vcpu.
@@ -149,20 +157,13 @@ int set_virq_to_vcpu(struct vcpu *vcpu, uint32_t virq_num);
  */
 int set_virq_to_vm(struct vm *vm, uint32_t virq_num);
 
-
 int virt_irq_sync_vgic(struct vcpu *vcpu);
-
 int virt_irq_flush_vgic(struct vcpu *vcpu);
 
 /**
  * @brief Get the virq desc object.
  */
 struct virt_irq_desc *get_virt_irq_desc(struct vcpu *vcpu, uint32_t virq);
-
-/**
- * @brief Create vm's interrupt controller.
- */
-int vm_intctrl_vdev_create(struct vm *vm);
 
 /**
  * @brief When vcpu is loop on idel mode, we must send virq
@@ -192,6 +193,88 @@ static ALWAYS_INLINE bool is_vm_irq_valid(struct vm *vm, uint32_t flag)
 		}
     }
     return true;
+}
+
+static ALWAYS_INLINE struct virt_irq_desc *vgic_get_virt_irq_desc(struct vcpu *vcpu, uint32_t virq)
+{
+	struct vm *vm = vcpu->vm;
+
+    /* sgi virq num */
+	if (virq < VM_LOCAL_VIRQ_NR) {
+        return &vcpu->virq_block.vcpu_virt_irq_desc[virq];
+    }
+
+    /* spi virq num */
+    if((virq >= VM_LOCAL_VIRQ_NR) && (virq < VM_GLOBAL_VIRQ_NR)) {
+		return &vm->vm_irq_block.vm_virt_irq_desc[virq - VM_LOCAL_VIRQ_NR];
+    }
+
+	return NULL;
+}
+
+static ALWAYS_INLINE int vgic_irq_enable(struct vcpu *vcpu, uint32_t virt_irq)
+{
+	struct virt_irq_desc *desc;
+
+	desc = vgic_get_virt_irq_desc(vcpu, virt_irq);
+	if (!desc) {
+        return -ENOENT;
+    }
+    desc->virq_flags |= VIRQ_ENABLED_FLAG;
+	if (virt_irq > VM_LOCAL_VIRQ_NR) {
+		if (desc->virq_flags & VIRQ_HW_FLAG) {
+            if (desc->pirq_num > VM_LOCAL_VIRQ_NR)
+                irq_enable(desc->pirq_num);
+            else {
+                return -ENODEV;
+            }
+        }
+	} else {
+		if(desc->virq_flags & VIRQ_HW_FLAG) {
+			irq_enable(virt_irq);
+		}
+    }
+	return 0;
+}
+
+static ALWAYS_INLINE int vgic_irq_disable(struct vcpu *vcpu, uint32_t virt_irq)
+{
+	struct virt_irq_desc *desc;
+
+	desc = vgic_get_virt_irq_desc(vcpu, virt_irq);
+	if (!desc) {
+		return -ENOENT;
+	}
+	desc->virq_flags &= ~VIRQ_ENABLED_FLAG;
+	if (virt_irq > VM_LOCAL_VIRQ_NR) {
+		if (desc->virq_flags & VIRQ_HW_FLAG) {
+            if (desc->pirq_num > VM_LOCAL_VIRQ_NR) {
+				irq_disable(desc->pirq_num);
+			} else {
+                return -ENODEV;
+            }
+        }
+	} else {
+		if(desc->virq_flags & VIRQ_HW_FLAG) {
+			irq_disable(virt_irq);
+		}
+    }
+	return 0;
+}
+
+static ALWAYS_INLINE bool vgic_irq_test_bit(struct vcpu *vcpu, uint32_t spi_nr_count,
+						uint32_t *value, uint32_t bit_size, bool enable)
+{
+	ARG_UNUSED(enable);
+	ARG_UNUSED(spi_nr_count);
+	int bit;
+	uint32_t reg_mem_addr = (uint64_t)value;
+	for (bit=0; bit<bit_size; bit++) {
+		if (sys_test_bit(reg_mem_addr, bit)) {
+			return true;
+		}
+	}
+	return false;
 }
 
 #endif /* ZEPHYR_INCLUDE_ZVM_ARM_VGIC_COMMON_H_ */

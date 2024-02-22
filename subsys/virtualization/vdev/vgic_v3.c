@@ -18,8 +18,8 @@
 #include <logging/log.h>
 #include <../drivers/interrupt_controller/intc_gicv3_priv.h>
 #include <virtualization/arm/cpu.h>
-#include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/vdev/vgic_common.h>
+#include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/zvm.h>
 #include <virtualization/vm_irq.h>
 #include <virtualization/vm_console.h>
@@ -28,13 +28,15 @@
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
-#define DEV_CFG(dev) \
-	((const struct virt_device_config * const)(dev)->config)
+#define VM_GIC_NAME			vm_gic_v3
+
 #define DEV_DATA(dev) \
 	((struct virt_device_data *)(dev)->data)
 
-#define DEV_VGICV3(dev) \
-	((const struct gicv3_vdevice * const)(DEV_CFG(dev)->device_config))
+#define DEV_CFG(dev) \
+	((const struct virt_device_config * const)(dev)->config)
+
+static const struct virtual_device_instance *gic_virtual_device_instance;
 
 /**
  * @brief load list register for vcpu interface.
@@ -94,8 +96,6 @@ static void vgicv3_prios_load(struct gicv3_vcpuif_ctxt *ctxt)
 static void vgicv3_ctrls_load(struct gicv3_vcpuif_ctxt *ctxt)
 {
     write_sysreg(ctxt->icc_sre_el1, ICC_SRE_EL1);
-	write_sysreg(ctxt->icc_ctlr_el1, ICC_CTLR_EL1);
-
 	write_sysreg(ctxt->ich_vmcr_el2, ICH_VMCR_EL2);
 	write_sysreg(ctxt->ich_hcr_el2, ICH_HCR_EL2);
 }
@@ -189,12 +189,185 @@ static void vgicv3_prios_save(struct gicv3_vcpuif_ctxt *ctxt)
 static void vgicv3_ctrls_save(struct gicv3_vcpuif_ctxt *ctxt)
 {
     ctxt->icc_sre_el1 = read_sysreg(ICC_SRE_EL1);
-	ctxt->icc_ctlr_el1 = read_sysreg(ICC_CTLR_EL1);
-
 	ctxt->ich_vmcr_el2 = read_sysreg(ICH_VMCR_EL2);
 	ctxt->ich_hcr_el2 = read_sysreg(ICH_HCR_EL2);
 }
 
+static int vdev_gicv3_init(struct vm *vm, struct vgicv3_dev *gicv3_vdev, uint32_t gicd_base, uint32_t gicd_size,
+                            uint32_t gicr_base, uint32_t gicr_size)
+{
+	int i = 0;
+    uint32_t spi_num;
+    uint64_t tmp_typer = 0;
+    struct virt_gic_gicd *gicd = &gicv3_vdev->gicd;
+    struct virt_gic_gicr *gicr;
+
+	gicd->gicd_base = gicd_base;
+    gicd->gicd_size = gicd_size;
+	gicd->gicd_regs_base = (uint32_t *)k_malloc(gicd->gicd_size);
+	if(!gicd->gicd_regs_base){
+		return -EMMAO;
+	}
+	memset(gicd->gicd_regs_base, 0, gicd_size);
+	/* GICD PIDR2 */
+	vgic_sysreg_write32(0x3<<4, gicd->gicd_regs_base, VGICD_PIDR2);
+    spi_num = ((VM_GLOBAL_VIRQ_NR + 32) >> 5) - 1;
+	tmp_typer = (vm->vcpu_num << 5) | (9 << 19) | spi_num;
+	vgic_sysreg_write32(tmp_typer, gicd->gicd_regs_base, VGICD_TYPER);
+	/* Init spinlock */
+	ZVM_SPINLOCK_INIT(&gicd->gicd_lock);
+
+    for (i = 0; i < VGIC_RDIST_SIZE/VGIC_RD_SGI_SIZE + 1; i++) {
+        gicr = (struct virt_gic_gicr *)k_malloc(sizeof(struct virt_gic_gicr));
+        if(!gicr){
+			return -EMMAO;
+		}
+		/* store the vcpu id for gicr */
+        gicr->vcpu_id = i;
+		/* init redistribute size */
+		gicr->gicr_rd_size = VGIC_RD_BASE_SIZE;
+		gicr->gicr_rd_reg_base = k_malloc(gicr->gicr_rd_size);
+		if(!gicr->gicr_rd_reg_base){
+			ZVM_LOG_ERR("Allocat memory for gicr_rd error! \n");
+        	return -EMMAO;
+		}
+		memset(gicr->gicr_rd_reg_base, 0, gicr->gicr_rd_size);
+		/* init sgi redistribute size */
+		gicr->gicr_sgi_size = VGIC_SGI_BASE_SIZE;
+		gicr->gicr_sgi_reg_base = k_malloc(gicr->gicr_sgi_size);
+		if(!gicr->gicr_sgi_reg_base){
+			ZVM_LOG_ERR("Allocat memory for gicr_sgi error! \n");
+        	return -EMMAO;
+		}
+		memset(gicr->gicr_sgi_reg_base, 0, gicr->gicr_sgi_size);
+
+		gicr->gicr_rd_base = gicr_base + VGIC_RD_SGI_SIZE*i;
+		gicr->gicr_sgi_base = gicr->gicr_rd_base + VGIC_RD_BASE_SIZE;
+		vgic_sysreg_write32(0x3<<4, gicr->gicr_rd_reg_base, VGICR_PIDR2);
+		/* Init spinlock */
+		ZVM_SPINLOCK_INIT(&gicr->gicr_lock);
+
+		if(i >= vm->vcpu_num - 1){
+			/* set last gicr region flag here, means it is the last gicr region */
+			vgic_sysreg_write64(GICR_TYPER_LAST_FLAG, gicr->gicr_rd_reg_base, VGICR_TYPER);
+			vgic_sysreg_write64(GICR_TYPER_LAST_FLAG, gicr->gicr_sgi_reg_base, VGICR_TYPER);
+		}else{
+			vgic_sysreg_write64((uint64_t)i << 32, gicr->gicr_rd_reg_base, VGICR_TYPER);
+			vgic_sysreg_write64((uint64_t)i << 32, gicr->gicr_sgi_reg_base, VGICR_TYPER);
+		}
+
+		gicv3_vdev->gicr[i] = gicr;
+    }
+
+	ZVM_LOG_INFO("** List register num: %lld \n", VGIC_TYPER_LR_NUM);
+	vgicv3_lrs_init();
+
+	return 0;
+}
+
+/**
+ * @brief init vm gic device for each vm. Including:
+ * 1. creating virt device for vm.
+ * 2. building memory map for this device.
+*/
+static int vm_vgicv3_init(const struct device *dev, struct vm *vm, struct virt_dev *vdev_desc)
+{
+	ARG_UNUSED(dev);
+	ARG_UNUSED(vdev_desc);
+	int ret;
+	uint32_t gicd_base, gicd_size, gicr_base, gicr_size;
+	struct virt_dev *virt_dev;
+	struct vgicv3_dev *vgicv3;
+
+    gicd_base = VGIC_DIST_BASE;
+    gicd_size = VGIC_DIST_SIZE;
+    gicr_base = VGIC_RDIST_BASE;
+    gicr_size = VGIC_RDIST_SIZE;
+	/* check gic device */
+	if(!gicd_base || !gicd_size  || !gicr_base  || !gicr_size){
+        ZVM_LOG_ERR("GIC device has init error!");
+        return -ENODEV;
+	}
+
+	/* Init virtual device for vm. */
+	virt_dev = vm_virt_dev_add(vm, gic_virtual_device_instance->name, false, false, gicd_base,
+						gicd_base, gicr_base+gicr_size-gicd_base, 0, 0);
+	if(!virt_dev){
+        return -ENODEV;
+	}
+
+	/* Init virtual gic device for virtual device. */
+	vgicv3 = (struct vgicv3_dev *)k_malloc(sizeof(struct vgicv3_dev));
+    if (!vgicv3) {
+        ZVM_LOG_ERR("Allocat memory for vgicv3 error \n");
+        return -ENODEV;
+    }
+    ret = vdev_gicv3_init(vm, vgicv3, gicd_base, gicd_size, gicr_base, gicr_size);
+    if(ret){
+        ZVM_LOG_ERR("Init virt gicv3 error \n");
+        return -ENODEV;
+    }
+
+	/* get the private data for vgicv3 */
+	virt_dev->priv_data = gic_virtual_device_instance;
+	virt_dev->priv_vdev = vgicv3;
+
+	return 0;
+}
+
+/**
+ * @brief The init function of vgic, it provides the
+ * gic hardware device information to ZVM.
+*/
+static int virt_gic_v3_init(const struct device *dev)
+{
+	ARG_UNUSED(dev);
+	int i;
+
+	for (i = 0; i < zvm_virtual_devices_count_get(); i++) {
+		const struct virtual_device_instance *virtual_device = zvm_virtual_device_get(i);
+		if(strcmp(virtual_device->name, TOSTRING(VM_GIC_NAME))){
+			continue;
+		}
+		DEV_DATA(virtual_device)->vdevice_type |= VM_DEVICE_PRE_KERNEL_1;
+		gic_virtual_device_instance = virtual_device;
+		break;
+	}
+	return 0;
+}
+
+static struct virt_device_config virt_gicv3_cfg = {
+	.hirq_num = VM_DEVICE_INVALID_VIRQ,
+	.device_config = NULL,
+};
+
+static struct virt_device_data virt_gicv3_data_port = {
+	.device_data = NULL,
+};
+
+/**
+ * @brief vgic device operations api.
+*/
+static const struct virt_device_api virt_gicv3_api = {
+	.init_fn = vm_vgicv3_init,
+	.virt_device_read = vgic_vdev_mem_read,
+	.virt_device_write = vgic_vdev_mem_write,
+};
+
+ZVM_VIRTUAL_DEVICE_DEFINE(virt_gic_v3_init,
+			POST_KERNEL, CONFIG_VM_VGICV3_INIT_PRIORITY,
+			VM_GIC_NAME,
+			virt_gicv3_data_port,
+			virt_gicv3_cfg,
+			virt_gicv3_api);
+
+uint32_t *arm_gic_get_distbase(struct virt_dev *vdev)
+{
+	struct vgicv3_dev *vgic = (struct vgicv3_dev *)vdev->priv_vdev;
+	struct virt_gic_gicd *gicd = &vgic->gicd;
+
+	return gicd->gicd_regs_base;
+}
 
 int gicv3_inject_virq(struct vcpu *vcpu, struct virt_irq_desc *desc)
 {
@@ -262,22 +435,10 @@ int vgic_gicrsgi_mem_write(struct vcpu *vcpu, struct virt_gic_gicr *gicr, uint32
 
 	switch (offset) {
 	case GICR_SGI_ISENABLER:
-		vgic_irq_test_and_set_bit(vcpu, 0, value, 32, 1);
-		for (bit = 0; bit < 32; bit++) {
-			if (sys_test_bit(mem_addr, bit)) {
-				vgic_sysreg_write32(vgic_sysreg_read32(gicr->gicr_sgi_reg_base, VGICR_ISENABLER0) | BIT(bit),\
-				 gicr->gicr_sgi_reg_base, VGICR_ISENABLER0);
-			}
-		}
+		vgic_test_and_set_enable_bit(vcpu, 0, value, 32, 1, gicr);
 		break;
 	case GICR_SGI_ICENABLER:
-		vgic_irq_test_and_set_bit(vcpu, 0, value, 32, 0);
-		for(bit = 0; bit < 32; bit++) {
-			if (sys_test_bit(mem_addr, bit)) {
-				vgic_sysreg_write32(vgic_sysreg_read32(gicr->gicr_sgi_reg_base, VGICR_ICENABLER0) & ~BIT(bit),\
-				 gicr->gicr_sgi_reg_base, VGICR_ICENABLER0);
-			}
-		}
+		vgic_test_and_set_enable_bit(vcpu, 0, value, 32, 0, gicr);
 		break;
 	case GICR_SGI_PENDING:
 		/* clear pending state */
@@ -394,174 +555,9 @@ int vcpu_gicv3_init(struct gicv3_vcpuif_ctxt *ctxt)
 
     ctxt->icc_sre_el1 = 0x07;
 	ctxt->icc_ctlr_el1 = read_sysreg(ICC_CTLR_EL1);
-	ctxt->icc_ctlr_el1 |= 0x02;
 
     ctxt->ich_vmcr_el2 = GICH_VMCR_VENG1 | GICH_VMCR_DEFAULT_MASK;
     ctxt->ich_hcr_el2 = GICH_HCR_EN;
 
     return 0;
 }
-
-static int vdev_gicv3_init(struct vm *vm, struct vgicv3_dev *gicv3_vdev, uint32_t gicd_base, uint32_t gicd_size,
-                            uint32_t gicr_base, uint32_t gicr_size)
-{
-	int i = 0;
-    uint32_t spi_num;
-    uint64_t tmp_typer = 0;
-    struct virt_gic_gicd *gicd = &gicv3_vdev->gicd;
-    struct virt_gic_gicr *gicr;
-
-	gicd->gicd_base = gicd_base;
-    gicd->gicd_size = gicd_size;
-	gicd->gicd_regs_base = k_malloc(gicd->gicd_size);
-	if(!gicd->gicd_regs_base){
-		return -EMMAO;
-	}
-	memset(gicd->gicd_regs_base, 0, gicd_size);
-
-	/* GICD PIDR2 */
-	vgic_sysreg_write32(0x3<<4, gicd->gicd_regs_base, VGICD_PIDR2);
-    spi_num = ((VM_GLOBAL_VIRQ_NR + 32) >> 5) - 1;
-	tmp_typer = (vm->vcpu_num << 5) | (9 << 19) | spi_num;
-	vgic_sysreg_write32(tmp_typer, gicd->gicd_regs_base, VGICD_TYPER);
-	/* Init spinlock */
-	ZVM_SPINLOCK_INIT(&gicd->gicd_lock);
-
-    for (i = 0; i < VGIC_RDIST_SIZE/VGIC_RD_SGI_SIZE + 1; i++) {
-        gicr = (struct virt_gic_gicr *)k_malloc(sizeof(struct virt_gic_gicr));
-        if(!gicr){
-			return -EMMAO;
-		}
-		/* store the vcpu id for gicr */
-        gicr->vcpu_id = i;
-		/* init redistribute size */
-		gicr->gicr_rd_size = VGIC_RD_BASE_SIZE;
-		gicr->gicr_rd_reg_base = k_malloc(gicr->gicr_rd_size);
-		if(!gicr->gicr_rd_reg_base){
-			ZVM_LOG_ERR("Allocat memory for gicr_rd error! \n");
-        	return -EMMAO;
-		}
-		memset(gicr->gicr_rd_reg_base, 0, gicr->gicr_rd_size);
-		/* init sgi redistribute size */
-		gicr->gicr_sgi_size = VGIC_SGI_BASE_SIZE;
-		gicr->gicr_sgi_reg_base = k_malloc(gicr->gicr_sgi_size);
-		if(!gicr->gicr_sgi_reg_base){
-			ZVM_LOG_ERR("Allocat memory for gicr_sgi error! \n");
-        	return -EMMAO;
-		}
-		memset(gicr->gicr_sgi_reg_base, 0, gicr->gicr_sgi_size);
-
-		gicr->gicr_rd_base = gicr_base + VGIC_RD_SGI_SIZE*i;
-		gicr->gicr_sgi_base = gicr->gicr_rd_base + VGIC_RD_BASE_SIZE;
-		vgic_sysreg_write32(0x3<<4, gicr->gicr_rd_reg_base, VGICR_PIDR2);
-		/* Init spinlock */
-		ZVM_SPINLOCK_INIT(&gicr->gicr_lock);
-
-		if(i >= vm->vcpu_num - 1){
-			/* set last gicr region flag here, means it is the last gicr region */
-			vgic_sysreg_write64(GICR_TYPER_LAST_FLAG, gicr->gicr_rd_reg_base, VGICR_TYPER);
-			vgic_sysreg_write64(GICR_TYPER_LAST_FLAG, gicr->gicr_sgi_reg_base, VGICR_TYPER);
-		}else{
-			vgic_sysreg_write64((uint64_t)i << 32, gicr->gicr_rd_reg_base, VGICR_TYPER);
-			vgic_sysreg_write64((uint64_t)i << 32, gicr->gicr_sgi_reg_base, VGICR_TYPER);
-		}
-
-		gicv3_vdev->gicr[i] = gicr;
-    }
-
-	ZVM_LOG_INFO("** List register num: %lld \n", VGIC_TYPER_LR_NUM);
-	vgicv3_lrs_init();
-
-	return 0;
-}
-
-/**
- * @brief init vm gic device for each vm. Including:
- * 1. creating virt device for vm.
- * 2. building memory map for this device.
-*/
-static int vm_vgicv3_init(const struct device *dev, struct vm *vm, struct virt_dev *vdev_desc)
-{
-	int ret;
-	uint32_t gicd_base, gicd_size, gicr_base, gicr_size;
-	struct virt_dev *virt_dev;
-	struct vgicv3_dev *vgicv3;
-
-    gicd_base = DEV_VGICV3(dev)->gicd_base;
-    gicd_size = DEV_VGICV3(dev)->gicd_size;
-    gicr_base = DEV_VGICV3(dev)->gicr_base;
-    gicr_size = DEV_VGICV3(dev)->gicr_size;;
-	/* check gic device */
-	if(!gicd_base || !gicd_size  || !gicr_base  || !gicr_size){
-        ZVM_LOG_ERR("GIC device has init error!");
-        return -ENODEV;
-	}
-
-	/* Init virtual device for vm. */
-	virt_dev = vm_virt_dev_add(vm, dev->name, false, false, gicd_base,
-						gicd_base, gicr_base+gicr_size-gicd_base, 0, 0);
-	if(!virt_dev){
-		ZVM_LOG_WARN("Init virt gic device error\n");
-        return -ENODEV;
-	}
-
-	/* Init virtual gic device for virtual device. */
-	vgicv3 = (struct vgicv3_dev *)k_malloc(sizeof(struct vgicv3_dev));
-    if (!vgicv3) {
-        ZVM_LOG_ERR("Allocat memory for vgicv3 error \n");
-        return -ENODEV;
-    }
-    ret = vdev_gicv3_init(vm, vgicv3, gicd_base, gicd_size, gicr_base, gicr_size);
-    if(ret){
-        ZVM_LOG_ERR("Init virt gicv3 error \n");
-        return -ENODEV;
-    }
-
-	/* get the private data for vgicv3 */
-	virt_dev->priv_data = vgicv3;
-	virt_dev->priv_vdev = (void *)dev;
-
-	return 0;
-}
-
-/**
- * @brief The init function of vgic, it provides the
- * gic hardware device information to ZVM.
-*/
-static int vgicv3_init(const struct device *dev)
-{
-	return 0;
-}
-
-static struct gicv3_vdevice vgicv3_cfg_port = {
-	.gicd_base = VGIC_DIST_BASE,
-	.gicd_size = VGIC_DIST_SIZE,
-	.gicr_base = VGIC_RDIST_BASE,
-	.gicr_size = VGIC_RDIST_SIZE,
-};
-
-static struct virt_device_config virt_gicv3_cfg = {
-	.device_config = &vgicv3_cfg_port,
-};
-
-static struct virt_device_data virt_gicv3_data_port;
-
-/**
- * @brief vgic device operations api.
-*/
-static const struct virt_device_api virt_gicv3_api = {
-	.init_fn = vm_vgicv3_init,
-	.virt_device_read = vgic_vdev_mem_read,
-	.virt_device_write = vgic_vdev_mem_write,
-};
-
-/**
- * @brief Define the vgic description for zvm.
-*/
-DEVICE_DT_DEFINE(DT_ALIAS(vmvgic),
-            &vgicv3_init,
-            NULL,
-            &virt_gicv3_data_port,
-            &virt_gicv3_cfg, POST_KERNEL,
-            CONFIG_VM_VGICV3_INIT_PRIORITY,
-            &virt_gicv3_api);

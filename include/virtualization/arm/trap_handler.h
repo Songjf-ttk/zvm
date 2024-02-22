@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 HNU
+ * Copyright 2021-2022 HNU-ESNL
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -15,8 +15,6 @@
 #define VM_SGI_VIRQ_NR		(16)
 #define VM_PPI_VIRQ_NR		(16)
 #define VM_SPI_VIRQ_NR 		(256 - VM_SGI_VIRQ_NR - VM_PPI_VIRQ_NR)
-
-#define   AARCH64_INST_ADJUST    (0x04)
 
 /* HPFAR_EL2 addr mask */
 #define HPFAR_EL2_MASK			GENMASK(39,4)
@@ -55,7 +53,7 @@ struct esr_sysreg_area {
 	uint64_t op1	:3;    /* Op1 */
 	uint64_t op2	:3;    /* Op2 */
 	uint64_t op0	:2;    /* Op0 */
-	uint64_t res0	:3;		/* reserved file */
+	uint64_t res0	:3;	   /* reserved file */
 	uint64_t il		:1;    /* Instruction length */
 	uint64_t ec		:6;	   /* Exception Class */
 };

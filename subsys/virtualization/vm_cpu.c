@@ -33,7 +33,7 @@ static void init_vcpu_virt_irq_desc(struct vcpu_virt_irq_block *virq_block)
         desc->prio = 0;
         desc->vdev_trigger = 0;
         desc->vcpu_id = DEFAULT_VCPU;
-        desc->virq_flags = VIRQ_NOUSED_FLAG;
+        desc->virq_flags = 0;
         desc->virq_states = 0;
         desc->vm_id = DEFAULT_VM;
 
@@ -118,9 +118,14 @@ static void vcpu_state_to_ready(struct vcpu *vcpu)
     uint16_t cur_state = vcpu->vcpu_state;
     struct k_thread *thread = vcpu->work->vcpu_thread;
 
+    vcpu->hcpu_cycles = sys_clock_cycle_get_32();
+
     switch (cur_state)
     {
+    case _VCPU_STATE_UNKNOWN:
     case _VCPU_STATE_READY:
+        k_thread_start(thread);
+        vcpu->vcpu_state = _VCPU_STATE_READY;
         break;
     case _VCPU_STATE_RUNNING:
         vcpu->resume_signal = true;
@@ -130,7 +135,7 @@ static void vcpu_state_to_ready(struct vcpu *vcpu)
         k_wakeup(thread);
         break;
     default:
-        ZVM_LOG_WARN("Invalid cpu state here. \n");
+        ZVM_LOG_WARN("Invalid cpu state! \n");
         break;
     }
 
@@ -264,10 +269,12 @@ int vcpu_state_switch(struct k_thread *thread, uint16_t new_state)
 
 void do_vcpu_swap(struct k_thread *new_thread, struct k_thread *old_thread)
 {
-    uint32_t cur_state;
     struct vcpu *vcpu;
-    ARG_UNUSED(cur_state);
     ARG_UNUSED(vcpu);
+
+    if(new_thread == old_thread){
+        return;
+    }
 
 #ifdef CONFIG_SMP
     vcpu_context_switch(new_thread, old_thread);
@@ -275,7 +282,7 @@ void do_vcpu_swap(struct k_thread *new_thread, struct k_thread *old_thread)
     if (old_thread && VCPU_THREAD(old_thread)) {
         save_vcpu_context(old_thread);
     }
-    else if (new_thread && VCPU_THREAD(new_thread)) {
+    if (new_thread && VCPU_THREAD(new_thread)) {
         load_vcpu_context(new_thread);
     }
 #endif /* CONFIG_SMP */
@@ -310,9 +317,9 @@ int vcpu_ipi_scheduler(uint32_t cpu_mask, uint32_t timeout)
 }
 
 /**
- * @brief vcpu run func entry_point.
+ * @brief vcpu entry_point.
  */
-int z_vcpu_run(struct vcpu *vcpu)
+int vcpu_thread_entry(struct vcpu *vcpu)
 {
     int ret = 0;
     ZVM_LOG_INFO("\n** Start running vcpu: %s-%d. \n", vcpu->vm->vm_name, vcpu->vcpu_id);
@@ -325,26 +332,12 @@ int z_vcpu_run(struct vcpu *vcpu)
     return ret;
 }
 
-/**
- * @brief Judge whether this vcpu has irq need to handle...
- */
-int vcpu_irq_exit(struct vcpu *vcpu)
-{
-    bool pend, active;
-	struct vcpu_virt_irq_block *vb = &vcpu->virq_block;
-
-	pend = sys_dlist_is_empty(&vb->pending_irqs);
-	active = sys_dlist_is_empty(&vb->active_irqs);
-
-	return !(pend && active);
-}
-
 static int created_vm_num = 0;
 
 struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name)
 {
     uint16_t vm_prio;
-    int pcpu_num;
+    int pcpu_num = 0;
     struct vcpu *vcpu;
     struct vcpu_work *vwork;
 
@@ -363,6 +356,10 @@ struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name)
 
     /* init vcpu virt irq block. */
     vcpu->virq_block.virq_pending_counts = 0;
+    vcpu->virq_block.vwfi.priv = NULL;
+    vcpu->virq_block.vwfi.state = false;
+    vcpu->virq_block.vwfi.yeild_count = 0;
+    ZVM_SPINLOCK_INIT(&vcpu->virq_block.vwfi.wfi_lock);
     sys_dlist_init(&vcpu->virq_block.pending_irqs);
     sys_dlist_init(&vcpu->virq_block.active_irqs);
     ZVM_SPINLOCK_INIT(&vcpu->virq_block.spinlock);
@@ -391,12 +388,17 @@ struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name)
     /*TODO: In this stage, the thread is marked as a kernel thread,
     For system safe, we will modified it later.*/
     k_tid_t tid = k_thread_create(vwork->vcpu_thread, vwork->vt_stack,
-            VCPU_THREAD_STACKSIZE,(void *)z_vcpu_run, vcpu, NULL, NULL,
+            VCPU_THREAD_STACKSIZE,(void *)vcpu_thread_entry, vcpu, NULL, NULL,
 			vm_prio, 0, K_FOREVER);
     strcpy(tid->name, vcpu_name);
 
     /* SMP support*/
 #ifdef CONFIG_SCHED_CPU_MASK
+    /**
+     * Due to the default 'new_thread->base.cpu_mask=1',
+     * BIT(0) must be cleared when enable other mask bit
+     * when CONFIG_SCHED_CPU_MASK_PIN_ONLY=y.
+    */
     k_thread_cpu_mask_disable(tid, 0);
 
     if (vm->is_rtos) {
@@ -413,6 +415,8 @@ struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name)
         pcpu_num = CONFIG_MP_NUM_CPUS-1;
     }
     k_thread_cpu_mask_enable(tid, pcpu_num);
+    vcpu->cpu = pcpu_num;
+#else
     vcpu->cpu = pcpu_num;
 #endif /* CONFIG_SCHED_CPU_MASK */
 
@@ -439,30 +443,9 @@ struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name)
     return vcpu;
 }
 
-int vm_vcpu_run(struct vcpu *vcpu)
+int vm_vcpu_ready(struct vcpu *vcpu)
 {
-    uint16_t cur_state = vcpu->vcpu_state;
-    struct k_thread *thread;
-
-    /*vcpu life time cycles*/
-    vcpu->hcpu_cycles = sys_clock_cycle_get_32();
-    thread = vcpu->work->vcpu_thread;
-
-    switch (cur_state) {
-    case _VCPU_STATE_READY:
-    case _VCPU_STATE_UNKNOWN:
-        k_thread_start(thread);
-        vcpu->vcpu_state = _VCPU_STATE_READY;
-        break;
-    case _VCPU_STATE_PAUSED:
-        vcpu_state_switch(thread, _VCPU_STATE_READY);
-        break;
-    default:
-        /* Handle invalid state */
-        ZVM_LOG_WARN("Unknow vcpu states! \n");
-        break;
-    }
-    return 0;
+    return vcpu_state_switch(vcpu->work->vcpu_thread, _VCPU_STATE_READY);
 }
 
 int vm_vcpu_pause(struct vcpu *vcpu)

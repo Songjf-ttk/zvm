@@ -12,7 +12,6 @@
 #include <virtualization/vm.h>
 #include <virtualization/vdev/virtio/virtio.h>
 
-
 static sys_dlist_t virtio_devs;
 static sys_dlist_t virtio_emus;
 static struct k_spinlock virtio_lock;
@@ -149,7 +148,7 @@ bool virtio_queue_should_signal(struct virtio_queue *vq)
 		return true;
 	}
 
-	return false;	
+	return false;
 }
 
 void virtio_queue_set_avail_event(struct virtio_queue *vq)
@@ -232,7 +231,7 @@ bool virtio_queue_setup(struct virtio_queue *vq,
     vpart = (struct vm_mem_partition *)k_malloc(sizeof(struct vm_mem_partition));
     if (!vpart) {
         return false;
-    }	
+    }
 
 	if(!virtio_queue_cleanup(vq)) {
 			return false;
@@ -247,7 +246,7 @@ bool virtio_queue_setup(struct virtio_queue *vq,
 		printk("%s: available size less than required size\n",
 			   __func__);
 		return false;
-	}	
+	}
 
 	vring_init(&vq->vring, desc_count, NULL, gphys_addr, align);
 
@@ -416,7 +415,7 @@ uint32_t virtio_buf_to_iovec_write(struct virtio_device *dev,
 	for (i = 0; i < iov_cnt && pos < buf_len; i++) {
 		len = ((buf_len - pos) < iov[i].len) ?
 					(buf_len - pos) : iov[i].len;
-		
+
 		if (!len) {
 			break;
 		}
@@ -427,7 +426,7 @@ uint32_t virtio_buf_to_iovec_write(struct virtio_device *dev,
 		pos += len;
 	}
 
-	return pos;	
+	return pos;
 }
 
 void virtio_iovec_fill_zeros(struct virtio_device *dev,
@@ -440,8 +439,8 @@ void virtio_iovec_fill_zeros(struct virtio_device *dev,
 	memset(zeros, 0, sizeof(zeros));
 
 	while (i < iov_cnt) {
-		len = (iov[i].len < 16) ? iov[i].len : 16;		
-		
+		len = (iov[i].len < 16) ? iov[i].len : 16;
+
 		if (!len) {
 			break;
 		}
@@ -597,10 +596,10 @@ int virtio_register_device(struct virtio_device *dev)
 	dev->emu_data = NULL;
 
 	key = k_spin_lock(&virtio_lock);
-	
+
 	sys_dlist_append(&virtio_devs, &dev->node);
 	rc = __virtio_find_emulator(dev);
-	
+
 	k_spin_unlock(&virtio_lock, key);
 
 	return rc;
@@ -609,7 +608,7 @@ int virtio_register_device(struct virtio_device *dev)
 void virtio_unregister_device(struct virtio_device *dev)
 {
 	k_spinlock_key_t key;
-	
+
 	if (!dev) {
 		return;
 	}
@@ -641,7 +640,7 @@ int virtio_register_emulator(struct virtio_emulator *emu)
 
 	SYS_DLIST_FOR_EACH_NODE_SAFE(&virtio_emus, d_node, ds_node) {
 		vemu = CONTAINER_OF(d_node, struct virtio_emulator, node);
-	
+
 		if (strcmp(vemu->name, emu->name) == 0) {
 			found = true;
 			break;
@@ -654,7 +653,7 @@ int virtio_register_emulator(struct virtio_emulator *emu)
 	}
 
 	sys_dnode_init(&emu->node);
-	sys_dlist_append(&virtio_emus, &emu->node);	
+	sys_dlist_append(&virtio_emus, &emu->node);
 
 	__virtio_attach_emulator(emu);
 

@@ -123,7 +123,7 @@ static struct virt_device_data virt_fiq_debugger_data_port = {
 #ifdef CONFIG_VIRT_DEVICE_INTERRUPT_DRIVEN
     .irq_cb = NULL,
     .irq_cb_data = NULL,
-#endif	
+#endif
 };
 
 static struct fiq_debugger_device_config fiq_debugger_cfg_port = {

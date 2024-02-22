@@ -32,6 +32,7 @@
 	};
 
     soc {
+
         uart1: uart@9001000 {
 			compatible = "arm,pl011";
 			reg = <0x00 0x09001000 0x00 0x1000>;

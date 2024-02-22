@@ -17,10 +17,21 @@
 #define VM_DEVICE_INVALID_BASE  (0xFFFFFFFF)
 #define VM_DEVICE_INVALID_VIRQ  (0xFF)
 
+/**
+ * @brief DEVICE_TYPE for each vm, whcih is used to
+ * judge whether it is nesscary to init when vm creat.
+*/
+#define VM_DEVICE_PRE_KERNEL_1  (0x01)
+
 typedef void (*virt_device_irq_callback_user_data_set_t)(const struct device *dev,
                                     void *cb, void *user_data);
 
+/**
+ * @brief Get private date for vm.
+*/
 struct virt_device_data {
+    /* virtual device types for vm, can be seen in macro 'DEVICE_TYPE'. */
+    uint16_t vdevice_type;
     /* Get the virt device data port*/
     void *device_data;
 #ifdef CONFIG_VIRT_DEVICE_INTERRUPT_DRIVEN
@@ -57,6 +68,64 @@ struct virt_device_api {
     /* Get the device driver api, if the device driver is initialed in host */
     const void *device_driver_api;
 };
+
+/**
+ * @brief Virtual devices backend instance in zvm.
+*/
+struct virtual_device_instance {
+    const char *name;
+    struct virt_device_data *data;
+    struct virt_device_config *cfg;
+    const struct virt_device_api *api;
+};
+
+/* The overall virtual devices instances. */
+extern const struct virtual_device_instance __virtual_device_instances_start[];
+extern const struct virtual_device_instance __virtual_device_instances_end[];
+
+/**
+ * @brief Macro for creating a virtual device instance.
+ *
+ * @param _init_fn	Init function for virtual device.
+ * @param _level    Init level.
+ * @param _prio     Init priority.
+ * @param _name		Name of the virtual device instance.
+ * @param _data     Date of the virtual device instance.
+ * @param _cfg      Configuration of virtual device.
+ * @param _api		Virtual device backend API.
+ * @param ...		Optional context.
+ */
+#define ZVM_VIRTUAL_DEVICE_DEFINE(_init_fn, _level, _prio, _name, _data, _cfg, _api, ...)	  \
+    Z_INIT_ENTRY_DEFINE(Z_SYS_NAME(_init_fn), _init_fn, NULL, _level, _prio); \
+	static const STRUCT_SECTION_ITERABLE(virtual_device_instance, _name) =	 \
+	{								       \
+        .name = STRINGIFY(_name),				\
+        .data = &_data,                         \
+        .cfg = &_cfg,                           \
+		.api = &_api,						       \
+	}
+
+/**
+ * @brief Get virtual device.
+ *
+ * @param[in] idx  Pointer to the virtual device instance.
+ *
+ * @return    Pointer to the virtual device instance.
+ */
+static inline const struct virtual_device_instance *zvm_virtual_device_get(uint32_t idx)
+{
+	return &__virtual_device_instances_start[idx];
+}
+
+/**
+ * @brief Get number of virtual devices.
+ *
+ * @return Number of virtual devices.
+*/
+static inline int zvm_virtual_devices_count_get(void)
+{
+    return __virtual_device_instances_end - __virtual_device_instances_start;
+}
 
 /**
  * @brief Set the IRQ callback function pointer.

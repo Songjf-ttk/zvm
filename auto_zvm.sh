@@ -44,7 +44,7 @@ elif [ "$OPS" = "$ops_debug" ]; then
         -net none -pidfile qemu.pid -chardev stdio,id=con,mux=on \
         -serial chardev:con -mon chardev=con,mode=readline -serial pty -serial pty -smp cpus=4 \
         -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/zephyr.bin,addr=0xf2000000,force-raw=on \
-        -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/Image_oee,addr=0xf3000000,force-raw=on \
+        -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/Image,addr=0xf3000000,force-raw=on \
         -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/linux-qemu-virtio.dtb,addr=0xf2a00000 \
         -kernel $(pwd)/build/zephyr/zvm_host.elf
 
@@ -72,5 +72,4 @@ elif [ "$OPS" = "$ops_debug" ]; then
     else
         echo "Error arguments for this auto.sh! \n Please input command like: ./z_auto.sh build qemu. "
     fi
-
 fi

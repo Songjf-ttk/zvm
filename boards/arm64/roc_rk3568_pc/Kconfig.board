@@ -6,3 +6,12 @@ config BOARD_ROC_RK3568_PC
 	bool "Rockchip ROC-RK3568-PC"
 	depends on SOC_SERIES_RK3568
 	select ARM64
+
+#ifdef BOARD_ROC_RK3568_PC
+
+config RK3568_CLOCK_CONTROL_INIT_PRIORITY
+	int "Clock control init priority"
+	help
+	  Clock control driver device initialization priority for rk3568.
+
+#endif

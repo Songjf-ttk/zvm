@@ -13,15 +13,12 @@
 #include <irq.h>
 #include <arch/cpu.h>
 #include <arch/arm64/lib_helpers.h>
-#include <arch/common/sys_bitops.h>
 #include <dt-bindings/interrupt-controller/arm-gic.h>
-#include <drivers/interrupt_controller/gic.h>
 #include <logging/log.h>
 #include <../drivers/interrupt_controller/intc_gicv3_priv.h>
 #include <virtualization/arm/cpu.h>
-#include <virtualization/arm/asm.h>
-#include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/vdev/vgic_common.h>
+#include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/zvm.h>
 #include <virtualization/vm_irq.h>
 #include <virtualization/vm_console.h>
@@ -29,74 +26,6 @@
 #include <virtualization/vdev/virt_device.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
-
-static struct virt_irq_desc *vgic_get_virt_irq_desc(struct vcpu *vcpu, uint32_t virq)
-{
-	struct vm *vm = vcpu->vm;
-
-    /* sgi virq num */
-	if (virq < VM_LOCAL_VIRQ_NR) {
-        return &vcpu->virq_block.vcpu_virt_irq_desc[virq];
-    }
-
-    /* spi virq num */
-    if((virq >= VM_LOCAL_VIRQ_NR) && (virq < VM_GLOBAL_VIRQ_NR)) {
-		return &vm->vm_irq_block.vm_virt_irq_desc[virq - VM_LOCAL_VIRQ_NR];
-    }
-
-	return NULL;
-}
-
-static int vgic_irq_enable(struct vcpu *vcpu, uint32_t virt_irq)
-{
-	struct virt_irq_desc *desc;
-
-	desc = vgic_get_virt_irq_desc(vcpu, virt_irq);
-	if (!desc) {
-        return -ENOENT;
-    }
-
-    desc->virq_flags |= VIRQ_ENABLED_FLAG;
-	if (virt_irq > VM_LOCAL_VIRQ_NR) {
-		if (desc->virq_flags & VIRQ_HW_FLAG) {
-            if (desc->pirq_num > VM_LOCAL_VIRQ_NR)
-                irq_enable(desc->pirq_num);
-            else {
-                ZVM_LOG_WARN("Not a spi interrupt!");
-                return -ENODEV;
-            }
-        }
-	} else {
-        irq_enable(virt_irq);
-    }
-
-	return 0;
-}
-
-static int vgic_irq_disable(struct vcpu *vcpu, uint32_t virt_irq)
-{
-	struct virt_irq_desc *desc;
-
-	desc = vgic_get_virt_irq_desc(vcpu, virt_irq);
-	if (!desc) {
-		return -ENOENT;
-	}
-
-	desc->virq_flags &= ~VIRQ_ENABLED_FLAG;
-	if (virt_irq > VM_LOCAL_VIRQ_NR) {
-		if (desc->virq_flags & VIRQ_HW_FLAG) {
-            if (desc->pirq_num > VM_LOCAL_VIRQ_NR) {
-				irq_disable(desc->pirq_num);
-			} else {
-                ZVM_LOG_WARN("Not a spi interrupt!");
-                return -ENODEV;
-            }
-        }
-	} else {
-        irq_disable(virt_irq);
-    }
-	return 0;
-}
 
 static int virt_irq_set_type(struct vcpu *vcpu, uint32_t offset, uint32_t *value)
 {
@@ -313,12 +242,12 @@ static int vgic_gicd_mem_write(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
 		case GICD_ISENABLERn...(GICD_ICENABLERn - 1):
 			x = (offset - GICD_ISENABLERn) / 4;
 			y = x * 32;
-			vgic_irq_test_and_set_bit(vcpu, y, value, 32, 1);
+			vgic_test_and_set_enable_bit(vcpu, y, value, 32, 1, gicd);
 			break;
 		case GICD_ICENABLERn...(GICD_ISPENDRn - 1):
 			x = (offset - GICD_ICENABLERn) / 4;
 			y = x * 32;
-			vgic_irq_test_and_set_bit(vcpu, y, value, 32, 0);
+			vgic_test_and_set_enable_bit(vcpu, y, value, 32, 0, gicd);
 			break;
 		case GICD_IPRIORITYRn...(GIC_DIST_BASE + 0x07f8 - 1):
 			t = *value;
@@ -348,25 +277,6 @@ static int vgic_gicd_mem_write(struct vcpu *vcpu, struct virt_gic_gicd *gicd,
 	return 0;
 }
 
-void vgic_irq_test_and_set_bit(struct vcpu *vcpu, uint32_t spi_nr_count, uint32_t *value,
-						uint32_t bit_size, bool enable)
-{
-	int bit;
-	uint32_t reg_mem_addr = (uint64_t)value;
-	for (bit=0; bit<bit_size; bit++) {
-		if (sys_test_bit(reg_mem_addr, bit)) {
-			if (enable) {
-				vgic_irq_enable(vcpu, spi_nr_count + bit);
-			} else {
-				/* TODO: add a situation for disable irq interrupt later */
-				if (*value != 0xFFFFFFFF) {
-					vgic_irq_disable(vcpu, spi_nr_count + bit);
-				}
-			}
-		}
-	}
-}
-
 void arch_vdev_irq_enable(struct vcpu *vcpu)
 {
 	uint32_t irq;
@@ -376,14 +286,14 @@ void arch_vdev_irq_enable(struct vcpu *vcpu)
 
 	SYS_DLIST_FOR_EACH_NODE_SAFE(&vm->vdev_list, d_node, ds_node) {
         vdev = CONTAINER_OF(d_node, struct virt_dev, vdev_node);
-
-		/* enable spi interrupt */
-		irq = vdev->hirq;
-
-		if (irq > CONFIG_NUM_IRQS) {
-			continue;
+		if(vdev->dev_pt_flag){
+			/* enable spi interrupt */
+			irq = vdev->hirq;
+			if (irq > CONFIG_NUM_IRQS) {
+				continue;
+			}
+			arm_gic_irq_enable(irq);
 		}
-		arm_gic_irq_enable(irq);
     }
 }
 
@@ -396,15 +306,14 @@ void arch_vdev_irq_disable(struct vcpu *vcpu)
 
 	SYS_DLIST_FOR_EACH_NODE_SAFE(&vm->vdev_list, d_node, ds_node) {
         vdev = CONTAINER_OF(d_node, struct virt_dev, vdev_node);
-
-		/* disable spi interrupt */
-		irq = vdev->hirq;
-
-		if(irq > CONFIG_NUM_IRQS){
-			continue;
+		if(vdev->dev_pt_flag){
+			/* disable spi interrupt */
+			irq = vdev->hirq;
+			if(irq > CONFIG_NUM_IRQS){
+				continue;
+			}
+			arm_gic_irq_disable(irq);
 		}
-
-		arm_gic_irq_disable(irq);
     }
 }
 
@@ -442,7 +351,7 @@ int vgic_vdev_mem_read(struct virt_dev *vdev, uint64_t addr, uint64_t *value)
     int i;
 	int type = TYPE_GIC_INVAILD;
 	struct vcpu *vcpu = _current_vcpu;
-	struct vgicv3_dev *vgic = (struct vgicv3_dev *)vdev->priv_data;
+	struct vgicv3_dev *vgic = (struct vgicv3_dev *)vdev->priv_vdev;
 	struct virt_gic_gicd *gicd = &vgic->gicd;
 	struct virt_gic_gicr *gicr = vgic->gicr[vcpu->vcpu_id];
 
@@ -499,7 +408,7 @@ int vgic_vdev_mem_write(struct virt_dev *vdev, uint64_t addr, uint64_t *value)
     int i;
 	int type = TYPE_GIC_INVAILD;
 	struct vcpu *vcpu = _current_vcpu;
-	struct vgicv3_dev *vgic = (struct vgicv3_dev *)vdev->priv_data;
+	struct vgicv3_dev *vgic = (struct vgicv3_dev *)vdev->priv_vdev;
 	struct virt_gic_gicd *gicd = &vgic->gicd;
 	struct virt_gic_gicr *gicr = vgic->gicr[vcpu->vcpu_id];
 
@@ -709,19 +618,4 @@ int virt_irq_flush_vgic(struct vcpu *vcpu)
 struct virt_irq_desc *get_virt_irq_desc(struct vcpu *vcpu, uint32_t virq)
 {
 	return vgic_get_virt_irq_desc(vcpu, virq);
-}
-
-int vm_intctrl_vdev_create(struct vm *vm)
-{
-	int ret = 0;
-	const struct device *dev = DEVICE_DT_GET(DT_ALIAS(vmvgic));
-
-	if(((const struct virt_device_api * const)(dev->api))->init_fn){
-		((const struct virt_device_api * const)(dev->api))->init_fn(dev, vm, NULL);
-	}else{
-		ZVM_LOG_ERR("No gic device api! \n");
-		return -ENODEV;
-	}
-
-	return ret;
 }

@@ -1006,18 +1006,13 @@ void *z_get_next_switch_handle(void *interrupted)
 	return ret;
 #else
 #ifdef CONFIG_ZVM
-	if(vcpu_need_switch(new_thread, old_thread)){
-		do_vcpu_swap(new_thread, old_thread);
+	if(vcpu_need_switch(_kernel.ready_q.cache, _current)){
+		do_vcpu_swap(_kernel.ready_q.cache, _current);
 	}
 #endif /* CONFIG_ZVM */
 	z_sched_usage_switch(_kernel.ready_q.cache);
 	_current->switch_handle = interrupted;
 	set_current(_kernel.ready_q.cache);
-#ifdef CONFIG_ZVM
-	if(vcpu_need_switch(new_thread, old_thread)){
-		do_vcpu_swap(new_thread, old_thread);
-	}
-#endif /* CONFIG_ZVM */
 	return _current->switch_handle;
 #endif
 }

@@ -86,3 +86,20 @@ config VM_FIQ_DEBUGGER_INIT_PRIORITY
 		When fiq debugger is init, it judge the initialization priority in POST_KERNLE.
 
 endif
+
+config VM_CLOCK_SYSTEM_CONTROLLER
+	bool "VM clock system controller."
+	help
+		Some VMs may need to access clock syscon device, which is not suitable
+		to passthrough. ZVM must manager these clock devices and determining which
+		devices can be accessed.
+
+if VM_CLOCK_SYSTEM_CONTROLLER
+
+config VM_CLOCK_SYSTEM_CONTROLLER_INIT_PRIORITY
+	int "VM system clock controller init priority."
+	default 58
+	help
+		When virt system clock is init, it judge the initialization priority in POST_KERNLE.
+
+endif

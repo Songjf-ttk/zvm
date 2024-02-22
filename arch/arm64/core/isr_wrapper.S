@@ -70,12 +70,6 @@ oob:
 
 	stp	x0, xzr, [sp, #-16]!
 
-#ifdef	CONFIG_ZVM
-	bl z_vm_switch_handle_pre
-#endif
-
-	ldp x0, x1,  [sp]
-
 	/* Retrieve the interrupt service routine */
 	ldr	x1, =_sw_isr_table
 	add	x1, x1, x0, lsl #4	/* table is 16-byte wide */
@@ -90,7 +84,7 @@ oob:
 	msr	daifset, #(DAIFSET_IRQ_BIT)
 
 	/* Signal end-of-interrupt */
-	ldp	x0, xzr, [sp], #16
+	ldp x0, xzr,  [sp]
 
 spurious_continue:
 #if !defined(CONFIG_ARM_CUSTOM_INTERRUPT_CONTROLLER)
@@ -98,6 +92,16 @@ spurious_continue:
 #else
 	bl	z_soc_irq_eoi
 #endif /* !CONFIG_ARM_CUSTOM_INTERRUPT_CONTROLLER */
+
+	ldp	x0, xzr, [sp]
+#ifdef	CONFIG_ZVM
+	/* switch handle preprocess */
+	bl zvm_switch_handle_pre
+	mov x1, x0
+	ldp	x0, xzr, [sp], #16
+	/* passthrough device may need deactive */
+	bl arm_gic_eoi_deactive
+#endif
 
 #ifdef CONFIG_TRACING
 	bl	sys_trace_isr_exit
