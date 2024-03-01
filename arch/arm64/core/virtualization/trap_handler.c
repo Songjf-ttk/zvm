@@ -175,13 +175,80 @@ static int cpu_il_exe_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_elx)
 	return 0;
 }
 
+/* get the hvc 24-0 */
+#define ZVM_OEE_CREATE_RUN      1		
+#define ZVM_OEE_PAUSE	        2
+#define ZVM_OEE_STOP		3
+#define ZVM_OEE_DELETE		4
+#define ZVM_OEE_TEST        0x4a48
+int new_num=1;
+#define BIT_MASK0(last, first) \
+	((0xffffffffffffffffULL >> (64 - ((last) + 1 - (first)))) << (first))
+
+#define GET_FIELD(value, last, first) \
+	(((value) & BIT_MASK0((last), (first))) >> (first))
+
+#define ESR_ISS(esr)		GET_FIELD((esr), 24, 0)
+
+static struct k_spinlock shell_vmops_lock_hvc;
+
 static int cpu_hvc64_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_elx)
 {
+    k_spinlock_key_t key;
+    key = k_spin_lock(&shell_vmops_lock_hvc);
+    int ret = 0;
+
     ARG_UNUSED(arch_ctxt);
     ARG_UNUSED(esr_elx);
+
+    unsigned long esr_el_2= ESR_ISS(esr_elx);
+    unsigned long code = GET_FIELD((esr_elx),15,0);
+
+    ZVM_LOG_WARN("TEST \n ");
+    char *args0[] = {"new", "-t", "zephyr"};
+    char *args1[] = {"run", "-n", "0"};
+    char *args2[] = {"pause", "-n", "0"};
+    char *args3[] = {"delete", "-n", "0"};
+    char *args4[] = {"info"};
+
+    switch (code)
+    {
+    case ZVM_OEE_CREATE_RUN:
+        /* create a zephyr vm */
+        if(new_num){
+            ret = zvm_new_guest(3, args0);
+            ret = zvm_info_guest(3, args4);
+            new_num--;
+        }
+        /* run the zephyr vm*/
+        ret = zvm_run_guest(3, args1);
+        break;
+    case ZVM_OEE_PAUSE:
+        /* pause the created zephyr vm */
+        //ret = zvm_run_guest(3, args1);
+        ret = zvm_pause_guest(3, args2);
+        break;
+    case ZVM_OEE_STOP:
+        /* stop the zephyr */
+        ret = zvm_pause_guest(3, args2);
+        break;
+    case ZVM_OEE_DELETE:
+        /* delete the zephyr */
+        ret = zvm_delete_guest(3, args3);
+        break;
+    default:
+        ZVM_LOG_WARN("This is a TEST \n ");
+        break;
+    }
+    k_spin_unlock(&shell_vmops_lock_hvc, key);
 #ifdef CONFIG_ZVM_TIME_MEASURE
     vm_irq_timing_print();
 #endif
+    /*The hvc instruction defaults to adding +0x4 to the PC value, 
+    but zvm has already performed +0x4 during processing, causing 
+    a skip of the next assembly instruction. Here, -0x4 is used to
+     fix this bug.*/
+    arch_ctxt->pc -= 0x4;
 	return 0;
 }
 
