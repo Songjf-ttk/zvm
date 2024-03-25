@@ -99,7 +99,7 @@ static void vcpu_context_switch(struct k_thread *new_thread,
             break;
         }
     }
-    //ZVM_LOG_INFO("** load_vcpu_context, thread: %p, new vcpu thread? : %d \n ", new_thread, VCPU_THREAD(new_thread));
+    
     if (VCPU_THREAD(new_thread)) {
         struct vcpu *new_vcpu = new_thread->vcpu_struct;
 

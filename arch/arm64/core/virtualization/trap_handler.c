@@ -219,12 +219,11 @@ static int cpu_hvc64_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_elx)
         break;
     case 2:
         /* pause the created zephyr vm */
-        //ret = zvm_run_guest(3, args1);
         ret = zvm_pause_guest(3, args2);
         break;
     case 3:
         /* stop the zephyr */
-        ret = zvm_pause_guest(3, args2);
+        ret = zvm_delete_guest(3, args3);
         break;
     default:
         ZVM_LOG_WARN("This is a TEST \n ");
@@ -234,10 +233,11 @@ static int cpu_hvc64_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_elx)
 #ifdef CONFIG_ZVM_TIME_MEASURE
     vm_irq_timing_print();
 #endif
-    /*The hvc instruction defaults to adding +0x4 to the PC value, 
-    but zvm has already performed +0x4 during processing, causing 
-    a skip of the next assembly instruction. Here, -0x4 is used to
-     fix this bug.*/
+    /**The hvc instruction defaults to adding +0x4 to the PC value, 
+     * but zvm has already performed +0x4 during processing, causing
+     *  a skip of the next assembly instruction. Here, -0x4 is used
+     *  to fix this bug.
+    */
     arch_ctxt->pc -= 0x4;
 	return 0;
 }
