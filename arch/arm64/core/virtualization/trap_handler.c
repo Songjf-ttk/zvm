@@ -176,11 +176,6 @@ static int cpu_il_exe_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_elx)
 }
 
 /* get the hvc 24-0 */
-#define ZVM_OEE_CREATE_RUN      1		
-#define ZVM_OEE_PAUSE	        2
-#define ZVM_OEE_STOP		3
-#define ZVM_OEE_DELETE		4
-#define ZVM_OEE_TEST        0x4a48
 int new_num=1;
 #define BIT_MASK0(last, first) \
 	((0xffffffffffffffffULL >> (64 - ((last) + 1 - (first)))) << (first))
@@ -204,7 +199,6 @@ static int cpu_hvc64_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_elx)
     unsigned long esr_el_2= ESR_ISS(esr_elx);
     unsigned long code = GET_FIELD((esr_elx),15,0);
 
-    ZVM_LOG_WARN("TEST \n ");
     char *args0[] = {"new", "-t", "zephyr"};
     char *args1[] = {"run", "-n", "0"};
     char *args2[] = {"pause", "-n", "0"};
@@ -213,7 +207,7 @@ static int cpu_hvc64_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_elx)
 
     switch (code)
     {
-    case ZVM_OEE_CREATE_RUN:
+    case 1:
         /* create a zephyr vm */
         if(new_num){
             ret = zvm_new_guest(3, args0);
@@ -223,18 +217,14 @@ static int cpu_hvc64_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_elx)
         /* run the zephyr vm*/
         ret = zvm_run_guest(3, args1);
         break;
-    case ZVM_OEE_PAUSE:
+    case 2:
         /* pause the created zephyr vm */
         //ret = zvm_run_guest(3, args1);
         ret = zvm_pause_guest(3, args2);
         break;
-    case ZVM_OEE_STOP:
+    case 3:
         /* stop the zephyr */
         ret = zvm_pause_guest(3, args2);
-        break;
-    case ZVM_OEE_DELETE:
-        /* delete the zephyr */
-        ret = zvm_delete_guest(3, args3);
         break;
     default:
         ZVM_LOG_WARN("This is a TEST \n ");
