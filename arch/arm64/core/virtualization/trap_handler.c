@@ -176,7 +176,6 @@ static int cpu_il_exe_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_elx)
 }
 
 /* get the hvc 24-0 */
-int new_num=1;
 #define BIT_MASK0(last, first) \
 	((0xffffffffffffffffULL >> (64 - ((last) + 1 - (first)))) << (first))
 
@@ -209,24 +208,24 @@ static int cpu_hvc64_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_elx)
     {
     case 1:
         /* create a zephyr vm */
-        if(new_num){
-            ret = zvm_new_guest(3, args0);
-            ret = zvm_info_guest(3, args4);
-            new_num--;
-        }
+        ret = zvm_new_guest(3, args0);
+        /* show zephyr vm information*/
+        ret = zvm_info_guest(3, args4);
+        break;
+    case 2:
         /* run the zephyr vm*/
         ret = zvm_run_guest(3, args1);
         break;
-    case 2:
+    case 3:
         /* pause the created zephyr vm */
         ret = zvm_pause_guest(3, args2);
         break;
-    case 3:
+    case 4:
         /* stop the zephyr */
-        ret = zvm_delete_guest(3, args3);
-        break;
+        ZVM_LOG_WARN("CAN NOT DELETE NOW! \n ");  
+        break;   
     default:
-        ZVM_LOG_WARN("This is a TEST \n ");
+        ZVM_LOG_WARN("UNKNOWN CODE\n ");
         break;
     }
     k_spin_unlock(&shell_vmops_lock_hvc, key);
