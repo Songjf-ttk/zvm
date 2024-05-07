@@ -240,8 +240,8 @@ int z_list_vms_info(uint16_t vmid);
  * @param vm: the vm ready to init.
  * @return int : error code.
  */
-int vm_sysinfo_init(size_t argc, char **argv, struct vm **vm_ptr, struct getopt_state *state,
-                struct z_vm_info **vm_info_ptr);
+int vm_sysinfo_init(size_t argc, char **argv, struct vm *vm_ptr, struct getopt_state *state,
+                struct z_vm_info *vm_info_ptr);
 
 /**
  * @brief Process vm exit for pause or delete vm now.

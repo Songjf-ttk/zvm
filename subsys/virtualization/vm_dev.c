@@ -20,6 +20,7 @@
 #include <virtualization/vdev/virtio/virtio.h>
 #include <virtualization/vdev/virtio/virtio_blk.h>
 #include <virtualization/vdev/virtio/virtio_mmio.h>
+#include <virtualization/os/os_linux.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
@@ -37,6 +38,10 @@ static int vm_vdev_mem_add(struct vm *vm, struct virt_dev *vdev)
         attrs = MT_VM_DEVICE_MEM;
     }else{
         attrs = MT_VM_DEVICE_MEM | MT_S2_ACCESS_OFF;
+    }
+
+    if (vdev->vm_vdev_paddr == LINUX_VMCPY_BASE) {
+        attrs = MT_VM_NORMAL_MEM;
     }
 
     return vm_vdev_mem_create(vm->vmem_domain, vdev->vm_vdev_paddr,
@@ -83,6 +88,30 @@ struct virt_dev *vm_virt_dev_add(struct vm *vm, const char *dev_name, bool pt_fl
     sys_dlist_append(&vm->vdev_list, &vm_dev->vdev_node);
 
     return vm_dev;
+}
+
+int vm_virt_dev_remove(struct vm *vm, struct virt_dev *vm_dev)
+{
+    struct zvm_dev_lists* vdev_list;
+    struct virt_dev *chosen_dev = NULL;
+    struct  _dnode *d_node, *ds_node;
+
+    // vm dev list
+    sys_dlist_remove(&vm_dev->vdev_node);
+
+    // global dev list
+    vdev_list = get_zvm_dev_lists();
+    SYS_DLIST_FOR_EACH_NODE_SAFE(&vdev_list->dev_used_list, d_node, ds_node) {
+        chosen_dev = CONTAINER_OF(d_node, struct virt_dev, vdev_node);
+        if(chosen_dev->vm_vdev_paddr == vm_dev->vm_vdev_paddr) {
+            sys_dlist_remove(&chosen_dev->vdev_node);
+            sys_dlist_append(&vdev_list->dev_idle_list, &chosen_dev->vdev_node);
+            break;
+        }
+    }
+
+    k_free(vm_dev);
+    return 0;
 }
 
 #define DEV_DATA(dev) \
@@ -252,6 +281,7 @@ int vm_device_init(struct vm *vm)
         break;
     case OS_TYPE_LINUX:
         ret = vm_init_bdspecific_device(vm);
+        vm_virt_dev_add(vm, "linux_vm_cpy", true, false, LINUX_VMCPY_BASE, LINUX_VMCPY_BASE, LINUX_VMCPY_SIZE, VM_DEVICE_INVALID_VIRQ, VM_DEVICE_INVALID_VIRQ);
         break;
     default:
         break;

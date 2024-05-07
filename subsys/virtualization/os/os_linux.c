@@ -50,6 +50,21 @@ int load_linux_image(struct vm_mem_domain *vmem_domain)
     ARG_UNUSED(blk);
     ARG_UNUSED(this_vm);
 
+    uint64_t *src_hva, des_hva;
+    uint64_t num_m = LINUX_VM_IMAGE_SIZE / (1024 * 1024);
+    uint64_t src_hpa = LINUX_VMCPY_BASE;
+    uint64_t des_hpa = LINUX_VM_IMAGE_BASE;
+    uint64_t per_size = 1048576; //1M
+
+    while(num_m){
+        z_phys_map((uint8_t **)&src_hva, (uintptr_t)src_hpa, per_size, K_MEM_CACHE_NONE | K_MEM_PERM_RW);
+        z_phys_map((uint8_t **)&des_hva, (uintptr_t)des_hpa, per_size, K_MEM_CACHE_NONE | K_MEM_PERM_RW);
+        memcpy(des_hva, src_hva, per_size);
+        des_hpa += per_size;
+        src_hpa += per_size;
+        num_m--;
+    }
+
 #ifndef  CONFIG_VM_DYNAMIC_MEMORY
     ARG_UNUSED(this_vm);
     return ret;

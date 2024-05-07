@@ -406,9 +406,7 @@ int vm_delete(struct vm *vm)
         vdev = CONTAINER_OF(d_node, struct virt_dev, vdev_node);
         if (vdev->dev_pt_flag) {
             /* remove vdev from vm. */
-            /////ret = delete_vm_monopoly_vdev(vm, vdev);
-            /* @TODO: May need to record the pass through's count*/
-            vdev->dev_pt_flag = false;
+            vm_virt_dev_remove(vm, vdev);
         }
     }
 
@@ -479,7 +477,7 @@ int z_parse_new_vm_args(size_t argc, char **argv, struct getopt_state *state,
 }
 
 /**
- * @brief Parse run vm args here. get the vmid that which vm need to process. 
+ * @brief Parse run vm args here. get the vmid that which vm need to process.
  */
 int z_parse_run_vm_args(size_t argc, char **argv, struct getopt_state *state)
 {
@@ -515,37 +513,19 @@ int z_list_vms_info(uint16_t vmid)
     return 0;
 }
 
-int vm_sysinfo_init(size_t argc, char **argv, struct vm **vm_ptr, struct getopt_state *state,
-                struct z_vm_info **vm_info_ptr)
+int vm_sysinfo_init(size_t argc, char **argv, struct vm *vm_ptr, struct getopt_state *state,
+                struct z_vm_info *vm_info_ptr)
 {
     int ret = 0;
     struct vm *vm = NULL;
     struct z_vm_info *vm_info = NULL;
 
-    /* allocate vm struct */
-    vm = (struct vm*)k_malloc(sizeof(struct vm));
-	if (!vm) {
-		ZVM_LOG_WARN("Allocation memory for VM Error!\n");
-		return -ENOMEM;
-	}
-
-    /* allocate vm_info struct */
-    vm_info = (struct z_vm_info *)k_malloc(sizeof(struct z_vm_info));
-	if (!vm_info) {
-        k_free(vm);
-		ZVM_LOG_WARN("Allocation memory for VM info Error!\n");
-		return -ENOMEM;
-	}
-
-    ret = z_parse_new_vm_args(argc, argv, state, vm_info, vm);
+    ret = z_parse_new_vm_args(argc, argv, state, vm_info_ptr, vm_ptr);
 	if (ret) {
 		k_free(vm);
 		k_free(vm_info);
 		return ret;
 	}
-
-    *vm_ptr = vm;
-    *vm_info_ptr = vm_info;
 
     return ret;
 }

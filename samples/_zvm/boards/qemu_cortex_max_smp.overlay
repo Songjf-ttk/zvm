@@ -25,6 +25,7 @@
         vmrtc = "/soc/pl031@9010000";
         vmpmu = "/soc/pmu";
         vmflash = "/soc/flash@0";
+        linuxcpy = "/soc/linux_cpy@e0000000";
 	};
 
     chosen {
@@ -186,6 +187,10 @@
         pmu {
             interrupts = <GIC_PPI 0x07 IRQ_TYPE_LEVEL 0>;
             compatible = "arm,armv8-pmuv3";
+        };
+
+        linux_cpy@e0000000 {
+            reg = <0x0 0xe0000000 0x0 DT_SIZE_M(240)>;
         };
 
     };

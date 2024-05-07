@@ -680,7 +680,7 @@ void vm_host_memory_read(uint64_t hpa, void *dst, size_t len)
 }
 
 void vm_host_memory_write(uint64_t hpa, void *src, size_t len)
-{   
+{
     size_t len_actual = len;
     uint64_t *hva;
     if (len == 1) {
@@ -692,13 +692,13 @@ void vm_host_memory_write(uint64_t hpa, void *src, size_t len)
 }
 
 void vm_guest_memory_read(struct vm *vm, uint64_t gpa, void *dst, size_t len)
-{   
+{
     uint64_t hpa;
     struct vm_mem_partition *vpart;
     vpart = (struct vm_mem_partition *)k_malloc(sizeof(struct vm_mem_partition));
     if (!vpart) {
         return;
-    }	
+    }
     hpa = vm_gpa_to_hpa(vm, gpa, vpart);
     if(hpa < 0){
         printk("vm_guest_memory_read: gpa to hpa failed!\n");
@@ -714,7 +714,7 @@ void vm_guest_memory_write(struct vm *vm, uint64_t gpa, void *src, size_t len)
     vpart = (struct vm_mem_partition *)k_malloc(sizeof(struct vm_mem_partition));
     if (!vpart) {
         return;
-    }	
+    }
     hpa = vm_gpa_to_hpa(vm, gpa, vpart);
     if(hpa < 0){
         printk("vm_guest_memory_write: gpa to hpa failed!\n");
