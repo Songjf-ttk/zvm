@@ -45,6 +45,7 @@ elif [ "$OPS" = "$ops_debug" ]; then
         -serial chardev:con -mon chardev=con,mode=readline -serial pty -serial pty -smp cpus=4 \
         -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/zephyr.bin,addr=0xf2000000,force-raw=on \
         -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/Image,addr=0xf3000000,force-raw=on \
+        -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/Image,addr=0xe0000000,force-raw=on \
         -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/linux-qemu-virtio.dtb,addr=0xf2a00000 \
         -kernel $(pwd)/build/zephyr/zvm_host.elf
 

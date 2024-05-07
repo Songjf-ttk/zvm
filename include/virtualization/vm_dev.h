@@ -76,6 +76,8 @@ struct virt_dev *vm_virt_dev_add(struct vm *vm, const char *dev_name, bool pt_fl
                 bool shareable, uint32_t dev_pbase, uint32_t dev_vbase,
                     uint32_t dev_size, uint32_t dev_hirq, uint32_t dev_virq);
 
+int vm_virt_dev_remove(struct vm *vm, struct virt_dev *vm_dev);
+
 /**
  * @brief write or read vdev for VM operation....
  */

@@ -32,7 +32,22 @@ int zvm_new_guest(size_t argc, char **argv)
 		return -ENXIO;
 	}
 
-	ret = vm_sysinfo_init(argc, argv, &new_vm, state, &vm_info);
+    /* allocate vm struct */
+    new_vm = (struct vm*)k_malloc(sizeof(struct vm));
+	if (!new_vm) {
+		ZVM_LOG_WARN("Allocation memory for VM Error!\n");
+		return -ENOMEM;
+	}
+
+    /* allocate vm_info struct */
+    vm_info = (struct z_vm_info *)k_malloc(sizeof(struct z_vm_info));
+	if (!vm_info) {
+        k_free(new_vm);
+		ZVM_LOG_WARN("Allocation memory for VM info Error!\n");
+		return -ENOMEM;
+	}
+
+	ret = vm_sysinfo_init(argc, argv, new_vm, state, vm_info);
 	if (ret) {
 		return ret;
 	}
@@ -91,7 +106,7 @@ int zvm_new_guest(size_t argc, char **argv)
 
 	switch (new_vm->os->type) {
 	case OS_TYPE_LINUX:
-		ZVM_PRINTK("|******\t VMEM SIZE: \t %d(M) \t******| \n",
+		ZVM_PRINTK("|******\t VMEM SIZE: \t %ld(M) \t******| \n",
 		LINUX_VMSYS_SIZE/(1024*1024));
 		break;
 	case OS_TYPE_ZEPHYR:

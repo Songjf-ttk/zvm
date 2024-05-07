@@ -165,6 +165,7 @@ out:
 	vm_info->vm_image_size = tmp_vm_info.vm_image_size;
     vm_info->vm_virt_base = tmp_vm_info.vm_virt_base;
 	vm_info->vm_os_type = tmp_vm_info.vm_os_type;
+    vm_info->vm_sys_size = tmp_vm_info.vm_sys_size;
 
     /* Get the vm's entry point */
 #if defined(CONFIG_SOC_QEMU_CORTEX_MAX)

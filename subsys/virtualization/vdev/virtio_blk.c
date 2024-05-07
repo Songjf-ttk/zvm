@@ -240,7 +240,7 @@ static void virtio_blk_do_io(struct virtio_device *dev,
 				virtio_blk_req_done(vbdev, req,
 						    VIRTIO_BLK_S_IOERR);
 			} else {
-				printk("virtio_blk read: start_sector = %lld, num = %d\n", hdr.sector, num_sectors);
+				//printk("virtio_blk read: start_sector = %lld, num = %d\n", hdr.sector, num_sectors);
 				virtio_blk_req_done(vbdev, req,
 						    VIRTIO_BLK_S_OK);
 			}
@@ -264,7 +264,7 @@ static void virtio_blk_do_io(struct virtio_device *dev,
 				virtio_blk_req_done(vbdev, req,
 						    VIRTIO_BLK_S_IOERR);
 			} else {
-				printk("virtio_blk write: start_sector = %lld, num = %d\n", hdr.sector, num_sectors);
+				//printk("virtio_blk write: start_sector = %lld, num = %d\n", hdr.sector, num_sectors);
 				virtio_blk_req_done(vbdev, req,
 						    VIRTIO_BLK_S_OK);
 			}
@@ -427,17 +427,17 @@ static int virtio_blk_connect(struct virtio_device *dev,
 	if (rc) {
 		k_free(vbdev);
 		printk("Disk ioctl get sector count failed\n");
-		return -EFAULT;		
+		return -EFAULT;
 	}
-	printk("Disk reports %u sectors\n", cmd_buf);
+	//printk("Disk reports %u sectors\n", cmd_buf);
 
 	rc = disk_access_ioctl(vbdev->disk_pdrv, DISK_IOCTL_GET_SECTOR_SIZE, &cmd_buf);
 	if (rc) {
 		k_free(vbdev);
 		printk("Disk ioctl get sector size failed\n");
-		return -EFAULT;		
+		return -EFAULT;
 	}
-	printk("Disk reports sector size %u\n", cmd_buf);
+	//printk("Disk reports sector size %u\n", cmd_buf);
 
 	dev->emu_data = vbdev;
 
