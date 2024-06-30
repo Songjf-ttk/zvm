@@ -171,7 +171,7 @@ static el_status elf_init(el_ctx *ctx, void *src)
 }
 
 
-static el_status elf_load(el_ctx *ctx, el_alloc_cb alloc, void *src)
+static el_status elf_load(el_ctx *ctx, el_alloc_cb alloc, void *p_src,void *src)
 {
     el_status rv = EL_OK;
 
@@ -183,7 +183,7 @@ static el_status elf_load(el_ctx *ctx, el_alloc_cb alloc, void *src)
     Elf_Phdr ph;
     unsigned i = 0;
     for(;;) {
-        if ((rv = elf_findphdr(ctx, &ph, PT_LOAD, &i, src))){
+        if ((rv = elf_findphdr(ctx, &ph, PT_LOAD, &i, p_src))){
             return rv;
         }
 
@@ -206,7 +206,7 @@ static el_status elf_load(el_ctx *ctx, el_alloc_cb alloc, void *src)
         }
 
         /* read loaded portion */
-        if ((rv = el_pread(ctx, dest, src+ph.p_offset, ph.p_filesz))){
+        if ((rv = el_pread(ctx, dest, p_src+ph.p_offset, ph.p_filesz))){
             return rv;
         }
 
@@ -346,7 +346,7 @@ static el_status elf_relocate(el_ctx *ctx, void *src)
 /**
  * @brief load vm's elf file for debug it's elf file
  */
-int elf_loader(void *src_addr, void *dest_addr, struct z_vm_info *vm_info)
+int elf_loader(void *p_src_addr,void *src_addr, void *dest_addr, struct z_vm_info *vm_info)
 {
     ARG_UNUSED(dest_addr);
 
@@ -357,7 +357,7 @@ int elf_loader(void *src_addr, void *dest_addr, struct z_vm_info *vm_info)
     ctx.pread = file_pread;
 
     /* Init elf struct */
-    ret = elf_init(&ctx, src_addr);
+    ret = elf_init(&ctx, p_src_addr);
     if (ret) {
         ZVM_LOG_WARN("Elf_loader struct init error, status: %d", ret);
         return -ret;
@@ -372,7 +372,7 @@ int elf_loader(void *src_addr, void *dest_addr, struct z_vm_info *vm_info)
     /* set base load addr for vm elf file */
     ctx.base_load_vaddr = ctx.base_load_paddr = (uintptr_t) buf;
 
-    ret = elf_load(&ctx, alloccb, src_addr);
+    ret = elf_load(&ctx, alloccb, p_src_addr,src_addr);
     if (ret) {
         ZVM_LOG_WARN("Elf_loader addr load error, status: %d", ret);
         return -ret;
@@ -396,7 +396,7 @@ int elf_loader(void *src_addr, void *dest_addr, struct z_vm_info *vm_info)
     /* k_free(buf); */
 
     /* copy the block to aimed address */
-    if (memcpy((void*)src_addr, buf, ctx.memsz - (uint64_t)src_addr)== NULL) {
+    if (memcpy((void*)p_src_addr, buf, ctx.memsz - (uint64_t)src_addr)== NULL) {
         return -1;
     }
 
