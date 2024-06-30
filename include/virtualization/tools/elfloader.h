@@ -76,6 +76,6 @@ typedef struct {
  * @param vm_info : z_vm_info strcut.
  * @return int : return code.
  */
-int elf_loader(void *src_addr, void *dest_addr,  struct z_vm_info *vm_info);
+int elf_loader(void *p_src_addr,void *src_addr, void *dest_addr,  struct z_vm_info *vm_info);
 
 #endif  /* __ELFLOADER_H_ */

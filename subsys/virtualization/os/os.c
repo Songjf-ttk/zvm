@@ -125,7 +125,7 @@ int get_os_info_by_id(struct getopt_state *state, struct z_vm_info *vm_info)
 #if defined(CONFIG_SOC_QEMU_CORTEX_MAX)
 
 #ifdef  CONFIG_ZVM_ELF_LOADER
-    ret = elf_loader((void *)tmp_vm_info.vm_image_base, NULL, vm_info);
+    ret = elf_loader((void *)tmp_vm_info.vm_image_base,(void *)tmp_vm_info.vm_virt_base, NULL, vm_info);
 #else
     vm_info->entry_point = tmp_vm_info.entry_point;
 #endif  /* CONFIG_ZVM_ELFLOADER */
@@ -171,7 +171,7 @@ out:
 #if defined(CONFIG_SOC_QEMU_CORTEX_MAX)
 
 #ifdef  CONFIG_ZVM_ELF_LOADER
-    ret = elf_loader((void *)tmp_vm_info.vm_image_base, NULL, vm_info);
+    ret = elf_loader((void *)tmp_vm_info.vm_image_base,(void *)tmp_vm_info.vm_virt_base, NULL, vm_info);
 #else
     vm_info->entry_point = tmp_vm_info.entry_point;
 #endif  /* CONFIG_ZVM_ELFLOADER */
