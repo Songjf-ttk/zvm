@@ -194,6 +194,89 @@ BusyBox，配置CONFIG_STATIC参数，编译静态版BusyBox，编译好的可�
 .. code:: shell
 
    ./auto_zvm.sh debug qemu
+   
+  
+4. QEMU 平台使用zvm启动虚拟机
+-------------------------------
+
+运行zvm平台后可见以下内容：
+
+.. figure:: https://gitee.com/openeuler/zvm/raw/master/zvm_doc/figure/zvm_platform.png
+   :align: center
+   
+其中前两行表明平台的输出端口被重定向到/dev/pts/1和/dev/pts/2，标签分别为serial1和serial2
+
+在zvm平台上输入如下命令查看平台支持的指令：
+
+.. code:: shell
+
+   zvm help
+   
+      
+启动Linux虚拟机
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+（1）创建Linux虚拟机:
++++++++++++++++++++++++++++++
+
+   .. code:: shell
+
+      zvm new -t linux
+
+
+（2）运行Linux虚拟机:
++++++++++++++++++++++++++++++
+
+   .. code:: shell
+
+      zvm run -n 2
+      
+(-n后面的数是虚拟机的对应ID，假设创建所得虚拟机的VM-ID：2)
+
+启动Zephyr虚拟机
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+（1）创建Zephyr虚拟机:
++++++++++++++++++++++++++++++
+
+   .. code:: shell
+
+      zvm new -t zephyr
+      
+
+（2）运行Zephyr虚拟机:
++++++++++++++++++++++++++++++
+
+   .. code:: shell
+
+      zvm run -n 0
+      
+(-n后面的数是虚拟机的对应ID，假设创建所得虚拟机的VM-ID：0)
+
+
+连接对应的虚拟机
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+新建窗口
+
+.. code:: shell
+
+
+   cd ~/zvm_workspace/zvm
+   
+   screen /dev/pts/1
+
+
+(screen后接对应虚拟机的输出端口重定向去向)
+
+在完成对应虚拟机的创建和运行之后，新窗口上会出现相应的虚拟机终端界面。
+
+成功运行
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. figure:: https://gitee.com/openeuler/zvm/raw/master/zvm_doc/figure/Run%20successfully.png
+   :align: center
+   
 
 `Prev>> 主机开发环境搭建 <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/2_Environment_Configuration.rst>`__
 
