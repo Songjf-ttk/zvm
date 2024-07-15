@@ -5,7 +5,6 @@
  */
 
 #include <toolchain/gcc.h>
-
 #include <kernel.h>
 #include <ctype.h>
 #include <stdio.h>

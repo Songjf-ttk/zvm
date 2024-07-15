@@ -117,11 +117,10 @@
 		#clock-cells = <0>;
 	};
 
-	/* uart2 in the rk3568 */
-	uart2: serial@fe670000 {
+	uart2: serial@fe6d0000 {
 		compatible = "rockchip,rk3568-uart", "ns16550";
-		reg = <0x0 0xfe670000 0x0 0x10000>;
-		interrupts = <GIC_SPI 119 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY>;
+		reg = <0x0 0xfe6d0000 0x0 0x10000>;
+		interrupts = <GIC_SPI 125 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY>;
 		clock-frequency = <12000000>;
 		reg-shift = <2>;
 		status = "disabled";

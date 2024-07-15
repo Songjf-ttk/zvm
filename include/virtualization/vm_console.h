@@ -10,7 +10,7 @@
 #include <zephyr.h>
 #include <kernel.h>
 #include <devicetree.h>
-#include <virtualization/vm_dev.h>
+#include <virtualization/vm_device.h>
 #include <virtualization/vm_irq.h>
 #include <virtualization/zvm.h>
 

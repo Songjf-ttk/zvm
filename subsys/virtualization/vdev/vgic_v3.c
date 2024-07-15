@@ -23,8 +23,8 @@
 #include <virtualization/zvm.h>
 #include <virtualization/vm_irq.h>
 #include <virtualization/vm_console.h>
-#include <virtualization/vm_dev.h>
-#include <virtualization/vdev/virt_device.h>
+#include <virtualization/vm_device.h>
+
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 

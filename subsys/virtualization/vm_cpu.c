@@ -11,7 +11,7 @@
 #include <virtualization/arm/cpu.h>
 #include <virtualization/arm/switch.h>
 #include <virtualization/arm/vtimer.h>
-#include <virtualization/vm_dev.h>
+#include <virtualization/vm_device.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 

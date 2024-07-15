@@ -14,7 +14,7 @@
 #include <virtualization/vm.h>
 #include <virtualization/arm/trap_handler.h>
 #include <virtualization/arm/cpu_irq.h>
-#include <virtualization/vm_dev.h>
+#include <virtualization/vm_device.h>
 
 /**
  * Software irq flags, which is used to

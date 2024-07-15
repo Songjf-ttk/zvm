@@ -10,34 +10,10 @@ LOG_MODULE_REGISTER(pcie_ecam, LOG_LEVEL_ERR);
 #include <kernel.h>
 #include <device.h>
 #include <drivers/pcie/pcie.h>
+#include <drivers/pcie/pcie_ecam.h>
 #include <drivers/pcie/controller.h>
 
 #define DT_DRV_COMPAT pci_host_ecam_generic
-
-/*
- * PCIe Controllers Regions
- *
- * TOFIX:
- * - handle prefetchable regions
- */
-enum pcie_region_type {
-	PCIE_REGION_IO = 0,
-	PCIE_REGION_MEM,
-	PCIE_REGION_MEM64,
-	PCIE_REGION_MAX,
-};
-
-struct pcie_ecam_data {
-	uintptr_t cfg_phys_addr;
-	mm_reg_t cfg_addr;
-	size_t cfg_size;
-	struct {
-		uintptr_t phys_start;
-		uintptr_t bus_start;
-		size_t size;
-		size_t allocation_offset;
-	} regions[PCIE_REGION_MAX];
-};
 
 static int pcie_ecam_init(const struct device *dev)
 {

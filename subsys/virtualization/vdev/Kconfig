@@ -103,3 +103,51 @@ config VM_CLOCK_SYSTEM_CONTROLLER_INIT_PRIORITY
 		When virt system clock is init, it judge the initialization priority in POST_KERNLE.
 
 endif
+
+config VM_SYSCON_CONTROLLER
+	bool "VM syscon controller."
+	help
+		For hardware board, the system register may be configuration to multiple modes.
+		VM which needs these system configurations may access syscon, ZVM must manager
+		these configuration and determining which io function can be edit.
+
+if VM_SYSCON_CONTROLLER
+
+config VM_SYSCON_CONTROLLER_INIT_PRIORITY
+	int "VM syscon controller init priority."
+	default 60
+	help
+		When virt syscon is init, it judge the initialization priority in POST_KERNLE.
+
+endif
+
+config VM_PCI_BUS_CONTROLLER
+	bool "VM pci bus controller."
+	help
+		PCI bus controller is a bus device that can support mutiple pci device.
+
+if VM_PCI_BUS_CONTROLLER
+
+config VM_PCI_BUS_INIT_PRIORITY
+	int "VM pci bus init priority."
+	default 68
+	help
+		PCI bus can be initialized in lowest priority of POST_KERNLE.
+
+endif
+
+config VM_SHMEM
+	bool "VM MEM that get from vm."
+	default y
+	help
+	  	This option is used for building memory that get from overlay.
+
+if VM_SHMEM
+
+config MEM_INIT_PRIORITY
+	int "VM virt mem init priority."
+	default 59
+	help
+		When virtmem is init, it judge the initialization priority in POST_KERNLE.
+
+endif

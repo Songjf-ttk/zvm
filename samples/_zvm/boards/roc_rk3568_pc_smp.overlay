@@ -7,14 +7,23 @@
 /{
 	aliases {
         vmvgic = "/soc/vgic@fd400000";
-		vmserial1 = "/soc/serial@fe660000";
-		vmserial2 = "/soc/serial@fe6d0000";
+		ptdevice1 = "/soc/pass_through_device/serial@fe660000";
+		ptdevice2 = "/soc/pass_through_device/serial@fe670000";
+        ptdevice3 = "/soc/pass_through_device/gpio@fe760000";
+        ptdevice4 = "/soc/pass_through_device/i2c@fe5b0000";
+        ptdevice5 = "/soc/pass_through_device/i2c@fe5e0000";
+        ptdevice6 = "/soc/pass_through_device/pwm@fe6f0000";
+        ptdevice7 = "/soc/pass_through_device/i2c@fe5c0000";
+        ptdevice8 = "/soc/pass_through_device/linuxdev@103000";
+        ptdevice9 = "/soc/pass_through_device/serial@fe6c0000";
         linuxdebugger = "/soc/fiq-debugger";
+        vmvirtmem = "/soc/virtmem@bf000000";
 	};
 
 	chosen {
-		vm,console = &uart3;
+		vm,console = &uart9;
 	};
+
 
     soc {
 
@@ -25,30 +34,105 @@
             label = "VM_VGIC";
         };
 
-        /* VM0's uart here! rk3568's port num is uart3 */
-        uart3: serial@fe660000 {
-            compatible = "rockchip,rk3568-uart", "ns16550";
-            reg = <0x0 0xfe660000 0x0 0x10000>;
-            interrupts = <GIC_SPI 118 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY>;
-		    clocks = <&uartclk>;
-            clock-frequency = <12000000>;
-            reg-shift = <2>;
-            status = "reserved";
-            current-speed = <1500000>;
-            label = "UART3";
-        };
+        pass_through_device {
 
-        /* VM1's uart here! rk3568's port num is uart9 */
-        uart9: serial@fe6d0000 {
-            compatible = "rockchip,rk3568-uart", "ns16550";
-            reg = <0x0 0xfe6d0000 0x0 0x10000>;
-            interrupts = <GIC_SPI 125 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY>;
-		    clocks = <&uartclk>;
-            clock-frequency = <12000000>;
-            reg-shift = <2>;
-            status = "reserved";
-            current-speed = <1500000>;
-            label = "UART9";
+            #address-cells = <2>;
+            #size-cells = <2>;
+            ranges;
+
+            uart3: serial@fe670000 {
+                compatible = "rockchip,rk3568-uart", "ns16550";
+                reg = <0x0 0xfe670000 0x0 0x10000>;
+                interrupts = <GIC_SPI 119 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY>;
+                clocks = <&uartclk>;
+                clock-frequency = <12000000>;
+                reg-shift = <2>;
+                status = "reserved";
+                current-speed = <1500000>;
+                label = "UART3";
+            };
+
+            uart8: serial@fe6c0000 {
+                compatible = "rockchip,rk3568-uart", "ns16550";
+                reg = <0x0 0xfe6c0000 0x0 0x10000>;
+                interrupts = <GIC_SPI 124 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY>;
+                clocks = <&uartclk>;
+                clock-frequency = <12000000>;
+                reg-shift = <2>;
+                status = "reserved";
+                current-speed = <9600>;
+                label = "PTUART8";
+            };
+
+            /* VM1's uart here! rk3568's port num is uart9 */
+            uart9: serial@fe660000 {
+                compatible = "rockchip,rk3568-uart", "ns16550";
+                reg = <0x0 0xfe660000 0x0 0x10000>;
+                interrupts = <GIC_SPI 118 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY>;
+                clocks = <&uartclk>;
+                clock-frequency = <12000000>;
+                reg-shift = <2>;
+                status = "reserved";
+                current-speed = <1500000>;
+                label = "UART9";
+            };
+
+            gpio3: gpio@fe760000 {
+                compatible = "rockchip,rk3568-gpio";
+                gpio-controller;
+                #gpio-cells = < 0x2 >;
+                reg = <0x0 0xfe760000 0x0 0x1000 >;
+                interrupts = < GIC_SPI 36 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY >;
+                lable = "GPIO_3";
+                status = "okay";
+            };
+
+            i2c2: i2c@fe5b0000 {
+                compatible = "rockchip,rk3399-i2c";
+                reg = <0x0 0xfe5b0000 0x0 0x1000>;
+                clock-frequency = <24000000>;
+                interrupts = <GIC_SPI 48 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+                status = "okay";
+            };
+
+            i2c3: i2c@fe5c0000 {
+                compatible = "rockchip,rk3399-i2c";
+                reg = <0x0 0xfe5c0000 0x0 0x1000>;
+                clock-frequency = <24000000>;
+                interrupts = <GIC_SPI 49 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+                status = "okay";
+            };
+
+            i2c5: i2c@fe5e0000 {
+                compatible = "rockchip,rk3399-i2c";
+                reg = <0x0 0xfe5e0000 0x0 0x1000>;
+                clock-frequency = <24000000>;
+                interrupts = <GIC_SPI 51 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+                status = "okay";
+            };
+
+            pwm8: pwm@fe6f0000 {
+                compatible = "rockchip,rk3568-pwm";
+                reg = <0x0 0xfe6f0000 0x0 0x1000>;
+                #pwm-cells = <3>;
+                status = "okay";
+            };
+
+            pwm9: pwm@fe6f0010 {
+                compatible = "rockchip,rk3568-pwm";
+                reg = <0x0 0xfe6f0010 0x0 0x10>;
+                #pwm-cells = <3>;
+                status = "okay";
+            };
+
+            linuxdev: linuxdev@103000 {
+                compatible = "rockchip,rk3399-i2c";
+                reg = <0x0 0x103000 0x0 0x1000>;
+                interrupts = <GIC_SPI 150 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY>;
+                status = "okay";
+                label = "LINUXDEV";
+            };
+
         };
 
         debug_uart: fiq-debugger {
@@ -58,6 +142,14 @@
             rockchip,irq-mode-enable = <0x01>;
             rockchip,baudrate = <1500000>;
             interrupts = <GIC_SPI 220 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY>;
+            status = "okay";
+        };
+
+        virtmem@bf000000 {
+            compatible = "arm,mem";
+            device_type = "memory";
+            reg = <0x0 0xbf000000 0x0 0x1000>;
+            label = "VM_SHMEM";
             status = "okay";
         };
 
@@ -87,7 +179,7 @@
         #address-cells = <2>;
         #size-cells = <2>;
         compatible = "linux-vm";
-        dtb_address = <0x88000000>;
+        dtb_address = <0xbe000000>;
         dtb_size = <DT_SIZE_M(2)>;
 
         linux_ddr: memory@80000000 {

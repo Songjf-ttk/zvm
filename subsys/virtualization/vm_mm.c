@@ -193,11 +193,11 @@ static int vm_init_mem_create(struct vm_mem_domain *vmem_domain)
         return ret;
     }
 
-#ifdef CONFIG_DTB_FILE_INPUT
+#ifdef CONFIG_VM_DTB_FILE_INPUT
     if(vm->os->type == OS_TYPE_LINUX){
         ret = vm_dtb_mem_create(vmem_domain);
     }
-#endif /* CONFIG_DTB_FILE_INPUT */
+#endif /* CONFIG_VM_DTB_FILE_INPUT */
 
     return ret;
 }
@@ -410,7 +410,7 @@ static bool check_vm_add_partition(struct k_mem_domain *domain,
 		dend = dstart + dpart->size;
 
 		if (pend > dstart && dend > pstart) {
-			ZVM_LOG_WARN("partition %p base %lx (size %zu) overlaps existing base %lx (size %zu) \n",
+			ZVM_LOG_WARN("zvm partition %p base %lx (size %zu) overlaps existing base %lx (size %zu) \n",
 				part, part->start, part->size,
 				dpart->start, dpart->size);
 			return false;
@@ -509,6 +509,7 @@ int vm_mem_domain_partitions_add(struct vm_mem_domain *vmem_dm)
         vpart = CONTAINER_OF(d_node, struct vm_mem_partition, vpart_node);
         ret = vm_mem_domain_partition_add(vmem_dm, vpart);
         if (ret) {
+            ZVM_LOG_ERR("vpart memory map failed, vpart.base 0x%llx, vpart.size 0x%llx.", vpart->part_hpa_base, vpart->part_hpa_size);
             k_spin_unlock(&vmem_dm->spin_mmlock, key);
             return ret;
         }

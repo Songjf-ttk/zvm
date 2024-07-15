@@ -13,7 +13,7 @@
 #include <spinlock.h>
 #include <drivers/interrupt_controller/gic.h>
 #include <arch/arm64/sys_io.h>
-#include <virtualization/vm_dev.h>
+#include <virtualization/vm_device.h>
 #include <virtualization/vm_irq.h>
 #include <virtualization/zvm.h>
 #include <virtualization/vdev/vgic_common.h>
