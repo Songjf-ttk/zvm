@@ -14,7 +14,7 @@
 
 .. code:: shell
 
-   ./auto_zvm.sh build rk3568
+   ./auto_zvm.sh build roc_rk3568_pc_smp
 
 或者使用命令行构建镜像:
 
@@ -55,7 +55,7 @@
    zvm_host.bin                     #主机镜像
    zephyr.bin                       #zephyr vm 镜像
    Image                            #linux vm 内核镜像
-   rk3568-firefly-roc-pc-simple.dtb #Linux设备树文件 
+   rk3568-firefly-roc-pc-simple.dtb #Linux设备树文件
 
 准备好这些镜像后，需要将其统一烧录到rk3568的板卡上。具体来说，就是需要通过tftp协议将这些镜像
 烧录到开发板上。包括如下步骤：

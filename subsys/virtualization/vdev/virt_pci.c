@@ -166,7 +166,7 @@ static int vm_pci_bus_init(const struct device *dev, struct vm *vm, struct virt_
 	int i;
 	struct virt_dev *vm_dev;
 	struct virt_pci_device *pci_device;
-	
+
 	/* Is there any pci device exist? */
 	switch (vm->os->type) {
 	case OS_TYPE_LINUX:

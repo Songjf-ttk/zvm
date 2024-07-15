@@ -4,19 +4,19 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <init.h>
 #include <stdlib.h>
 #include <arch/cpu.h>
 #include <arch/arm64/lib_helpers.h>
 #include <sys/printk.h>
-#include <init.h>
 #include <logging/log.h>
 #include <virtualization/zvm.h>
 #include <virtualization/os/os.h>
 #include <virtualization/os/os_zephyr.h>
 #include <virtualization/os/os_linux.h>
 #include <virtualization/vm.h>
-#include <virtualization/vm_dev.h>
-#include <virtualization/vdev/virt_device.h>
+#include <virtualization/vm_console.h>
+#include <virtualization/vm_device.h>
 
 LOG_MODULE_REGISTER(ZVM_MODULE_NAME);
 
@@ -183,15 +183,15 @@ static int zvm_overall_init(void)
 }
 
 /**
- * @brief Add all the passthrough device to the zvm_overall_list.
+ * @brief Add all the device to the zvm_overall_list, expect passthrough device.
 */
-int zvm_init_idle_device(const struct device *dev, struct virt_dev *vdev,
+static int zvm_init_idle_device_1(const struct device *dev, struct virt_dev *vdev,
                             struct zvm_dev_lists *dev_list)
 {
     uint16_t name_len;
     struct virt_dev *vm_dev = vdev;
 
-    /*TODO：Determine whether to connect directly based on device type*/
+    /*@TODO：Determine whether to connect directly based on device type*/
     vm_dev->dev_pt_flag = true;
 
     if(strcmp(((struct virt_device_config *)dev->config)->device_type, "virtio") == 0) {
@@ -206,15 +206,23 @@ int zvm_init_idle_device(const struct device *dev, struct virt_dev *vdev,
     vm_dev->name[name_len] = '\0';
 
     vm_dev->vm_vdev_paddr = ((struct virt_device_config *)dev->config)->reg_base;
-    vm_dev->vm_vdev_vaddr = VM_DEVICE_INVALID_BASE;
     vm_dev->vm_vdev_size = ((struct virt_device_config *)dev->config)->reg_size;
     vm_dev->hirq = ((struct virt_device_config *)dev->config)->hirq_num;
-    vm_dev->virq = VM_DEVICE_INVALID_VIRQ;
-    vm_dev->vm = NULL;
 
+    if(!strncmp(VM_DEFAULT_CONSOLE_NAME, vm_dev->name, VM_DEFAULT_CONSOLE_NAME_LEN)) {
+        vm_dev->vm_vdev_vaddr = VM_DEBUG_CONSOLE_BASE;
+        vm_dev->virq = VM_DEBUG_CONSOLE_IRQ;
+    } else {
+        vm_dev->vm_vdev_vaddr = vm_dev->vm_vdev_paddr;
+        vm_dev->virq = vm_dev->hirq;
+    }
+
+    vm_dev->vm = NULL;
     vm_dev->priv_data = (void *)dev;
 
-    printk("Init device %s successful! \n", vm_dev->name);
+    printk("Init idle device %s successful! \n", vm_dev->name);
+    printk("The device's paddress is 0x%x, paddress is 0x%x, size is 0x%x, hirq is %d, virq is %d. \n",
+            vm_dev->vm_vdev_paddr, vm_dev->vm_vdev_vaddr, vm_dev->vm_vdev_size, vm_dev->hirq, vm_dev->virq);
 
     sys_dnode_init(&vm_dev->vdev_node);
     sys_dlist_append(&dev_list->dev_idle_list, &vm_dev->vdev_node);
@@ -222,12 +230,46 @@ int zvm_init_idle_device(const struct device *dev, struct virt_dev *vdev,
     return 0;
 }
 
+#ifdef CONFIG_ZVM_OVERALL_DTB_FILE_SUPPORT
 /**
- * @brief Provide physical dev info to zvm system:
- * 1. Find all available devices information on the board;
- * 2. Build a idle hardwar device list for the system;
- * 3. VM init function can get dev info from it.
- * @return int
+ * @brief Add all the passthrough device to the zvm_overall_list.
+*/
+static int zvm_init_idle_device_2(char *name, uint32_t addr_base,
+                        uint32_t addr_size, int irq, struct virt_dev *vdev,
+                        struct zvm_dev_lists *dev_list)
+{
+    uint16_t name_len;
+    struct virt_dev *vm_dev = vdev;
+
+    /*TODO：Determine whether to connect directly based on device type*/
+    vm_dev->dev_pt_flag = true;
+
+
+    name_len = strlen(name);
+    name_len = name_len > VIRT_DEV_NAME_LENGTH ? VIRT_DEV_NAME_LENGTH : name_len;
+    strncpy(vm_dev->name, name, name_len);
+    vm_dev->name[name_len] = '\0';
+
+    vm_dev->vm_vdev_paddr = addr_base;
+    vm_dev->vm_vdev_vaddr = VM_DEVICE_INVALID_BASE;
+    vm_dev->vm_vdev_size = addr_size;
+    vm_dev->hirq = irq;
+    vm_dev->virq = VM_DEVICE_INVALID_VIRQ;
+    vm_dev->vm = NULL;
+
+    vm_dev->priv_data = NULL;
+
+    printk("Init idle device %s successful! \n", vm_dev->name);
+
+    sys_dnode_init(&vm_dev->vdev_node);
+    sys_dlist_append(&dev_list->dev_idle_list, &vm_dev->vdev_node);
+
+    return 0;
+}
+#endif
+
+/**
+ * @brief Scan the device list and get the device by name.
  */
 static int zvm_devices_list_init(void)
 {
@@ -237,6 +279,43 @@ static int zvm_devices_list_init(void)
     sys_dlist_init(&zvm_overall_dev_lists.dev_idle_list);
     sys_dlist_init(&zvm_overall_dev_lists.dev_used_list);
 
+#ifdef CONFIG_ZVM_OVERALL_DTB_FILE_SUPPORT
+    struct device_node *dev_list, *node;
+	/* Parse dtb and get all the idle devices from device lists. */
+	dev_list = zparse_fdt(0xf1000000);
+    if(dev_list == NULL) {
+        printk("Parse dtb error!\n");
+        return -1;
+    }
+    printk("Parse zvm dtb successful!\n");
+    node = dev_list;
+    while(node) {
+        /* There are one irq and mutiple address. */
+        for (i = 0; i < node->addr_count; i++) {
+            if(node->dev_addr_size_pairs[i].size == 0) {
+                continue;
+            }
+            vm_dev = (struct virt_dev*)k_malloc(sizeof(struct virt_dev));
+            if(vm_dev == NULL) {
+                printk("Allocate memory for vm_dev error!\n");
+                return -ENOMEM;
+            }
+            if(node->interrupts.irq_count == 0){
+                zvm_init_idle_device_2(node->name, node->dev_addr_size_pairs[i].addr_base,
+                                    node->dev_addr_size_pairs[i].size, VM_DEVICE_INVALID_VIRQ,
+                                    vm_dev, &zvm_overall_dev_lists);
+            } else if(node->interrupts.irq_count == 1){
+                zvm_init_idle_device_2(node->name, node->dev_addr_size_pairs[i].addr_base,
+                                    node->dev_addr_size_pairs[i].size, node->interrupts.irqs[0],
+                                    vm_dev, &zvm_overall_dev_lists);
+            } else {
+                printk("The device %s has more than one irq!\n", node->name);
+                return -1;
+            }
+        }
+        node = node->next;
+    }
+#else
     /* scan the host dts and get the device list */
 	for (dev = __device_start; dev != __device_end; dev++) {
         /**
@@ -248,9 +327,10 @@ static int zvm_devices_list_init(void)
             if (vm_dev == NULL) {
                 return -ENOMEM;
             }
-            zvm_init_idle_device(dev, vm_dev, &zvm_overall_dev_lists);
+            zvm_init_idle_device_1(dev, vm_dev, &zvm_overall_dev_lists);
 		}
 	}
+#endif
 
     return 0;
 }
@@ -302,5 +382,5 @@ static int zvm_init(const struct device *dev)
     return ret;
 }
 
-/* To simple init zvm here, @TODO instan it as a device */
-SYS_INIT(zvm_init, POST_KERNEL, CONFIG_ZVM_INIT_PRIORITY);
+/* For using device mmap, the level will switch to APPLICATION. */
+SYS_INIT(zvm_init, APPLICATION, CONFIG_ZVM_INIT_PRIORITY);
