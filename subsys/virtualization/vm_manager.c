@@ -8,7 +8,6 @@
 #include <string.h>
 #include <ksched.h>
 #include <sys/arch_interface.h>
-
 #include <virtualization/os/os.h>
 #include <virtualization/os/os_zephyr.h>
 #include <virtualization/os/os_linux.h>
@@ -59,7 +58,7 @@ int zvm_new_guest(size_t argc, char **argv)
 		ZVM_LOG_WARN("Can not create vm struct, VM struct init failed!\n");
 		return ret;
 	}
-	ZVM_LOG_INFO("** Create VM instance successful! \n");
+	ZVM_LOG_INFO("\n**Create VM instance successful! \n");
 
 	ret = vm_ops_init(new_vm);
 	if (ret) {
@@ -106,7 +105,7 @@ int zvm_new_guest(size_t argc, char **argv)
 
 	switch (new_vm->os->type) {
 	case OS_TYPE_LINUX:
-		ZVM_PRINTK("|******\t VMEM SIZE: \t %ld(M) \t******| \n",
+		ZVM_PRINTK("|******\t VMEM SIZE: \t %d(M) \t******| \n",
 		LINUX_VMSYS_SIZE/(1024*1024));
 		break;
 	case OS_TYPE_ZEPHYR:

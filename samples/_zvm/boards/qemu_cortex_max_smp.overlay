@@ -6,68 +6,21 @@
 
 /{
 	aliases {
-		vmserial1 = "/soc/uart@9001000";
-		vmserial2 = "/soc/uart@9002000";
-        vmplatform = "/soc/platform@c000000";
-        vmfw = "/soc/fw-cfg@9020000";
         vmvirtio1 = "/soc/virtio_mmio@a000000";
-        vmvirtio2 = "/soc/virtio_mmio@a000200";
-        vmvirtio3 = "/soc/virtio_mmio@a000400";
-        vmvirtio4 = "/soc/virtio_mmio@a000600";
-        vmvirtio5 = "/soc/virtio_mmio@a000800";
-        vmvirtio6 = "/soc/virtio_mmio@a000a00";
-        vmvirtio7 = "/soc/virtio_mmio@a000c00";
-        vmvirtio8 = "/soc/virtio_mmio@a000e00";
-        vmvirtio9 = "/soc/virtio_mmio@a001000";
-        vmvirtio10 = "/soc/virtio_mmio@a001200";
-        vmgpioctrl = "/soc/pl061@9030000";
-//        vmpcie = "/soc/pcie@10000000";
-        vmrtc = "/soc/pl031@9010000";
-        vmpmu = "/soc/pmu";
-        vmflash = "/soc/flash@0";
-        linuxcpy = "/soc/linux_cpy@e0000000";
+        vmvirtio2 = "/soc/virtio_mmio@a001000";
+        vmvirtmem = "/soc/virtmem@c0000000";
+        linuxcpy = "/soc/linux_cpy@d8000000";
+        /*Passthrough device.*/
+		ptdevice1 = "/soc/pass_through_device/uart@9001000";
+		ptdevice2 = "/soc/pass_through_device/uart@9002000";
 	};
 
     chosen {
 		vm,console = &uart0;
+        zephyr_pcie_controller = "/soc/pcie@10000000";
 	};
 
     soc {
-        uart1: uart@9001000 {
-			compatible = "arm,pl011";
-			reg = <0x00 0x09001000 0x00 0x1000>;
-			interrupts = <GIC_SPI 10 IRQ_TYPE_EDGE 0>;
-			interrupt-names = "irq_0";
-			clocks = <&uartclk>;
-            status = "reserved";
-            current-speed = <115200>;
-			label = "UART_1";
-		};
-
-		uart2: uart@9002000 {
-			compatible = "arm,pl011";
-			reg = <0x00 0x09002000 0x00 0x1000>;
-			interrupts = <GIC_SPI 11 IRQ_TYPE_EDGE 0>;
-			interrupt-names = "irq_0";
-			clocks = <&uartclk>;
-            status = "reserved";
-            current-speed = <115200>;
-			label = "UART_2";
-		};
-
-        platform@c000000 {
-            interrupt-parent = <0x8005>;
-            ranges = <0x00 0x00 0xc000000 0x2000000>;
-            #address-cells = <0x01>;
-            #size-cells = <0x01>;
-            compatible = "qemu,platform\0simple-bus";
-        };
-
-        fw-cfg@9020000 {
-            dma-coherent;
-            reg = <0x00 0x9020000 0x00 0x18>;
-            compatible = "qemu,fw-cfg-mmio";
-        };
 
         virtio_mmio@a000000 {
             interrupts = <GIC_SPI 0x10 IRQ_TYPE_EDGE 0>;
@@ -77,120 +30,85 @@
             virtio_type = <2>;
         };
 
-        virtio_mmio@a000200 {
-            interrupts = <GIC_SPI 0x11 IRQ_TYPE_EDGE 0>;
-            reg = <0x00 0xa000200 0x00 0x1000>;
-            compatible = "virtio,mmio";
-            device_type = "virtio";
-            virtio_type = <2>;
-        };
-
-        virtio_mmio@a000400 {
-            interrupts = <GIC_SPI 0x12 IRQ_TYPE_EDGE 0>;
-            reg = <0x00 0xa000400 0x00 0x1000>;
-            compatible = "virtio,mmio";
-            device_type = "virtio";
-            virtio_type = <2>;
-        };
-
-        virtio_mmio@a000600 {
-            interrupts = <GIC_SPI 0x13 IRQ_TYPE_EDGE 0>;
-            reg = <0x00 0xa000600 0x00 0x1000>;
-            compatible = "virtio,mmio";
-            device_type = "virtio";
-            virtio_type = <2>;
-        };
-
-        virtio_mmio@a000800 {
-            interrupts = <GIC_SPI 0x14 IRQ_TYPE_EDGE 0>;
-            reg = <0x00 0xa000800 0x00 0x1000>;
-            compatible = "virtio,mmio";
-            device_type = "virtio";
-            virtio_type = <2>;
-        };
-
-        virtio_mmio@a000a00 {
-            interrupts = <GIC_SPI 0x15 IRQ_TYPE_EDGE 0>;
-            reg = <0x00 0xa000a00 0x00 0x1000>;
-            compatible = "virtio,mmio";
-            device_type = "virtio";
-            virtio_type = <2>;
-        };
-
-        virtio_mmio@a000c00 {
-            interrupts = <GIC_SPI 0x16 IRQ_TYPE_EDGE 0>;
-            reg = <0x00 0xa000c00 0x00 0x1000>;
-            compatible = "virtio,mmio";
-            device_type = "virtio";
-            virtio_type = <2>;
-        };
-
-        virtio_mmio@a000e00 {
-            interrupts = <GIC_SPI 0x17 IRQ_TYPE_EDGE 0>;
-            reg = <0x00 0xa000e00 0x00 0x1000>;
-            compatible = "virtio,mmio";
-            device_type = "virtio";
-            virtio_type = <2>;
-        };
-
         virtio_mmio@a001000 {
-            interrupts = <GIC_SPI 0x18 IRQ_TYPE_EDGE 0>;
+            interrupts = <GIC_SPI 0x11 IRQ_TYPE_EDGE 0>;
             reg = <0x00 0xa001000 0x00 0x1000>;
             compatible = "virtio,mmio";
             device_type = "virtio";
             virtio_type = <2>;
         };
 
-        virtio_mmio@a001200 {
-            interrupts = <GIC_SPI 0x19 IRQ_TYPE_EDGE 0>;
-            reg = <0x00 0xa001200 0x00 0x1000>;
-            compatible = "virtio,mmio";
-            device_type = "virtio";
-            virtio_type = <2>;
+        virtmem@c0000000 {
+            compatible = "arm,mem";
+            device_type = "memory";
+            reg = <0x00 0xc0000000 0x00 0x1000>;
+            label = "VM_SHMEM";
+            status = "okay";
         };
 
-        pl061@9030000 {
-            phandle = <0x8007>;
-            clock-names = "apb_pclk";
-            clocks = <0x8000>;
-            interrupts = <GIC_SPI 0x07 IRQ_TYPE_LEVEL 0>;
-            gpio-controller;
-            #gpio-cells = <0x02>;
-            compatible = "arm,pl061\0arm,primecell";
-            reg = <0x00 0x9030000 0x00 0x1000>;
+        linux_cpy@d8000000 {
+            reg = <0x0 0xd8000000 0x0 DT_SIZE_M(240)>;
         };
-/*
+
+        pass_through_device {
+
+            #address-cells = <2>;
+            #size-cells = <2>;
+            ranges;
+
+            uart1: uart@9001000 {
+                compatible = "arm,pl011";
+                reg = <0x00 0x09001000 0x00 0x1000>;
+                interrupts = <GIC_SPI 10 IRQ_TYPE_EDGE 0>;
+                interrupt-names = "irq_0";
+                clocks = <&uartclk>;
+                status = "reserved";
+                current-speed = <115200>;
+                label = "UART_1";
+            };
+
+            uart2: uart@9002000 {
+                compatible = "arm,pl011";
+                reg = <0x00 0x09002000 0x00 0x1000>;
+                interrupts = <GIC_SPI 11 IRQ_TYPE_EDGE 0>;
+                interrupt-names = "irq_0";
+                clocks = <&uartclk>;
+                status = "reserved";
+                current-speed = <115200>;
+                label = "UART_2";
+            };
+
+        };
+
         pcie@10000000 {
+            compatible = "pci-host-ecam-generic";
             interrupt-map-mask = <0x1800 0x00 0x00 0x07>;
-            interrupt-map = <0x00 0x00 0x00 0x01 0x8005 0x00 0x00 0x00 0x03 0x04 0x00 0x00 0x00 0x02 0x8005 0x00 0x00 0x00 0x04 0x04 0x00 0x00 0x00 0x03 0x8005 0x00 0x00 0x00 0x05 0x04 0x00 0x00 0x00 0x04 0x8005 0x00 0x00 0x00 0x06 0x04 0x800 0x00 0x00 0x01 0x8005 0x00 0x00 0x00 0x04 0x04 0x800 0x00 0x00 0x02 0x8005 0x00 0x00 0x00 0x05 0x04 0x800 0x00 0x00 0x03 0x8005 0x00 0x00 0x00 0x06 0x04 0x800 0x00 0x00 0x04 0x8005 0x00 0x00 0x00 0x03 0x04 0x1000 0x00 0x00 0x01 0x8005 0x00 0x00 0x00 0x05 0x04 0x1000 0x00 0x00 0x02 0x8005 0x00 0x00 0x00 0x06 0x04 0x1000 0x00 0x00 0x03 0x8005 0x00 0x00 0x00 0x03 0x04 0x1000 0x00 0x00 0x04 0x8005 0x00 0x00 0x00 0x04 0x04 0x1800 0x00 0x00 0x01 0x8005 0x00 0x00 0x00 0x06 0x04 0x1800 0x00 0x00 0x02 0x8005 0x00 0x00 0x00 0x03 0x04 0x1800 0x00 0x00 0x03 0x8005 0x00 0x00 0x00 0x04 0x04 0x1800 0x00 0x00 0x04 0x8005 0x00 0x00 0x00 0x05 0x04>;
+            interrupt-map = <0x00 0x00 0x00 0x01 0x8005 0x00 0x00 0x00 0x03 0x04
+                            0x00 0x00 0x00 0x02 0x8005 0x00 0x00 0x00 0x04 0x04
+                            0x00 0x00 0x00 0x03 0x8005 0x00 0x00 0x00 0x05 0x04
+                            0x00 0x00 0x00 0x04 0x8005 0x00 0x00 0x00 0x06 0x04
+                            0x800 0x00 0x00 0x01 0x8005 0x00 0x00 0x00 0x04 0x04
+                            0x800 0x00 0x00 0x02 0x8005 0x00 0x00 0x00 0x05 0x04
+                            0x800 0x00 0x00 0x03 0x8005 0x00 0x00 0x00 0x06 0x04
+                            0x800 0x00 0x00 0x04 0x8005 0x00 0x00 0x00 0x03 0x04
+                            0x1000 0x00 0x00 0x01 0x8005 0x00 0x00 0x00 0x05 0x04
+                            0x1000 0x00 0x00 0x02 0x8005 0x00 0x00 0x00 0x06 0x04
+                            0x1000 0x00 0x00 0x03 0x8005 0x00 0x00 0x00 0x03 0x04
+                            0x1000 0x00 0x00 0x04 0x8005 0x00 0x00 0x00 0x04 0x04
+                            0x1800 0x00 0x00 0x01 0x8005 0x00 0x00 0x00 0x06 0x04
+                            0x1800 0x00 0x00 0x02 0x8005 0x00 0x00 0x00 0x03 0x04
+                            0x1800 0x00 0x00 0x03 0x8005 0x00 0x00 0x00 0x04 0x04
+                            0x1800 0x00 0x00 0x04 0x8005 0x00 0x00 0x00 0x05 0x04>;
             #interrupt-cells = <0x01>;
-            ranges = <0x1000000 0x00 0x00 0x00 0x3eff0000 0x00 0x10000 0x2000000 0x00 0x10000000 0x00 0x10000000 0x00 0x2eff0000 0x3000000 0x80 0x00 0x80 0x00 0x80 0x00>;
+            ranges = <0x1000000 0x00 0x00 0x00 0x3eff0000 0x00 0x10000>,
+                    <0x2000000 0x00 0x10000000 0x00 0x10000000 0x00 0x10000000>,
+                    <0x3000000 0x00 0x20000000 0x00 0x20000000 0x00 0x1eff0000>;
             reg = <0x40 0x10000000 0x00 0x10000000>;
             msi-parent = <&gic_ist>;
-            dma-coherent;
             bus-range = <0x00 0xff>;
-            linux,pci-domain = <0x00>;
             #size-cells = <0x02>;
             #address-cells = <0x03>;
             device_type = "pci";
-            compatible = "pci-host-ecam-generic";
-        };
-*/
-        pl031@9010000 {
-            clock-names = "apb_pclk";
-            clocks = <0x8000>;
-            interrupts = <GIC_SPI 0x02 IRQ_TYPE_LEVEL 0>;
-            reg = <0x00 0x9010000 0x00 0x1000>;
-            compatible = "arm,pl031\0arm,primecell";
-        };
-
-        pmu {
-            interrupts = <GIC_PPI 0x07 IRQ_TYPE_LEVEL 0>;
-            compatible = "arm,armv8-pmuv3";
-        };
-
-        linux_cpy@e0000000 {
-            reg = <0x0 0xe0000000 0x0 DT_SIZE_M(240)>;
         };
 
     };
@@ -199,16 +117,16 @@
         #address-cells = <2>;
         #size-cells = <2>;
         compatible = "zephyr-vm";
-        dtb_address = <0x49000000>;
+        dtb_address = <0x00000000>;
         dtb_size = <DT_SIZE_M(2)>;
 
-        zephyr_ddr: memory@f2000000 {
+        zephyr_ddr: memory@c8000000 {
             compatible = "vm-dram";
             memmap_type = "direct";
             address_type = "normal_memory";
             vm_reg_base = <0x40000000>;
             vm_reg_size = <DT_SIZE_M(2)>;
-            reg = <0x0 0xf2000000 0x0 DT_SIZE_M(1)>;
+            reg = <0x0 0xc8000000 0x0 DT_SIZE_M(1)>;
             label = "VM0_MEM";
         };
     };
@@ -217,17 +135,39 @@
         #address-cells = <2>;
         #size-cells = <2>;
         compatible = "linux-vm";
-        dtb_address = <0xf2a00000>;
+        dtb_address = <0xd0000000>;
         dtb_size = <DT_SIZE_M(2)>;
 
-        linux_ddr: memory@f3000000 {
+        linux_ddr: memory@f0000000 {
             compatible = "vm-dram";
             memmap_type = "direct";
             address_type = "normal_memory";
             vm_reg_base = <0x40000000>;
             vm_reg_size = <DT_SIZE_M(1024)>;
-            reg = <0x0 0xf3000000 0x0 DT_SIZE_M(240)>;
+            reg = <0x0 0xf0000000 0x0 DT_SIZE_M(300)>;
             label = "VM1_MEM";
         };
+
+        /* Define a pci device instance for vm. */
+        linux_ivshmem {
+            compatible = "virt,pci";
+            /* ivshmem device */
+            type = <0x03>;
+            domain = <0x01>;
+            bdf = <0x00>;
+            /* little endian bar_mask */
+            bar_mask0 = <0xfffff000>;
+            bar_mask1 = <0x00000000>;
+            bar_mask2 = <0x00000000>;
+            bar_mask3 = <0x00000000>;
+            bar_mask4 = <0x00000000>;
+            bar_mask5 = <0x00000000>;
+            shmem_region_start = <0x0>;
+            shmem_dev_id = <0x0>;
+            shmem_peers = <0x2>;
+            shmem_protocol = <0x0>;
+            status = "okay";
+        };
+
     };
 };

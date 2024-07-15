@@ -9,9 +9,6 @@ properties:
 
     label:
       type: string
-
-    label:
-      type: string
       required: true
 
     memmap_type:

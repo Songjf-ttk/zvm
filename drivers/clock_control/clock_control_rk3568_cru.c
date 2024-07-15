@@ -10,7 +10,7 @@
 #include <sys/util.h>
 #include <drivers/clock_control.h>
 #include <dt-bindings/clock/rk3568_clock.h>
-#include <virtualization/vdev/virt_device.h>
+#include <virtualization/vm_device.h>
 
 #define DEV_CFG(dev) \
 	((const struct rk3568_clk_syscon * const)(dev)->config)

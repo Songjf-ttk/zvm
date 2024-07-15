@@ -33,14 +33,14 @@ enum request_type {
 	REQUEST_WRITE=2
 };
 
-//request: A request contains multiple iovecs. 
+//request: A request contains multiple iovecs.
 struct virtio_blk_dev_req {
 	struct virtio_queue		*vq;
 	uint16_t				head;
 	struct virtio_iovec		*read_iov;
 	uint32_t				read_iov_cnt;
 	uint32_t				len;
-	struct virtio_iovec		status_iov;		
+	struct virtio_iovec		status_iov;
 	void				*data;
 	enum request_type type;
 };
@@ -240,7 +240,6 @@ static void virtio_blk_do_io(struct virtio_device *dev,
 				virtio_blk_req_done(vbdev, req,
 						    VIRTIO_BLK_S_IOERR);
 			} else {
-				//printk("virtio_blk read: start_sector = %lld, num = %d\n", hdr.sector, num_sectors);
 				virtio_blk_req_done(vbdev, req,
 						    VIRTIO_BLK_S_OK);
 			}
@@ -264,7 +263,6 @@ static void virtio_blk_do_io(struct virtio_device *dev,
 				virtio_blk_req_done(vbdev, req,
 						    VIRTIO_BLK_S_IOERR);
 			} else {
-				//printk("virtio_blk write: start_sector = %lld, num = %d\n", hdr.sector, num_sectors);
 				virtio_blk_req_done(vbdev, req,
 						    VIRTIO_BLK_S_OK);
 			}
@@ -385,7 +383,7 @@ static int virtio_blk_reset(struct virtio_device *dev)
 
 static int virtio_blk_connect(struct virtio_device *dev,
 			      struct virtio_emulator *emu)
-{	
+{
 	int rc;
 	uint32_t cmd_buf;
 	struct virtio_blk_dev *vbdev;
@@ -429,7 +427,6 @@ static int virtio_blk_connect(struct virtio_device *dev,
 		printk("Disk ioctl get sector count failed\n");
 		return -EFAULT;
 	}
-	//printk("Disk reports %u sectors\n", cmd_buf);
 
 	rc = disk_access_ioctl(vbdev->disk_pdrv, DISK_IOCTL_GET_SECTOR_SIZE, &cmd_buf);
 	if (rc) {
@@ -437,7 +434,6 @@ static int virtio_blk_connect(struct virtio_device *dev,
 		printk("Disk ioctl get sector size failed\n");
 		return -EFAULT;
 	}
-	//printk("Disk reports sector size %u\n", cmd_buf);
 
 	dev->emu_data = vbdev;
 

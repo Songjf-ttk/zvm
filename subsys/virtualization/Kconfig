@@ -40,6 +40,12 @@ config ZVM_INIT_PRIORITY
 	help
 	  ZVM module initialization priority.
 
+config ZVM_VM_DEVICE_INIT_PRIORITY
+	int "ZVM vm device init priority"
+	default	65
+	help
+	  ZVM module initialization priority.
+
 config ZVM_DEBUG_LOG_INFO
 	bool "Show system boot info"
 	help
@@ -64,16 +70,21 @@ config ZVM_EARLYPRINT_MSG
 	  For debug hardware system, there must be a early printk mechanism to
 	  output the system info, which is usefull for development.
 
-config DTB_FILE_INPUT
-	bool "ZVM system pharse dtb file for os like linux"
+config ZVM_OVERALL_DTB_FILE_SUPPORT
+	bool "ZVM pharse dtb file for overall system"
 	help
-	  ZVM pharse dtb file, and get mem partition for vm_mem domain.
+	  ZVM pharse dtb file, and get overall board's device infomation.
+
+config VM_DTB_FILE_INPUT
+	bool "ZVM pharse dtb file for linux vm"
+	help
+	  ZVM pharse dtb file, and get .
 
 config VM_DYNAMIC_MEMORY
 	bool "ZVM's allocate dynamic memory space for vm."
 	default n
 	help
-	  ZVM uses dynamic memory allocate mechanism to reduce the memory allocate, 
+	  ZVM uses dynamic memory allocate mechanism to reduce the memory allocate,
 	  but it will add some time cost.
 
 endif   # ZVM

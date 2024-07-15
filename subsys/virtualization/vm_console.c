@@ -4,7 +4,6 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-
 #include <zephyr.h>
 #include <kernel.h>
 #include <drivers/uart.h>
@@ -15,9 +14,12 @@
 #include <virtualization/vdev/vgic_common.h>
 #include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/vm_mm.h>
-#include <virtualization/vdev/virt_device.h>
+#include <virtualization/vm_device.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
+
+#define DEV_DATA(dev) \
+	((struct virt_device_data *)(dev)->data)
 
 int vm_console_create(struct vm *vm)
 {
@@ -29,7 +31,7 @@ int vm_console_create(struct vm *vm)
     const struct device *dev;
 
     vdev_list = get_zvm_dev_lists();
-    SYS_DLIST_FOR_EACH_NODE_SAFE(&vdev_list->dev_idle_list, d_node, ds_node){
+    SYS_DLIST_FOR_EACH_NODE_SAFE(&vdev_list->dev_idle_list, d_node, ds_node) {
         vm_dev = CONTAINER_OF(d_node, struct virt_dev, vdev_node);
         /* host uart device ? */
         if(!strncmp(dev_name, vm_dev->name, VM_DEFAULT_CONSOLE_NAME_LEN)){

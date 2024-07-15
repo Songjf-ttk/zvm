@@ -24,10 +24,14 @@
 #define LINUX_VMSYS_SIZE        DT_PROP(DT_NODELABEL(linux_ddr), vm_reg_size)
 #define LINUX_VMCPY_BASE        DT_REG_ADDR(DT_ALIAS(linuxcpy))
 #define LINUX_VMCPY_SIZE        DT_REG_SIZE(DT_ALIAS(linuxcpy))
-#ifdef CONFIG_DTB_FILE_INPUT
+
+#define LINUX_VMCPY_BASE        DT_REG_ADDR(DT_ALIAS(linuxcpy))
+#define LINUX_VMCPY_SIZE        DT_REG_SIZE(DT_ALIAS(linuxcpy))
+
+#ifdef CONFIG_VM_DTB_FILE_INPUT
 #define LINUX_DTB_MEM_BASE        DT_PROP(DT_INST(0, linux_vm), dtb_address)
 #define LINUX_DTB_MEM_SIZE        DT_PROP(DT_INST(0, linux_vm), dtb_size)
-#endif /* CONFIG_DTB_FILE_INPUT */
+#endif /* CONFIG_VM_DTB_FILE_INPUT */
 
 struct vm_mem_domain;
 

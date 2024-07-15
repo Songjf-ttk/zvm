@@ -517,7 +517,7 @@ int arch_vm_mem_domain_partition_add(struct k_mem_domain *domain,
 {
 	struct arm_mmu_ptables *domain_ptables = &domain->arch.ptables;
 	struct k_mem_partition *ptn = &domain->partitions[partition_id];
-
+	ZVM_LOG_INFO("PART_ADD: phys_start 0x%lx, virt_start 0x%lx, size 0x%lx. \n", phys_start, ptn->start, ptn->size);
 	return vm_add_map(domain_ptables, "vm-mmio-space", phys_start,
 				ptn->start, ptn->size, ptn->attr.attrs, vmid);
 }

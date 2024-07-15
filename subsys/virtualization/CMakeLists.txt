@@ -9,7 +9,7 @@ zephyr_sources_ifdef(
     CONFIG_ZVM
     vm_console.c
     vm_cpu.c
-    vm_dev.c
+    vm_device.c
     vm_irq.c
     vm_manager.c
     vm_mm.c

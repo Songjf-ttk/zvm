@@ -5,7 +5,6 @@
  */
 
 #include <sys/mem_manage.h>
-
 #include <virtualization/zvm.h>
 #include <virtualization/vm_manager.h>
 #include <virtualization/os/os_linux.h>
@@ -45,11 +44,8 @@ int load_linux_image(struct vm_mem_domain *vmem_domain)
     uint64_t lbase_size,limage_base,limage_size;
     struct _dnode *d_node, *ds_node;
     struct vm_mem_partition *vpart;
-    struct vm_mem_block *blk;
-    struct vm *this_vm = vmem_domain->vm;
-    ARG_UNUSED(blk);
-    ARG_UNUSED(this_vm);
 
+#ifdef CONFIG_SOC_QEMU_CORTEX_MAX
     uint64_t *src_hva, des_hva;
     uint64_t num_m = LINUX_VM_IMAGE_SIZE / (1024 * 1024);
     uint64_t src_hpa = LINUX_VMCPY_BASE;
@@ -64,9 +60,9 @@ int load_linux_image(struct vm_mem_domain *vmem_domain)
         src_hpa += per_size;
         num_m--;
     }
+#endif /* CONFIG_SOC_QEMU_CORTEX_MAX */
 
 #ifndef  CONFIG_VM_DYNAMIC_MEMORY
-    ARG_UNUSED(this_vm);
     return ret;
 #endif /* CONFIG_VM_DYNAMIC_MEMORY */
 

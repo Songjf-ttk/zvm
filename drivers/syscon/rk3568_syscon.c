@@ -10,7 +10,7 @@
 #include <init.h>
 #include <drivers/syscon.h>
 #include <virtualization/zvm.h>
-#include <virtualization/vdev/virt_device.h>
+#include <virtualization/vm_device.h>
 
 #define DT_DRV_COMPAT syscon
 

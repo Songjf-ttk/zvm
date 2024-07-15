@@ -11,7 +11,7 @@
 #include <device.h>
 #include <devicetree.h>
 #include <virtualization/zvm.h>
-#include <virtualization/vdev/virt_device.h>
+#include <virtualization/vm_device.h>
 #include <virtualization/vdev/vgic_common.h>
 #include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/vdev/virtio/virtio.h>
@@ -217,12 +217,12 @@ int virtio_mmio_read(struct virt_dev *edev,
 }
 
 static int virtio_mmio_notify(struct virtio_device *dev, uint32_t vq)
-{	
+{
 	int err = 0;
 	struct virtio_mmio_dev *m = dev->tra_data;
 
 	m->config.interrupt_status |= VIRTIO_MMIO_INT_VRING;
-	
+
 	err = set_virq_to_vm(dev->guest, m->irq);
 	if(err < 0){
 		printk("Send virq to vm error!\n");
@@ -354,46 +354,6 @@ static struct virt_device_data virt_mmio_data_port_2 = {
 	.device_data = &virtio_mmio_dev2,
 };
 
-static struct virtio_mmio_dev virtio_mmio_dev3;
-static struct virt_device_data virt_mmio_data_port_3 = {
-	.device_data = &virtio_mmio_dev3,
-};
-
-static struct virtio_mmio_dev virtio_mmio_dev4;
-static struct virt_device_data virt_mmio_data_port_4 = {
-	.device_data = &virtio_mmio_dev4,
-};
-
-static struct virtio_mmio_dev virtio_mmio_dev5;
-static struct virt_device_data virt_mmio_data_port_5 = {
-	.device_data = &virtio_mmio_dev5,
-};
-
-static struct virtio_mmio_dev virtio_mmio_dev6;
-static struct virt_device_data virt_mmio_data_port_6 = {
-	.device_data = &virtio_mmio_dev6,
-};
-
-static struct virtio_mmio_dev virtio_mmio_dev7;
-static struct virt_device_data virt_mmio_data_port_7 = {
-	.device_data = &virtio_mmio_dev7,
-};
-
-static struct virtio_mmio_dev virtio_mmio_dev8;
-static struct virt_device_data virt_mmio_data_port_8 = {
-	.device_data = &virtio_mmio_dev8,
-};
-
-static struct virtio_mmio_dev virtio_mmio_dev9;
-static struct virt_device_data virt_mmio_data_port_9 = {
-	.device_data = &virtio_mmio_dev9,
-};
-
-static struct virtio_mmio_dev virtio_mmio_dev10;
-static struct virt_device_data virt_mmio_data_port_10 = {
-	.device_data = &virtio_mmio_dev10,
-};
-
 #ifdef CONFIG_VIRTIO_INTERRUPT_DRIVEN
 
 void virt_virtio_mmio_isr(const struct device *dev)
@@ -445,158 +405,6 @@ static struct virtio_device_config virtio_mmio_cfg_port_2 = {
 #endif
 };
 
-#ifdef CONFIG_VIRTIO_INTERRUPT_DRIVEN
-static void virtio_mmio_irq_config_func_3(const struct device *dev)
-{
-	IRQ_CONNECT(DT_IRQN(DT_ALIAS(vmvirtio3)),
-		    DT_IRQ(DT_ALIAS(vmvirtio3), priority),
-		    virt_virtio_mmio_isr,
-		    DEVICE_DT_GET(DT_ALIAS(vmvirtio3)),
-		    0);
-	irq_enable(DT_IRQN(DT_ALIAS(vmvirtio3)));
-}
-#endif
-
-static struct virtio_device_config virtio_mmio_cfg_port_3 = {
-	.virtio_type = DT_PROP(DT_ALIAS(vmvirtio3), virtio_type),	
-#ifdef CONFIG_VIRTIO_INTERRUPT_DRIVEN
-	.irq_config_func = virtio_mmio_irq_config_func_3,
-#endif
-};
-
-#ifdef CONFIG_VIRTIO_INTERRUPT_DRIVEN
-static void virtio_mmio_irq_config_func_4(const struct device *dev)
-{
-	IRQ_CONNECT(DT_IRQN(DT_ALIAS(vmvirtio4)),
-		    DT_IRQ(DT_ALIAS(vmvirtio4), priority),
-		    virt_virtio_mmio_isr,
-		    DEVICE_DT_GET(DT_ALIAS(vmvirtio4)),
-		    0);
-	irq_enable(DT_IRQN(DT_ALIAS(vmvirtio4)));
-}
-#endif
-
-static struct virtio_device_config virtio_mmio_cfg_port_4 = {
-	.virtio_type = DT_PROP(DT_ALIAS(vmvirtio4), virtio_type),	
-#ifdef CONFIG_VIRTIO_INTERRUPT_DRIVEN
-	.irq_config_func = virtio_mmio_irq_config_func_4,
-#endif
-};
-
-#ifdef CONFIG_VIRTIO_INTERRUPT_DRIVEN
-static void virtio_mmio_irq_config_func_5(const struct device *dev)
-{
-	IRQ_CONNECT(DT_IRQN(DT_ALIAS(vmvirtio5)),
-		    DT_IRQ(DT_ALIAS(vmvirtio5), priority),
-		    virt_virtio_mmio_isr,
-		    DEVICE_DT_GET(DT_ALIAS(vmvirtio5)),
-		    0);
-	irq_enable(DT_IRQN(DT_ALIAS(vmvirtio5)));
-}
-#endif
-
-static struct virtio_device_config virtio_mmio_cfg_port_5 = {
-	.virtio_type = DT_PROP(DT_ALIAS(vmvirtio5), virtio_type),	
-#ifdef CONFIG_VIRTIO_INTERRUPT_DRIVEN
-	.irq_config_func = virtio_mmio_irq_config_func_5,
-#endif
-};
-
-#ifdef CONFIG_VIRTIO_INTERRUPT_DRIVEN
-static void virtio_mmio_irq_config_func_6(const struct device *dev)
-{
-	IRQ_CONNECT(DT_IRQN(DT_ALIAS(vmvirtio6)),
-		    DT_IRQ(DT_ALIAS(vmvirtio6), priority),
-		    virt_virtio_mmio_isr,
-		    DEVICE_DT_GET(DT_ALIAS(vmvirtio6)),
-		    0);
-	irq_enable(DT_IRQN(DT_ALIAS(vmvirtio6)));
-}
-#endif
-
-static struct virtio_device_config virtio_mmio_cfg_port_6 = {
-	.virtio_type = DT_PROP(DT_ALIAS(vmvirtio6), virtio_type),	
-#ifdef CONFIG_VIRTIO_INTERRUPT_DRIVEN
-	.irq_config_func = virtio_mmio_irq_config_func_6,
-#endif
-};
-
-#ifdef CONFIG_VIRTIO_INTERRUPT_DRIVEN
-static void virtio_mmio_irq_config_func_7(const struct device *dev)
-{
-	IRQ_CONNECT(DT_IRQN(DT_ALIAS(vmvirtio7)),
-		    DT_IRQ(DT_ALIAS(vmvirtio7), priority),
-		    virt_virtio_mmio_isr,
-		    DEVICE_DT_GET(DT_ALIAS(vmvirtio7)),
-		    0);
-	irq_enable(DT_IRQN(DT_ALIAS(vmvirtio7)));
-}
-#endif
-
-static struct virtio_device_config virtio_mmio_cfg_port_7 = {
-	.virtio_type = DT_PROP(DT_ALIAS(vmvirtio7), virtio_type),	
-#ifdef CONFIG_VIRTIO_INTERRUPT_DRIVEN
-	.irq_config_func = virtio_mmio_irq_config_func_7,
-#endif
-};
-
-#ifdef CONFIG_VIRTIO_INTERRUPT_DRIVEN
-static void virtio_mmio_irq_config_func_8(const struct device *dev)
-{
-	IRQ_CONNECT(DT_IRQN(DT_ALIAS(vmvirtio8)),
-		    DT_IRQ(DT_ALIAS(vmvirtio8), priority),
-		    virt_virtio_mmio_isr,
-		    DEVICE_DT_GET(DT_ALIAS(vmvirtio8)),
-		    0);
-	irq_enable(DT_IRQN(DT_ALIAS(vmvirtio8)));
-}
-#endif
-
-static struct virtio_device_config virtio_mmio_cfg_port_8 = {
-	.virtio_type = DT_PROP(DT_ALIAS(vmvirtio8), virtio_type),	
-#ifdef CONFIG_VIRTIO_INTERRUPT_DRIVEN
-	.irq_config_func = virtio_mmio_irq_config_func_8,
-#endif
-};
-
-#ifdef CONFIG_VIRTIO_INTERRUPT_DRIVEN
-static void virtio_mmio_irq_config_func_9(const struct device *dev)
-{
-	IRQ_CONNECT(DT_IRQN(DT_ALIAS(vmvirtio9)),
-		    DT_IRQ(DT_ALIAS(vmvirtio9), priority),
-		    virt_virtio_mmio_isr,
-		    DEVICE_DT_GET(DT_ALIAS(vmvirtio9)),
-		    0);
-	irq_enable(DT_IRQN(DT_ALIAS(vmvirtio9)));
-}
-#endif
-
-static struct virtio_device_config virtio_mmio_cfg_port_9 = {
-	.virtio_type = DT_PROP(DT_ALIAS(vmvirtio9), virtio_type),	
-#ifdef CONFIG_VIRTIO_INTERRUPT_DRIVEN
-	.irq_config_func = virtio_mmio_irq_config_func_9,
-#endif
-};
-
-#ifdef CONFIG_VIRTIO_INTERRUPT_DRIVEN
-static void virtio_mmio_irq_config_func_10(const struct device *dev)
-{
-	IRQ_CONNECT(DT_IRQN(DT_ALIAS(vmvirtio10)),
-		    DT_IRQ(DT_ALIAS(vmvirtio10), priority),
-		    virt_virtio_mmio_isr,
-		    DEVICE_DT_GET(DT_ALIAS(vmvirtio10)),
-		    0);
-	irq_enable(DT_IRQN(DT_ALIAS(vmvirtio10)));
-}
-#endif
-
-static struct virtio_device_config virtio_mmio_cfg_port_10 = {
-	.virtio_type = DT_PROP(DT_ALIAS(vmvirtio10), virtio_type),	
-#ifdef CONFIG_VIRTIO_INTERRUPT_DRIVEN
-	.irq_config_func = virtio_mmio_irq_config_func_10,
-#endif
-};
-
 static struct virt_device_config virt_virt_mmio_cfg_1 = {
 	.reg_base = DT_REG_ADDR(DT_ALIAS(vmvirtio1)),
 	.reg_size = DT_REG_SIZE(DT_ALIAS(vmvirtio1)),
@@ -613,69 +421,6 @@ static struct virt_device_config virt_virt_mmio_cfg_2 = {
     .device_config = &virtio_mmio_cfg_port_2,
 };
 
-static struct virt_device_config virt_virt_mmio_cfg_3 = {
-	.reg_base = DT_REG_ADDR(DT_ALIAS(vmvirtio3)),
-	.reg_size = DT_REG_SIZE(DT_ALIAS(vmvirtio3)),
-	.hirq_num = DT_IRQN(DT_ALIAS(vmvirtio3)),
-	.device_type = DT_PROP(DT_ALIAS(vmvirtio3), device_type),
-    .device_config = &virtio_mmio_cfg_port_3,
-};
-
-static struct virt_device_config virt_virt_mmio_cfg_4 = {
-	.reg_base = DT_REG_ADDR(DT_ALIAS(vmvirtio4)),
-	.reg_size = DT_REG_SIZE(DT_ALIAS(vmvirtio4)),
-	.hirq_num = DT_IRQN(DT_ALIAS(vmvirtio4)),
-	.device_type = DT_PROP(DT_ALIAS(vmvirtio4), device_type),
-    .device_config = &virtio_mmio_cfg_port_4,
-};
-
-static struct virt_device_config virt_virt_mmio_cfg_5 = {
-	.reg_base = DT_REG_ADDR(DT_ALIAS(vmvirtio5)),
-	.reg_size = DT_REG_SIZE(DT_ALIAS(vmvirtio5)),
-	.hirq_num = DT_IRQN(DT_ALIAS(vmvirtio5)),
-	.device_type = DT_PROP(DT_ALIAS(vmvirtio5), device_type),
-    .device_config = &virtio_mmio_cfg_port_5,
-};
-
-static struct virt_device_config virt_virt_mmio_cfg_6 = {
-	.reg_base = DT_REG_ADDR(DT_ALIAS(vmvirtio6)),
-	.reg_size = DT_REG_SIZE(DT_ALIAS(vmvirtio6)),
-	.hirq_num = DT_IRQN(DT_ALIAS(vmvirtio6)),
-	.device_type = DT_PROP(DT_ALIAS(vmvirtio6), device_type),
-    .device_config = &virtio_mmio_cfg_port_6,
-};
-
-static struct virt_device_config virt_virt_mmio_cfg_7 = {
-	.reg_base = DT_REG_ADDR(DT_ALIAS(vmvirtio7)),
-	.reg_size = DT_REG_SIZE(DT_ALIAS(vmvirtio7)),
-	.hirq_num = DT_IRQN(DT_ALIAS(vmvirtio7)),
-	.device_type = DT_PROP(DT_ALIAS(vmvirtio7), device_type),
-    .device_config = &virtio_mmio_cfg_port_7,
-};
-
-static struct virt_device_config virt_virt_mmio_cfg_8 = {
-	.reg_base = DT_REG_ADDR(DT_ALIAS(vmvirtio8)),
-	.reg_size = DT_REG_SIZE(DT_ALIAS(vmvirtio8)),
-	.hirq_num = DT_IRQN(DT_ALIAS(vmvirtio8)),
-	.device_type = DT_PROP(DT_ALIAS(vmvirtio8), device_type),
-    .device_config = &virtio_mmio_cfg_port_8,
-};
-
-static struct virt_device_config virt_virt_mmio_cfg_9 = {
-	.reg_base = DT_REG_ADDR(DT_ALIAS(vmvirtio9)),
-	.reg_size = DT_REG_SIZE(DT_ALIAS(vmvirtio9)),
-	.hirq_num = DT_IRQN(DT_ALIAS(vmvirtio9)),
-	.device_type = DT_PROP(DT_ALIAS(vmvirtio9), device_type),
-    .device_config = &virtio_mmio_cfg_port_9,
-};
-
-static struct virt_device_config virt_virt_mmio_cfg_10 = {
-	.reg_base = DT_REG_ADDR(DT_ALIAS(vmvirtio10)),
-	.reg_size = DT_REG_SIZE(DT_ALIAS(vmvirtio10)),
-	.hirq_num = DT_IRQN(DT_ALIAS(vmvirtio10)),
-	.device_type = DT_PROP(DT_ALIAS(vmvirtio10), device_type),
-    .device_config = &virtio_mmio_cfg_port_10,
-};
 
 DEVICE_DT_DEFINE(DT_ALIAS(vmvirtio1),
             &virtio_mmio_init,
@@ -690,70 +435,6 @@ DEVICE_DT_DEFINE(DT_ALIAS(vmvirtio2),
             NULL,
             &virt_mmio_data_port_2,
             &virt_virt_mmio_cfg_2, POST_KERNEL,
-            CONFIG_VIRTIO_MMIO_INIT_PRIORITY,
-            &virt_virtio_mmio_api);
-
-DEVICE_DT_DEFINE(DT_ALIAS(vmvirtio3),
-            &virtio_mmio_init,
-            NULL,
-            &virt_mmio_data_port_3,
-            &virt_virt_mmio_cfg_3, POST_KERNEL,
-            CONFIG_VIRTIO_MMIO_INIT_PRIORITY,
-            &virt_virtio_mmio_api);
-
-DEVICE_DT_DEFINE(DT_ALIAS(vmvirtio4),
-            &virtio_mmio_init,
-            NULL,
-            &virt_mmio_data_port_4,
-            &virt_virt_mmio_cfg_4, POST_KERNEL,
-            CONFIG_VIRTIO_MMIO_INIT_PRIORITY,
-            &virt_virtio_mmio_api);
-
-DEVICE_DT_DEFINE(DT_ALIAS(vmvirtio5),
-            &virtio_mmio_init,
-            NULL,
-            &virt_mmio_data_port_5,
-            &virt_virt_mmio_cfg_5, POST_KERNEL,
-            CONFIG_VIRTIO_MMIO_INIT_PRIORITY,
-            &virt_virtio_mmio_api);
-
-DEVICE_DT_DEFINE(DT_ALIAS(vmvirtio6),
-            &virtio_mmio_init,
-            NULL,
-            &virt_mmio_data_port_6,
-            &virt_virt_mmio_cfg_6, POST_KERNEL,
-            CONFIG_VIRTIO_MMIO_INIT_PRIORITY,
-            &virt_virtio_mmio_api);
-
-DEVICE_DT_DEFINE(DT_ALIAS(vmvirtio7),
-            &virtio_mmio_init,
-            NULL,
-            &virt_mmio_data_port_7,
-            &virt_virt_mmio_cfg_7, POST_KERNEL,
-            CONFIG_VIRTIO_MMIO_INIT_PRIORITY,
-            &virt_virtio_mmio_api);
-
-DEVICE_DT_DEFINE(DT_ALIAS(vmvirtio8),
-            &virtio_mmio_init,
-            NULL,
-            &virt_mmio_data_port_8,
-            &virt_virt_mmio_cfg_8, POST_KERNEL,
-            CONFIG_VIRTIO_MMIO_INIT_PRIORITY,
-            &virt_virtio_mmio_api);
-
-DEVICE_DT_DEFINE(DT_ALIAS(vmvirtio9),
-            &virtio_mmio_init,
-            NULL,
-            &virt_mmio_data_port_9,
-            &virt_virt_mmio_cfg_9, POST_KERNEL,
-            CONFIG_VIRTIO_MMIO_INIT_PRIORITY,
-            &virt_virtio_mmio_api);
-
-DEVICE_DT_DEFINE(DT_ALIAS(vmvirtio10),
-            &virtio_mmio_init,
-            NULL,
-            &virt_mmio_data_port_10,
-            &virt_virt_mmio_cfg_10, POST_KERNEL,
             CONFIG_VIRTIO_MMIO_INIT_PRIORITY,
             &virt_virtio_mmio_api);
 

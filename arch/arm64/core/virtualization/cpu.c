@@ -390,7 +390,7 @@ int arch_vcpu_init(struct vcpu *vcpu)
         return ret;
     }
 
-#ifdef CONFIG_DTB_FILE_INPUT
+#ifdef CONFIG_VM_DTB_FILE_INPUT
     /* passing argu to linux, like fdt and others */
     vcpu_arch->ctxt.regs.esf_handle_regs.x0 = LINUX_DTB_MEM_BASE;
     vcpu_arch->ctxt.regs.esf_handle_regs.x1 = 0;
