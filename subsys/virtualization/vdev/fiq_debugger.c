@@ -11,7 +11,7 @@
 #include <device.h>
 #include <devicetree.h>
 #include <virtualization/zvm.h>
-#include <virtualization/vdev/virt_device.h>
+#include <virtualization/vm_device.h>
 #include <virtualization/vdev/fiq_debugger.h>
 #include <virtualization/vm_irq.h>
 #include <virtualization/vdev/vgic_common.h>

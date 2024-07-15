@@ -8,7 +8,7 @@
 #include <init.h>
 #include <device.h>
 #include <virtualization/zvm.h>
-#include <virtualization/vm_dev.h>
+#include <virtualization/vm_device.h>
 #include <virtualization/arm/mm.h>
 #include <virtualization/arm/trap_handler.h>
 #include <virtualization/arm/cpu.h>
@@ -45,19 +45,28 @@ static int handle_ftrans_desc(int iss_dfsc, uint64_t pa_addr,
 #else
     uint16_t reg_index = dabt->srt;
     uint64_t *reg_value;
+    reg_value = find_index_reg(reg_index, regs);
+    if (reg_value == NULL) {
+        reg_value = &wzr_reg;
+    }
 
     /* check that if it is a device memory fault */
     ret = handle_vm_device_emulate(vcpu->vm, pa_addr);
     if(ret){
+        /* pci initial sucessful. */
+        if(ret > 0){
+            return 0;
+        }
         reg_value = find_index_reg(reg_index, regs);
         *reg_value = 0xfefefefefefefefe;
-        ZVM_LOG_WARN("VM's mem abort addr: 0x%llx ! \n", pa_addr);
+        ZVM_LOG_ERR("Unable to handle Date abort in address: 0x%llx ! \n", pa_addr);
+        ZVM_LOG_ERR("A stage-2 translation table need to set for this device address 0x%llx.\n", pa_addr);
         /**
          * if the device is allocated, whether it can be emulated
          * by virtIO?
         */
     }else{
-        vm_mem_domain_partitions_add(vcpu->vm->vmem_domain);
+        ret = vm_mem_domain_partitions_add(vcpu->vm->vmem_domain);
         vcpu->arch->ctxt.regs.pc -= (GET_ESR_IL(esr_elx)) ? 4 : 2;
     }
 #endif
@@ -109,7 +118,7 @@ static int handle_faccess_desc(int iss_dfsc, uint64_t pa_addr,
         ZVM_LOG_WARN("Handle mmio read/write failed! The addr: %llx \n", addr);
         return -ENODEV;
     }
-    return 0;
+    return ret;
 }
 
 static int cpu_unknwn_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_elx)
@@ -192,16 +201,11 @@ static int cpu_hvc64_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_elx)
     key = k_spin_lock(&shell_vmops_lock_hvc);
     int ret = 0;
 
-    ARG_UNUSED(arch_ctxt);
-    ARG_UNUSED(esr_elx);
-
-    unsigned long esr_el_2= ESR_ISS(esr_elx);
     unsigned long code = GET_FIELD((esr_elx),15,0);
 
     char *args0[] = {"new", "-t", "zephyr"};
     char *args1[] = {"run", "-n", "0"};
     char *args2[] = {"pause", "-n", "0"};
-    char *args3[] = {"delete", "-n", "0"};
     char *args4[] = {"info"};
 
     switch (code)
@@ -222,8 +226,8 @@ static int cpu_hvc64_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_elx)
         break;
     case 4:
         /* stop the zephyr */
-        ZVM_LOG_WARN("CAN NOT DELETE NOW! \n ");  
-        break;   
+        ZVM_LOG_WARN("CAN NOT DELETE NOW! \n ");
+        break;
     default:
         ZVM_LOG_WARN("UNKNOWN CODE\n ");
         break;
@@ -232,7 +236,7 @@ static int cpu_hvc64_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_elx)
 #ifdef CONFIG_ZVM_TIME_MEASURE
     vm_irq_timing_print();
 #endif
-    /**The hvc instruction defaults to adding +0x4 to the PC value, 
+    /**The hvc instruction defaults to adding +0x4 to the PC value,
      * but zvm has already performed +0x4 during processing, causing
      *  a skip of the next assembly instruction. Here, -0x4 is used
      *  to fix this bug.

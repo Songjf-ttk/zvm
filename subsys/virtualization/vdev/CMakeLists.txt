@@ -5,8 +5,17 @@ zephyr_sources_ifdef(
     CONFIG_ZVM
     vgic_common.c
     vgic_v3.c
-    serial.c
-    virt_device.c
+    shmem.c
+)
+
+# board specific configuration
+zephyr_sources_ifdef(
+    CONFIG_SOC_RK3568
+    pt_device_roc_rk3568_pc.c
+)
+zephyr_sources_ifdef(
+    CONFIG_SOC_QEMU_CORTEX_MAX
+    pt_device_qemu_cortex_max.c
 )
 
 zephyr_sources_ifdef(
@@ -28,4 +37,9 @@ zephyr_sources_ifdef(
 zephyr_sources_ifdef(
     CONFIG_VM_CLOCK_SYSTEM_CONTROLLER
     virt_clock_syscon.c
+)
+
+zephyr_sources_ifdef(
+    CONFIG_VM_SYSCON_CONTROLLER
+    virt_syscon.c
 )

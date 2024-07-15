@@ -12,6 +12,19 @@
 extern "C" {
 #endif
 
+/* Pass current syscon info to subsys(like zvm) */
+int z_info_syscon(const char *name, uint32_t addr_base,
+                              uint32_t addr_size, const void *priv);
+
+int __weak z_info_syscon(const char *name, uint32_t addr_base,
+                              uint32_t addr_size, const void *priv)
+{
+     ARG_UNUSED(addr_base);
+     ARG_UNUSED(addr_size);
+     ARG_UNUSED(priv);
+     return 0;
+}
+
 /**
  * @brief Align and check register address
  *

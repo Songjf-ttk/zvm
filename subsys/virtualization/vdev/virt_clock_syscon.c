@@ -16,7 +16,7 @@
 #include <init.h>
 #include <virtualization/zvm.h>
 #include <virtualization/vdev/virt_clock_syscon.h>
-#include <virtualization/vdev/virt_device.h>
+#include <virtualization/vm_device.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
@@ -122,7 +122,7 @@ int clk_syscon_vdev_mem_read(struct virt_dev *vdev, uint64_t addr, uint64_t *val
 	read_value = sys_read32(addr);
 	*(uint32_t *)value = read_value;
 
-	printk("Device-%s Read:addr is %llx, value is %x\n", vdev->name, addr, read_value);
+	//printk("Device-%s Read:addr is %llx, value is %x\n", vdev->name, addr, read_value);
 
 	return 0;
 }
@@ -136,8 +136,8 @@ int clk_syscon_vdev_mem_write(struct virt_dev *vdev, uint64_t addr, uint64_t *va
 	sys_write32(write_value, addr);
 	af_write_value = sys_read32(addr);
 
-	printk("Device-%s Write:addr is %llx, be_value is %x, ne_value is %x, af_value is %x\n",
-			 vdev->name, addr, be_write_value, write_value, af_write_value);
+	//printk("Device-%s Write:addr is %llx, be_value is %x, ne_value is %x, af_value is %x\n",
+	//		 vdev->name, addr, be_write_value, write_value, af_write_value);
 
 	return 0;
 }

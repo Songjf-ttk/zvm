@@ -13,7 +13,7 @@
 #include <drivers/uart.h>
 #include <virtualization/zvm.h>
 #include <virtualization/vm_console.h>
-#include <virtualization/vdev/virt_device.h>
+#include <virtualization/vm_device.h>
 #include <virtualization/vdev/vgic_common.h>
 #include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/vm_irq.h>
