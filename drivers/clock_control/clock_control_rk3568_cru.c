@@ -16,7 +16,7 @@
 	((const struct rk3568_clk_syscon * const)(dev)->config)
 
 /**
- * @breif: init clock syscon(cru) for rk3568 soc.
+ * @brief: init clock syscon(cru) for rk3568 soc.
 */
 static int rk3568_cru_clk_init(const struct device *dev)
 {
