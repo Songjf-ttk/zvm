@@ -70,7 +70,7 @@
 构建 Zephyr VM 镜像
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-在构建Zephyr的镜像过程中，需要使用zephyrproject的工程。
+在构建Zephyr镜像的过程中，需要使用zephyrproject的工程。
 首先进入zephyrproject工程并镜像构建具体过程如下。
 Supported board: qemu_cortex_a53
 
