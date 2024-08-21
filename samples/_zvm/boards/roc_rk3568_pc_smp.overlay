@@ -18,6 +18,7 @@
         ptdevice9 = "/soc/pass_through_device/serial@fe6c0000";
         linuxdebugger = "/soc/fiq-debugger";
         vmvirtmem = "/soc/virtmem@bf000000";
+        vmshmemrw = "/soc/shmem_rw@bd000000";
 	};
 
 	chosen {
@@ -149,7 +150,17 @@
             compatible = "arm,mem";
             device_type = "memory";
             reg = <0x0 0xbf000000 0x0 0x1000>;
+            interrupts = <GIC_SPI 96 IRQ_TYPE_EDGE 0x2>;
             label = "VM_SHMEM";
+            status = "okay";
+        };
+
+        shmem_rw@bd000000 {
+            compatible = "shmem,rw";
+            device_type = "memory";
+            reg = <0x0 0xbd000000 0x0 0x1000>;
+            interrupts = <GIC_SPI 98 IRQ_TYPE_EDGE 0x2>;
+            label = "VM_SHMEMRW";
             status = "okay";
         };
 

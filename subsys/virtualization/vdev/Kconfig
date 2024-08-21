@@ -138,7 +138,6 @@ endif
 
 config VM_SHMEM
 	bool "VM MEM that get from vm."
-	default y
 	help
 	  	This option is used for building memory that get from overlay.
 
@@ -147,6 +146,21 @@ if VM_SHMEM
 config MEM_INIT_PRIORITY
 	int "VM virt mem init priority."
 	default 59
+	help
+		When virtmem is init, it judge the initialization priority in POST_KERNLE.
+
+endif
+
+config VM_SHMEMRW
+	bool "VM MEMRW that get from vm."
+	help
+	  	This option is used for building memory that get from overlay.
+
+if VM_SHMEMRW
+
+config MEMRW_INIT_PRIORITY
+	int "VM virt memrw init priority."
+	default 60
 	help
 		When virtmem is init, it judge the initialization priority in POST_KERNLE.
 

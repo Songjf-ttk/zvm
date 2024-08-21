@@ -16,7 +16,6 @@
 #include <virtualization/zvm.h>
 #include <virtualization/vm.h>
 #include <virtualization/os/os.h>
-#include <virtualization/vdev/virt_device.h>
 #include <virtualization/vdev/virt_pci.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);

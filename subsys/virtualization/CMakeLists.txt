@@ -16,4 +16,5 @@ zephyr_sources_ifdef(
     vm.c
     zvm_shell.c
     zvm.c
+    # linuxdev.c
 )

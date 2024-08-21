@@ -5,7 +5,6 @@ zephyr_sources_ifdef(
     CONFIG_ZVM
     vgic_common.c
     vgic_v3.c
-    shmem.c
 )
 
 # board specific configuration
@@ -42,4 +41,14 @@ zephyr_sources_ifdef(
 zephyr_sources_ifdef(
     CONFIG_VM_SYSCON_CONTROLLER
     virt_syscon.c
+)
+
+zephyr_sources_ifdef(
+    CONFIG_VM_SHMEM
+    shmem.c
+)
+
+zephyr_sources_ifdef(
+    CONFIG_VM_SHMEMRW
+    shmem_rw.c
 )
