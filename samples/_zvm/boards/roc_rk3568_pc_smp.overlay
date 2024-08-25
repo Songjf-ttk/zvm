@@ -10,12 +10,10 @@
 		ptdevice1 = "/soc/pass_through_device/serial@fe660000";
 		ptdevice2 = "/soc/pass_through_device/serial@fe670000";
         ptdevice3 = "/soc/pass_through_device/gpio@fe760000";
-        ptdevice4 = "/soc/pass_through_device/i2c@fe5b0000";
-        ptdevice5 = "/soc/pass_through_device/i2c@fe5e0000";
-        ptdevice6 = "/soc/pass_through_device/pwm@fe6f0000";
-        ptdevice7 = "/soc/pass_through_device/i2c@fe5c0000";
-        ptdevice8 = "/soc/pass_through_device/linuxdev@103000";
-        ptdevice9 = "/soc/pass_through_device/serial@fe6c0000";
+        ptdevice4 = "/soc/pass_through_device/i2c@fe5e0000";
+        ptdevice5 = "/soc/pass_through_device/pwm@fe6f0000";
+        ptdevice6 = "/soc/pass_through_device/linuxdev@103000";
+        ptdevice7 = "/soc/pass_through_device/serial@fe6c0000";
         linuxdebugger = "/soc/fiq-debugger";
         vmvirtmem = "/soc/virtmem@bf000000";
         vmshmemrw = "/soc/shmem_rw@bd000000";
@@ -85,22 +83,6 @@
                 reg = <0x0 0xfe760000 0x0 0x1000 >;
                 interrupts = < GIC_SPI 36 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY >;
                 lable = "GPIO_3";
-                status = "okay";
-            };
-
-            i2c2: i2c@fe5b0000 {
-                compatible = "rockchip,rk3399-i2c";
-                reg = <0x0 0xfe5b0000 0x0 0x1000>;
-                clock-frequency = <24000000>;
-                interrupts = <GIC_SPI 48 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
-                status = "okay";
-            };
-
-            i2c3: i2c@fe5c0000 {
-                compatible = "rockchip,rk3399-i2c";
-                reg = <0x0 0xfe5c0000 0x0 0x1000>;
-                clock-frequency = <24000000>;
-                interrupts = <GIC_SPI 49 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
                 status = "okay";
             };
 

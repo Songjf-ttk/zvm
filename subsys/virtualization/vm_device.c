@@ -48,7 +48,7 @@ static int vm_vdev_mem_add(struct vm *vm, struct virt_dev *vdev)
     }else{
         attrs = MT_VM_DEVICE_MEM | MT_S2_ACCESS_OFF;
     }
-    if(strcmp(vdev->name, "VM_SHMEM")==0){
+    if(strcmp(vdev->name, "VM_SHMEM") == 0){
         attrs = MT_VM_DEVICE_MEM;
     }
     if (strcmp(vdev->name, "VM_SHMEMRW") == 0){

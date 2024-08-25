@@ -22,17 +22,17 @@
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
-#define SHMEM_VIRQ (DT_IRQN(DT_ALIAS(vmvirtmem)) + VM_LOCAL_VIRQ_NR)
+#define SHMEM_VIRQ DT_IRQN(DT_ALIAS(vmvirtmem))
 
 #define DEV_CFG(dev) ((const struct virt_device_config *const)(dev)->config)
 #define DEV_DATA(dev) ((struct virt_device_data *)(dev)->data)
 
 
 typedef struct shared_memory {
-    int sender;         // sender ID
-    int receiver;       // receiver ID
-    int length;			// len of data
-    char *shm_value;	// data
+    int sender;
+    int receiver;
+    int length;
+    char *shm_value;
 } SHMEM;
 
 static struct virtual_device_instance *mem_instance;
@@ -86,7 +86,7 @@ static int vm_virt_mem_rw_init(const struct device *dev, struct vm *vm, struct v
 								DT_REG_ADDR(DT_ALIAS(vmshmemrw)),
 								DT_REG_ADDR(DT_ALIAS(vmshmemrw)),
 								vm_dev->vm_vdev_size,
-								VM_DEVICE_INVALID_VIRQ, SHMEM_VIRQ - 32);
+								VM_DEVICE_INVALID_VIRQ, SHMEM_VIRQ);
 		if(!vdev){
 			ZVM_LOG_WARN("Init virt virt_mem_rw device error\n");
         	return -ENODEV;
@@ -102,23 +102,11 @@ static int vm_virt_mem_rw_init(const struct device *dev, struct vm *vm, struct v
 }
 
 /**
- * @brief shmem irq
-*/
-
-
-/**
  * @brief Memory read operation
 */
 int memory_rw_read(struct virt_dev *vdev, uint64_t addr, uint64_t *value)
 {
-	uint64_t *hva;
-	uint64_t read_value;
-
-	read_value = sys_read64(vdev->vm_vdev_paddr);
-	printk("vm_vdev_paddr: 0x%x, read_value: 0x%x\n", vdev->vm_vdev_paddr, read_value);
-	*(uint64_t *)value = read_value;
-	return read_value;
-
+	return 0;
 }
 
 /**
@@ -126,38 +114,34 @@ int memory_rw_read(struct virt_dev *vdev, uint64_t addr, uint64_t *value)
 */
 int memory_rw_write(struct virt_dev *vdev, uint64_t addr, uint64_t *value)
 {
-	struct vm *vm;  // VM-zephyr
+	struct vm *vm;
     char *char_value = (char *)value;
-
-    // 打印 value 作为字符的内容
-    printk("Value as characters: ");
-    for (int i = 0; i < sizeof(uint64_t); i++) {
-        printk("%c", char_value[i]);
-    }
-    printk("\n");
     /*
         '1' : irq from linux
         '2' : irq from linux (exit entry)
         '3' : irq from zephyr
     */
-    if(char_value[0] == '1'){
-        // linux sends irq to zephyr 
+    if (char_value[0] == '1') {
+        /* linux sends irq to zephyr */
         vm = zvm_overall_info->vms[0];
         int ret = set_virq_to_vm(vm, SHMEM_VIRQ);
         if (ret < 0) {
                 ZVM_LOG_WARN("Send virq to vm error!");
         }
-        // printk("send irq_to_zephyr success!\n");
-    } else if (char_value[0] == '2') {
-        // linux send irq to zephyr
+    } else if (char_value[0] == '2'){
+        /* linux send irq-2 to zephyr */
         vm = zvm_overall_info->vms[0];
         int ret2 = set_virq_to_vm(vm, SHMEM_VIRQ);
-        // printk("send irq_to_linux success!\n");
+		if (ret2 < 0) {
+                ZVM_LOG_WARN("Send virq to vm error!");
+        }
     } else {
-        // zephyr sends irq to linux
+        /* zephyr sends irq to linux */
         vm = zvm_overall_info->vms[2];
-        printk("vm_name : %s\n", vm->vm_name);
         int ret3 = set_virq_to_vm(vm, SHMEM_VIRQ);
+		if (ret3 < 0) {
+                ZVM_LOG_WARN("Send virq to vm error!");
+        }
     }
 	return 0;
 }

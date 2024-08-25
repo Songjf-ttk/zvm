@@ -24,18 +24,17 @@ LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
 #define SHMEM_ADDR DT_REG_ADDR(DT_ALIAS(vmvirtmem))
 #define SHMEM_SIZE DT_REG_SIZE(DT_ALIAS(vmvirtmem))
-
-#define SHMEM_VIRQ (DT_IRQN(DT_ALIAS(vmvirtmem)) + VM_LOCAL_VIRQ_NR)
+#define SHMEM_VIRQ DT_IRQN(DT_ALIAS(vmvirtmem))
 
 #define DEV_CFG(dev) ((const struct virt_device_config *const)(dev)->config)
 #define DEV_DATA(dev) ((struct virt_device_data *)(dev)->data)
 
 
 typedef struct shared_memory {
-    int sender;         // sender ID
-    int receiver;       // receiver ID
-    int length;			// len of data
-    char *shm_value;	// data
+    int sender;
+    int receiver;
+    int length;
+    char *shm_value;
 } SHMEM;
 
 static struct virtual_device_instance *mem_instance;
@@ -82,14 +81,13 @@ static int vm_virt_mem_init(const struct device *dev, struct vm *vm, struct virt
         }
     }
 
-	if(chosen_flag)
-	{
+	if (chosen_flag) {
 		vdev = vm_virt_dev_add(vm, dev->name, false, false,
 								DT_REG_ADDR(DT_ALIAS(vmvirtmem)),
 								DT_REG_ADDR(DT_ALIAS(vmvirtmem)),
 								vm_dev->vm_vdev_size,
-								VM_DEVICE_INVALID_VIRQ, SHMEM_VIRQ - 32);
-		if(!vdev){
+								VM_DEVICE_INVALID_VIRQ, SHMEM_VIRQ);
+		if (!vdev) {
 			ZVM_LOG_WARN("Init virt virt_mem device error\n");
         	return -ENODEV;
 		}
@@ -108,14 +106,7 @@ static int vm_virt_mem_init(const struct device *dev, struct vm *vm, struct virt
 */
 int memory_read(struct virt_dev *vdev, uint64_t addr, uint64_t *value)
 {
-	uint64_t *hva;
-	uint64_t read_value;
-
-	read_value = sys_read64(vdev->vm_vdev_paddr);
-	printk("vm_vdev_paddr: 0x%x, read_value: 0x%x\n", vdev->vm_vdev_paddr, read_value);
-	*(uint64_t *)value = read_value;
-	return read_value;
-
+	return 0;
 }
 
 /**
