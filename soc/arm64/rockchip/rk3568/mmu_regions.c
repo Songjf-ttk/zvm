@@ -51,6 +51,11 @@ static const struct arm_mmu_region mmu_regions[] = {
 				  DT_REG_ADDR(DT_ALIAS(vmvirtmem)),
 			      DT_REG_SIZE(DT_ALIAS(vmvirtmem)),
 			      MT_DEVICE_nGnRnE | MT_P_RW_U_NA | MT_DEFAULT_SECURE_STATE),
+				  
+	MMU_REGION_FLAT_ENTRY("SHMEMRW",
+				  DT_REG_ADDR(DT_ALIAS(vmshmemrw)),
+			      DT_REG_SIZE(DT_ALIAS(vmshmemrw)),
+			      MT_DEVICE_nGnRnE | MT_P_RW_U_NA | MT_DEFAULT_SECURE_STATE),
 #endif
 };
 

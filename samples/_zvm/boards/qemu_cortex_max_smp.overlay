@@ -8,11 +8,12 @@
 	aliases {
         vmvirtio1 = "/soc/virtio_mmio@a000000";
         vmvirtio2 = "/soc/virtio_mmio@a001000";
-        vmvirtmem = "/soc/virtmem@c0000000";
         linuxcpy = "/soc/linux_cpy@d8000000";
         /*Passthrough device.*/
 		ptdevice1 = "/soc/pass_through_device/uart@9001000";
 		ptdevice2 = "/soc/pass_through_device/uart@9002000";
+        vmvirtmem = "/soc/virtmem@bf000000";
+        vmshmemrw = "/soc/shmem_rw@bd000000";
 	};
 
     chosen {
@@ -38,11 +39,21 @@
             virtio_type = <2>;
         };
 
-        virtmem@c0000000 {
+        virtmem@bf000000 {
             compatible = "arm,mem";
             device_type = "memory";
-            reg = <0x00 0xc0000000 0x00 0x1000>;
+            reg = <0x00 0xbf000000 0x00 0x1000>;
+            interrupts = <GIC_SPI 96 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY>;
             label = "VM_SHMEM";
+            status = "okay";
+        };
+
+        shmem_rw@bd000000 {
+            compatible = "shmem,rw";
+            device_type = "memory";
+            reg = <0x0 0xbd000000 0x0 0x10>;
+            interrupts = <GIC_SPI 98 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY>;
+            label = "VM_SHMEMRW";
             status = "okay";
         };
 

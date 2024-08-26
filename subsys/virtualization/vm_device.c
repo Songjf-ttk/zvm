@@ -24,6 +24,7 @@
 #include <virtualization/os/os_linux.h>
 #include <virtualization/vdev/virt_pci.h>
 #include <virtualization/vdev/shmem.h>
+#include <virtualization/vdev/shmem_rw.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
@@ -47,9 +48,11 @@ static int vm_vdev_mem_add(struct vm *vm, struct virt_dev *vdev)
     }else{
         attrs = MT_VM_DEVICE_MEM | MT_S2_ACCESS_OFF;
     }
-    if(strcmp(vdev->name, "VM_SHMEM")==0){
-        // attrs = MT_VM_DEVICE_MEM | MT_S2_ACCESS_OFF;
+    if(strcmp(vdev->name, "VM_SHMEM") == 0){
         attrs = MT_VM_DEVICE_MEM;
+    }
+    if (strcmp(vdev->name, "VM_SHMEMRW") == 0){
+        attrs = MT_VM_DEVICE_MEM | MT_S2_ACCESS_OFF;
     }
 #ifdef CONFIG_SOC_QEMU_CORTEX_MAX
     if (vdev->vm_vdev_paddr == LINUX_VMCPY_BASE) {
@@ -398,9 +401,15 @@ int vm_device_init(struct vm *vm)
     int ret, i;
 
     sys_dlist_init(&vm->vdev_list);
-    ret = vm_shmem_create(vm);
+    ret = vm_mem_create(vm);
 	if (ret) {
         ZVM_LOG_WARN("Init vm mem error! \n");
+        return -EMMAO;
+    }
+
+    ret = vm_mem_rw_create(vm);
+    if (ret) {
+        ZVM_LOG_WARN("Init vm mem_rw error! \n");
         return -EMMAO;
     }
 

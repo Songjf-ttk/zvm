@@ -93,79 +93,6 @@ static const struct virt_device_api virt_ptdevice_api = {
 /*---------------------Date for each pt device---------------------------*/
 /*irq exist? set this configuration.*/
 
-// static void ptdevice_irq_config_func_9(const struct device *dev)
-// {
-// 	IRQ_CONNECT(DT_IRQN(DT_ALIAS(ptdevice9)),
-// 		    DT_IRQ(DT_ALIAS(ptdevice9), priority),
-// 		    pass_through_device_isr,
-// 		    DEVICE_DT_GET(DT_ALIAS(ptdevice9)),
-// 		    0);
-// }
-/*irq exist? if not, set function NULL.*/
-static struct pass_through_device_config ptdevice_cfg_port_9 = {
-	.irq_config_func = NULL,//ptdevice_irq_config_func_9,
-	.ptdev_spec_init_func = NULL,
-	.ptdev_spec_irq_func = NULL,
-};
-
-static struct virt_device_config virt_ptdevice_cfg_9 = {
-	.reg_base = DT_REG_ADDR(DT_ALIAS(ptdevice9)),
-	.reg_size = DT_REG_SIZE(DT_ALIAS(ptdevice9)),
-	.hirq_num = DT_IRQN(DT_ALIAS(ptdevice9)),
-	.device_config = &ptdevice_cfg_port_9,
-};
-
-static struct virt_device_data virt_ptdevice_data_port_9 = {
-	.device_data = NULL,
-};
-
-DEVICE_DT_DEFINE(DT_ALIAS(ptdevice9),
-            &pass_through_device_init,
-            NULL, &virt_ptdevice_data_port_9, &virt_ptdevice_cfg_9,
-			POST_KERNEL,
-            CONFIG_SERIAL_INIT_PRIORITY,
-            &virt_ptdevice_api);
-/*------------------------cut line---------------------------------------*/
-
-
-/*---------------------Date for each pt device---------------------------*/
-/*irq exist? set this configuration.*/
-static void ptdevice_irq_config_func_8(const struct device *dev)
-{
-	IRQ_CONNECT(DT_IRQN(DT_ALIAS(ptdevice8)),
-		    DT_IRQ(DT_ALIAS(ptdevice8), priority),
-		    pass_through_device_isr,
-		    DEVICE_DT_GET(DT_ALIAS(ptdevice8)),
-		    0);
-}
-/*irq exist? if not, set function NULL.*/
-static struct pass_through_device_config ptdevice_cfg_port_8 = {
-	.irq_config_func = ptdevice_irq_config_func_8,
-	.ptdev_spec_init_func = NULL,
-	.ptdev_spec_irq_func = NULL,
-};
-
-static struct virt_device_config virt_ptdevice_cfg_8 = {
-	.reg_base = DT_REG_ADDR(DT_ALIAS(ptdevice8)),
-	.reg_size = DT_REG_SIZE(DT_ALIAS(ptdevice8)),
-	.hirq_num = DT_IRQN(DT_ALIAS(ptdevice8)),
-	.device_config = &ptdevice_cfg_port_8,
-};
-
-static struct virt_device_data virt_ptdevice_data_port_8 = {
-	.device_data = NULL,
-};
-
-DEVICE_DT_DEFINE(DT_ALIAS(ptdevice8),
-            &pass_through_device_init,
-            NULL, &virt_ptdevice_data_port_8, &virt_ptdevice_cfg_8,
-			POST_KERNEL,
-            CONFIG_SERIAL_INIT_PRIORITY,
-            &virt_ptdevice_api);
-/*------------------------cut line---------------------------------------*/
-
-/*---------------------Date for each pt device---------------------------*/
-/*irq exist? set this configuration.*/
 static void ptdevice_irq_config_func_7(const struct device *dev)
 {
 	IRQ_CONNECT(DT_IRQN(DT_ALIAS(ptdevice7)),
@@ -201,9 +128,18 @@ DEVICE_DT_DEFINE(DT_ALIAS(ptdevice7),
 /*------------------------cut line---------------------------------------*/
 
 /*---------------------Date for each pt device---------------------------*/
+/*irq exist? set this configuration.*/
+static void ptdevice_irq_config_func_6(const struct device *dev)
+{
+	IRQ_CONNECT(DT_IRQN(DT_ALIAS(ptdevice6)),
+		    DT_IRQ(DT_ALIAS(ptdevice6), priority),
+		    pass_through_device_isr,
+		    DEVICE_DT_GET(DT_ALIAS(ptdevice6)),
+		    0);
+}
 /*irq exist? if not, set function NULL.*/
 static struct pass_through_device_config ptdevice_cfg_port_6 = {
-	.irq_config_func = NULL,
+	.irq_config_func = ptdevice_irq_config_func_6,
 	.ptdev_spec_init_func = NULL,
 	.ptdev_spec_irq_func = NULL,
 };
@@ -211,6 +147,7 @@ static struct pass_through_device_config ptdevice_cfg_port_6 = {
 static struct virt_device_config virt_ptdevice_cfg_6 = {
 	.reg_base = DT_REG_ADDR(DT_ALIAS(ptdevice6)),
 	.reg_size = DT_REG_SIZE(DT_ALIAS(ptdevice6)),
+	.hirq_num = DT_IRQN(DT_ALIAS(ptdevice6)),
 	.device_config = &ptdevice_cfg_port_6,
 };
 
@@ -237,7 +174,6 @@ static struct pass_through_device_config ptdevice_cfg_port_5 = {
 static struct virt_device_config virt_ptdevice_cfg_5 = {
 	.reg_base = DT_REG_ADDR(DT_ALIAS(ptdevice5)),
 	.reg_size = DT_REG_SIZE(DT_ALIAS(ptdevice5)),
-	.hirq_num = DT_IRQN(DT_ALIAS(ptdevice5)),
 	.device_config = &ptdevice_cfg_port_5,
 };
 
@@ -263,7 +199,7 @@ static void ptdevice_irq_config_func_4(const struct device *dev)
 		    DEVICE_DT_GET(DT_ALIAS(ptdevice4)),
 		    0);
 }
-/*irq exist? if not, set function NULL.*/
+
 static struct pass_through_device_config ptdevice_cfg_port_4 = {
 	.irq_config_func = ptdevice_irq_config_func_4,
 	.ptdev_spec_init_func = NULL,
