@@ -169,7 +169,7 @@
             memmap_type = "dirct";
             address_type = "normal_memory";
             vm_reg_base = <0x40000000>;
-            vm_reg_size = <DT_SIZE_M(600)>;
+            vm_reg_size = <DT_SIZE_M(2)>;
             reg = <0x0 0x48000000 0x0 DT_SIZE_M(12)>;
             label = "VM0_MEM";
         };
