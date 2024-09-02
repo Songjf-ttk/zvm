@@ -130,7 +130,53 @@ rk3568板卡通电，使用串口助手连接板卡后，启动时长按`ctrl + 
 
 此时，打开uart3串口，即可使用zvm的shell来输入命令并启动虚拟机。
 
-3.  注意
+3.  RK3568平台的ZVM上运行Paddle Lite
+-----------------------
+
+修改/zvm/samples/_zvm/boards/roc_rk3568_pc_smp.overlay的zephyr_ddr的vm_reg_size为600：
+
+.. code:: shell
+
+   vm_reg_size = <DT_SIZE_M(600)>;
+
+1） 使用脚本文件构建ZVM镜像：
+
+.. code:: shell
+
+   ./auto_zvm.sh build roc_rk3568_pc_smp
+
+或者使用命令行构建镜像:
+
+.. code:: shell
+
+   west build -b roc_rk3568_pc_smp samples/_zvm
+
+
+2） 生成ZVM镜像文件如下:
+
+.. code:: shell
+
+   build/zephyr/zvm_host.bin
+
+3） 参照RK3568 平台运行ZVM步骤，相关文件在AI文件夹下，运行如下命令:
+
+.. code:: shell
+
+   tftp 0x10000000 zvm_host.bin                         #下载zvm镜像
+   tftp 0x48000000 zephyr.bin                           #下载zephyr vm镜像
+   tftp 0x80000000 Image                                #下载linux vm镜像
+   tftp 0x48000000 rk3568-firefly-roc-pc-simple.dtb     #下载linux 设备树镜像
+   tftp 0x90000000 mobilenet_v1.nb                      #下载mobilenetv1模型
+
+运行镜像：
+
+.. code:: shell
+
+   dcache flush; icache flush                           #刷新数据和指令cache
+   dcache off;icache off;go 0x10000000                  #关闭数据和指令cache
+   go 0x10000000                                        #将pc指针指0x10000000
+
+4.  注意
 -----------------------
 
 由于zvm运行需要使用到多个串口，因此主机必须连接至少两个串口，

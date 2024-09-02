@@ -14,6 +14,7 @@
         ptdevice5 = "/soc/pass_through_device/pwm@fe6f0000";
         ptdevice6 = "/soc/pass_through_device/linuxdev@103000";
         ptdevice7 = "/soc/pass_through_device/serial@fe6c0000";
+        ptdevice8 = "/soc/pass_through_device/model@90000000";
         linuxdebugger = "/soc/fiq-debugger";
         vmvirtmem = "/soc/virtmem@bf000000";
         vmshmemrw = "/soc/shmem_rw@bd000000";
@@ -116,6 +117,13 @@
                 label = "LINUXDEV";
             };
 
+            model: model@90000000 {
+            compatible = "zephyr,model";
+            reg = <0x0 0x90000000 0x0 DT_SIZE_M(120)>;
+            interrupts = <GIC_SPI 12 IRQ_TYPE_EDGE 0>;
+            interrupt-names = "irq_0";
+		    };
+
         };
 
         debug_uart: fiq-debugger {
@@ -162,7 +170,7 @@
             address_type = "normal_memory";
             vm_reg_base = <0x40000000>;
             vm_reg_size = <DT_SIZE_M(2)>;
-            reg = <0x0 0x48000000 0x0 DT_SIZE_M(2)>;
+            reg = <0x0 0x48000000 0x0 DT_SIZE_M(12)>;
             label = "VM0_MEM";
         };
 
