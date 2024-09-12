@@ -146,7 +146,7 @@ def parse_obj_files(partitions):
             if re.match(r".*\.obj$", filename):
                 fullname = os.path.join(dirpath, filename)
                 fsize = os.path.getsize(fullname)
-                if fsize != 0:
+                if fsize != 0 and os.path.getsize(fullname) > 0:
                     find_obj_file_partitions(fullname, partitions)
 
 
@@ -166,7 +166,7 @@ def parse_compile_command_file(partitions):
                 # Because of issue #40635, then not all objects referenced by
                 # the compile_commands.json file may be available, therefore
                 # only include existing files.
-                if os.path.exists(fullname):
+                if os.path.exists(fullname) and os.path.getsize(fullname) > 0:
                     find_obj_file_partitions(fullname, partitions)
 
 
