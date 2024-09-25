@@ -34,7 +34,7 @@ bool node_lessthan(struct rbnode *a, struct rbnode *b)
  * @details
  * Test Objective:
  * - Define and initialize a rbtree, and test two features:
- * first, rbtree node struct can be embeded in any user struct.
+ * first, rbtree node struct can be embedded in any user struct.
  * last, rbtree can be walked though by some macro APIs.
  *
  * Testing techniques:
