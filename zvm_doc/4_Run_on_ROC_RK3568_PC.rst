@@ -118,7 +118,7 @@ rk3568板卡通电，使用串口助手连接板卡后，启动时长按`ctrl + 
    tftp 0x10000000 zvm_host.bin                         #下载zvm镜像
    tftp 0x48000000 zephyr.bin                           #下载zephyr vm镜像
    tftp 0x80000000 Image                                #下载linux vm镜像
-   tftp 0x48000000 rk3568-firefly-roc-pc-simple.dtb     #下载linux 设备树镜像
+   tftp 0xbe000000 rk3568-firefly-roc-pc-simple.dtb     #下载linux 设备树镜像
 
 运行镜像：
 
