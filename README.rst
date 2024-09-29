@@ -1,32 +1,51 @@
 ZVM 开源文档
 ==================
 
-欢迎来到嵌入式实时虚拟机ZVM (Zephyr-based Virtual Machine) 项目的开发文档，
-本项目是一个基于 `Zephyr RTOS <https://github.com/zephyrproject-rtos/zephyr>`__ 开发的虚拟机管理器，
+ 欢迎来到嵌入式实时虚拟机ZVM (Zephyr-based Virtual Machine) 项目的开发文档。
 
- 由湖南大学教授、 嵌入式与网络计算湖南省重点实验室主任谢国琪老师团队开发，旨在实时嵌入式操作系统中构建一个虚拟化管理平台
- 项目仓库中包含Zephyr RTOS内核及工具的一些源码，以及添加虚拟化支持所需的一些代码，共同构成了ZVM的代码仓。
+本项目是在Linux基金会下流行的开源实时操作系统 `Zephyr RTOS <https://github.com/zephyrproject-rtos/zephyr>`__ 
+上构建的虚拟机管理器ZVM，其继承了Zephyr RTOS的优秀开源生态和特性，同时提供了一个原创的嵌入式虚拟化解决方案。
 
-ZVM使用
-`zephyrproject-rtos <https://github.com/zephyrproject-rtos/zephyr>`__ 所遵守的
+ZVM由湖南大学教授、 嵌入式与网络计算湖南省重点实验室主任谢国琪老师团队开发，旨在嵌入式实现一款开源、实时、安全、易用
+的虚拟化管理平台，填补Linux-KVM虚拟化方案在嵌入式领域的空白，成为嵌入式领域的“Linux-KVM”。
+项目仓库中包含Zephyr RTOS内核、工具及虚拟化支持所需的一些代码，共同构成了ZVM的代码仓。
+
+ZVM使用 `zephyrproject-rtos <https://github.com/zephyrproject-rtos/zephyr>`__ 所遵守的
 `Apache 2.0 许可证 <https://github.com/zephyrproject-rtos/zephyr/blob/main/LICENSE>`__
-，主要开发语言为C/C++语言。
+，主要开发语言为C/C++语言。Apache 2.0许可证是一种自由软件许可证，允许用户自由使用、修改和分发软件，
+不影响用户的商业使用，因此可以直接作为商业软件发布和销售。
 
 
-介绍：什么是ZVM
+ZVM特点
 ------------------
-基于实时操作系统Zephyr的虚拟机 Zephyr-based Virtual Machine（ZVM），
-是一款实时虚拟机，其面向高性能嵌入式计算环境，提供嵌入式平台上操作系统级别的资源隔离和共享服务。
+ZVM面向高性能嵌入式计算环境，提供嵌入式平台上操作系统级别的资源隔离和共享服务。可用于各种应用和行业领域，如工业物联网、可穿戴设备、机器学习等。
+ZVM架构图如下所示：
 
 .. figure:: https://gitee.com/openeuler/zvm/raw/master/zvm_doc/figure/zvm_demo.png
    :align: center
    :alt: zvm_demo
 
 
-本项目以Zephyr实时操作系统为基础，使用C/C++在Zephyr RTOS中实现一个面向嵌入式平台的虚拟机管理器。
-Zephyr RTOS是一个小型的实时操作系统，用于连接、资源受限和嵌入式设备，支持多种架构。
-Zephyr包括内核、所有组件和库、设备驱动程序、协议栈、文件系统和固件更新，以开发连接、资源受限和嵌入式设备，
-可用于各种应用和行业领域，如工业物联网、可穿戴设备、机器学习等。
+虚拟机操作系统
+^^^^^^^^^^^^^^^^^^^^^^
+ZVM支持的虚拟机操作系统列表如下, 包括：
+
+- Zephyr RTOS
+- openEuler Embedded
+- Debian
+- xxx
+
+
+底层硬件平台
+^^^^^^^^^^^^^^^^^^^^^^
+ZVM 支持的平台如下, 包括多核的ARMv8平台：
+
+- QEMU ARM64 virt (qemu-max)
+- RK3568 SoC (roc_rk3568_pc/ok3568/lubancat2)
+- ARM Fixed platform (cortex-a55x4)
+- xxx
+
+
 
 文档目录
 ------------------
@@ -60,8 +79,7 @@ Linux/Ubuntu主机开发环境的配置，zephyrproject SDK的配置及zvm仓库
 
 
 视频介绍
-----------
-以往关于一些ZVM的分享视频。
+--------------------
 
 EOSS分享视频：
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -76,8 +94,12 @@ Sig-Zephyr分享视频：
 ******************************************************************************************************************************************************************************************
 
 
+
+
 参与贡献
 ^^^^^^^^^^^^^^^^^^^^^^
+ZVM作为Zephyr实时操作系统生态在国内的关键一环，致力于构建国内开源hypervisor生态，
+且正处于快速发展的时期，我们欢迎对ZVM及Zephyr感兴趣的小伙伴加入本项目。
 
 1.  Fork 本仓库
 2.  新建 Feat_xxx 分支
