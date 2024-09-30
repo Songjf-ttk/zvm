@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2021-2022 HNU
 
-add_subdirectory(os)
-add_subdirectory(tools)
-add_subdirectory(vdev)
+add_subdirectory_ifdef(CONFIG_ZVM os)
+add_subdirectory_ifdef(CONFIG_ZVM tools)
+add_subdirectory_ifdef(CONFIG_ZVM vdev)
 
 zephyr_sources_ifdef(
     CONFIG_ZVM
@@ -16,5 +16,4 @@ zephyr_sources_ifdef(
     vm.c
     zvm_shell.c
     zvm.c
-    # linuxdev.c
 )

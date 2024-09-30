@@ -99,7 +99,7 @@ static void vcpu_context_switch(struct k_thread *new_thread,
             break;
         }
     }
-    
+
     if (VCPU_THREAD(new_thread)) {
         struct vcpu *new_vcpu = new_thread->vcpu_struct;
 
@@ -110,7 +110,6 @@ static void vcpu_context_switch(struct k_thread *new_thread,
         load_vcpu_context(new_thread);
         new_vcpu->vcpu_state = _VCPU_STATE_RUNNING;
     }
-
 }
 
 static void vcpu_state_to_ready(struct vcpu *vcpu)
@@ -326,7 +325,7 @@ int vcpu_thread_entry(struct vcpu *vcpu)
     do{
         ret = arch_vcpu_run(vcpu);
     }while(ret >= 0);
-    ZVM_LOG_INFO("** Stop running vcpu: %s-%d. \n", vcpu->vm->vm_name, vcpu->vcpu_id);
+    ZVM_LOG_INFO("\n** Stop running vcpu: %s-%d. \n", vcpu->vm->vm_name, vcpu->vcpu_id);
     vm_delete(vcpu->vm);
 
     return ret;
@@ -401,16 +400,13 @@ struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name)
     */
     k_thread_cpu_mask_disable(tid, 0);
 
-    if (vm->is_rtos) {
-        pcpu_num = rt_get_idle_cpu();
-    }else{
-        pcpu_num = nrt_get_idle_cpu();
-    }
+    pcpu_num = get_static_idle_cpu();
     if (pcpu_num < 0 || pcpu_num >= CONFIG_MP_NUM_CPUS) {
         ZVM_LOG_WARN("No suitable idle cpu for VM! \n");
         return NULL;
     }
-    /* Just work on 4 cores system */
+
+    /* Just work on 4 cores system now */
     if(++created_vm_num == CONFIG_MP_NUM_CPUS-1){
         pcpu_num = CONFIG_MP_NUM_CPUS-1;
     }
@@ -432,6 +428,7 @@ struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name)
     vcpu->vcpu_id = vcpu_id;
     vcpu->vcpu_state = _VCPU_STATE_UNKNOWN;
     vcpu->exit_type = 0;
+    vcpu->vcpuipi_count = 0;
     vcpu->resume_signal = false;
     vcpu->waitq_flag = false;
 

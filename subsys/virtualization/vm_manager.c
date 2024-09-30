@@ -242,3 +242,44 @@ int zvm_info_guest(size_t argc, char **argv)
 
 	return ret;
 }
+
+static struct k_spinlock vmops_lock;
+
+int zvm_service_vmops(uint32_t hypercall_code)
+{
+	k_spinlock_key_t key;
+    key = k_spin_lock(&vmops_lock);
+    int ret = 0;
+    char *args0[] = {"new", "-t", "zephyr"};
+    char *args1[] = {"run", "-n", "0"};
+    char *args2[] = {"pause", "-n", "0"};
+    char *args4[] = {"info"};
+
+    switch (hypercall_code) {
+    case 1:
+        /* create a zephyr vm */
+        ret = zvm_new_guest(3, args0);
+        /* show zephyr vm information*/
+        ret = zvm_info_guest(3, args4);
+        break;
+    case 2:
+        /* run the zephyr vm*/
+        ret = zvm_run_guest(3, args1);
+        break;
+    case 3:
+        /* pause the created zephyr vm */
+        ret = zvm_pause_guest(3, args2);
+        break;
+    case 4:
+        /* stop the zephyr */
+        ZVM_LOG_WARN("CAN NOT DELETE NOW! \n ");
+        break;
+    default:
+        ZVM_LOG_WARN("UNKNOWN CODE\n ");
+        break;
+    }
+    k_spin_unlock(&vmops_lock, key);
+
+	return ret;
+
+}

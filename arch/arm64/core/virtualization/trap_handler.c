@@ -7,6 +7,7 @@
 #include <zephyr.h>
 #include <init.h>
 #include <device.h>
+#include <drivers/pm_cpu_ops/psci.h>
 #include <virtualization/zvm.h>
 #include <virtualization/vm_device.h>
 #include <virtualization/arm/mm.h>
@@ -78,12 +79,12 @@ static int handle_faccess_desc(int iss_dfsc, uint64_t pa_addr,
             struct esr_dabt_area *dabt, arch_commom_regs_t *regs)
 {
     int ret;
+    uint8_t size;
     uint16_t reg_index = dabt->srt;
-    uint16_t iss_isv, iss_sas, size;
+    uint16_t iss_isv, iss_sas;
     uint64_t addr = pa_addr, *reg_value;
 
     iss_isv = dabt->isv;
-
     if (!iss_isv) {
         ZVM_LOG_WARN("Instruction syndrome not valid\n");
         return -EFAULT;
@@ -95,18 +96,17 @@ static int handle_faccess_desc(int iss_dfsc, uint64_t pa_addr,
     }
 
     iss_sas = dabt->sas;
-
     switch (iss_sas) {
-    case 0:
+    case ISS_SAS_8BIT:
         size = 1;
         break;
-    case 1:
+    case ISS_SAS_16BIT:
         size = 2;
         break;
-    case 2:
+    case ISS_SAS_32BIT:
         size = 4;
         break;
-    case 3:
+    case ISS_SAS_64BIT:
         size = 8;
         break;
     default:
@@ -185,64 +185,60 @@ static int cpu_il_exe_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_elx)
 	return 0;
 }
 
-/* get the hvc 24-0 */
+
 #define BIT_MASK0(last, first) \
 	((0xffffffffffffffffULL >> (64 - ((last) + 1 - (first)))) << (first))
-
 #define GET_FIELD(value, last, first) \
 	(((value) & BIT_MASK0((last), (first))) >> (first))
 
-#define ESR_ISS(esr)		GET_FIELD((esr), 24, 0)
-
-static struct k_spinlock shell_vmops_lock_hvc;
-
-static int cpu_hvc64_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_elx)
+static int cpu_hvc64_sync(struct vcpu *vcpu, arch_commom_regs_t *arch_ctxt, uint64_t esr_elx)
 {
-    k_spinlock_key_t key;
-    key = k_spin_lock(&shell_vmops_lock_hvc);
     int ret = 0;
-
-    unsigned long code = GET_FIELD((esr_elx),15,0);
-
-    char *args0[] = {"new", "-t", "zephyr"};
-    char *args1[] = {"run", "-n", "0"};
-    char *args2[] = {"pause", "-n", "0"};
-    char *args4[] = {"info"};
-
-    switch (code)
-    {
-    case 1:
-        /* create a zephyr vm */
-        ret = zvm_new_guest(3, args0);
-        /* show zephyr vm information*/
-        ret = zvm_info_guest(3, args4);
-        break;
-    case 2:
-        /* run the zephyr vm*/
-        ret = zvm_run_guest(3, args1);
-        break;
-    case 3:
-        /* pause the created zephyr vm */
-        ret = zvm_pause_guest(3, args2);
-        break;
-    case 4:
-        /* stop the zephyr */
-        ZVM_LOG_WARN("CAN NOT DELETE NOW! \n ");
-        break;
-    default:
-        ZVM_LOG_WARN("UNKNOWN CODE\n ");
-        break;
-    }
-    k_spin_unlock(&shell_vmops_lock_hvc, key);
+    unsigned long hvc_imm;
+    unsigned long psci_func, val;
 #ifdef CONFIG_ZVM_TIME_MEASURE
     vm_irq_timing_print();
 #endif
-    /**The hvc instruction defaults to adding +0x4 to the PC value,
-     * but zvm has already performed +0x4 during processing, causing
-     *  a skip of the next assembly instruction. Here, -0x4 is used
-     *  to fix this bug.
-    */
-    arch_ctxt->pc -= 0x4;
+    hvc_imm = GET_FIELD((esr_elx), 15, 0);
+    /*hvc_imm != 0 means that it is not a psci hvc.*/
+    if(hvc_imm){
+        ret = zvm_service_vmops(hvc_imm);
+        return ret;
+    }
+
+    psci_func = arch_ctxt->esf_handle_regs.x0;
+    switch (psci_func) {
+    case PSCI_0_2_FN_PSCI_VERSION:
+    val = 2;
+    break;
+    case PSCI_0_2_FN_CPU_SUSPEND:
+    case PSCI_0_2_FN64_CPU_SUSPEND:
+    val = psci_vcpu_syspend(vcpu, arch_ctxt);
+    break;
+    case PSCI_0_2_FN_CPU_OFF:
+    val = psci_vcpu_off(vcpu, arch_ctxt);
+    break;
+    case PSCI_0_2_FN64_CPU_ON:
+    val = psci_vcpu_on(vcpu, arch_ctxt);
+    break;
+    case PSCI_0_2_FN_AFFINITY_INFO:
+    case PSCI_0_2_FN64_AFFINITY_INFO:
+    val = psci_vcpu_affinity_info(vcpu, arch_ctxt);
+    break;
+    case PSCI_0_2_FN_MIGRATE:
+    case PSCI_0_2_FN64_MIGRATE:
+    val = psci_vcpu_migration(vcpu, arch_ctxt);
+    break;
+    case PSCI_0_2_FN_MIGRATE_INFO_TYPE:
+    val = psci_vcpu_migration_info_type(vcpu, arch_ctxt);
+    break;
+    default:
+    val = psci_vcpu_other(psci_func);
+    break;
+    }
+
+    arch_ctxt->esf_handle_regs.x0 = val;
+
 	return 0;
 }
 
@@ -408,7 +404,7 @@ int arch_vm_trap_sync(struct vcpu *vcpu)
             goto handler_failed;
             break;
         case 0b010110: /* 0x16: "HVC instruction execution in AArch64 state" */
-            err = cpu_hvc64_sync(arch_ctxt, esr_elx);
+            err = cpu_hvc64_sync(vcpu, arch_ctxt, esr_elx);
             break;
         case 0b011000: /* 0x18: "Trapped MSR, MRS or System instruction execution in
                 AArch64 state */
@@ -444,7 +440,9 @@ int arch_vm_trap_sync(struct vcpu *vcpu)
         default:
             goto handler_failed;
 	}
-    vcpu->arch->ctxt.regs.pc += (GET_ESR_IL(esr_elx)) ? 4 : 2;
+
+    if (GET_ESR_EC(esr_elx) != 0b010110)
+        vcpu->arch->ctxt.regs.pc += (GET_ESR_IL(esr_elx)) ? 4 : 2;
     return err;
 
 handler_failed:

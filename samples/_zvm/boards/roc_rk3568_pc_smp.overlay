@@ -15,6 +15,7 @@
         ptdevice6 = "/soc/pass_through_device/linuxdev@103000";
         ptdevice7 = "/soc/pass_through_device/serial@fe6c0000";
         ptdevice8 = "/soc/pass_through_device/model@90000000";
+        ptdevice9 = "/soc/pass_through_device/dwmmc@fe2b0000";
         linuxdebugger = "/soc/fiq-debugger";
         vmvirtmem = "/soc/virtmem@bf000000";
         vmshmemrw = "/soc/shmem_rw@bd000000";
@@ -118,10 +119,10 @@
             };
 
             model: model@90000000 {
-            compatible = "zephyr,model";
-            reg = <0x0 0x90000000 0x0 DT_SIZE_M(120)>;
-            interrupts = <GIC_SPI 12 IRQ_TYPE_EDGE 0>;
-            interrupt-names = "irq_0";
+                compatible = "zephyr,model";
+                reg = <0x0 0x90000000 0x0 DT_SIZE_M(120)>;
+                interrupts = <GIC_SPI 12 IRQ_TYPE_EDGE 0>;
+                interrupt-names = "irq_0";
 		    };
 
         };
@@ -163,6 +164,7 @@
         compatible = "zephyr-vm";
         dtb_address = <0x49000000>;
         dtb_size = <DT_SIZE_M(2)>;
+        vcpu_num = <0x01>;
 
         zephyr_ddr: memory@48000000 {
             compatible = "vm-dram";
@@ -182,6 +184,7 @@
         compatible = "linux-vm";
         dtb_address = <0xbe000000>;
         dtb_size = <DT_SIZE_M(2)>;
+        vcpu_num = <0x01>;
 
         linux_ddr: memory@80000000 {
             compatible = "vm-dram";

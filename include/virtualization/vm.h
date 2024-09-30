@@ -95,10 +95,20 @@ struct vcpu {
     uint16_t vcpu_state;
     uint16_t exit_type;
 
+    /**
+     * vcpu may be influeced by host cpu, so we need to record
+     * the vcpu ipi staus.
+     * Just when vcpu call xxx_raise_sgi, the vcpuipi_count will
+     * be plused. The default vaule is 0.
+     */
+    uint64_t vcpuipi_count;
+
     /* vcpu timers record*/
     uint32_t hcpu_cycles;
     uint32_t runnig_cycles;
     uint32_t paused_cycles;
+
+    struct k_spinlock vcpu_lock;
 
     /* virt irq block for this vcpu */
     struct vcpu_virt_irq_block virq_block;
@@ -111,6 +121,8 @@ struct vcpu {
     _wait_q_t *t_wq;
 
     sys_dlist_t vcpu_lists;
+
+    bool is_poweroff;
 };
 typedef struct vcpu vcpu_t;
 
@@ -120,6 +132,8 @@ typedef struct vcpu vcpu_t;
 struct __aligned(4) vcpu_work {
     /* statically allocate stack space */
     K_KERNEL_STACK_MEMBER(vt_stack, VCPU_THREAD_STACKSIZE);
+
+    /* vCPU thread */
     struct k_thread *vcpu_thread;
 
     /* point to vcpu struct */

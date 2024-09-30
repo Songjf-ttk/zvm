@@ -7,9 +7,9 @@
 #include <kernel_internal.h>
 #include <arch/arm64/lib_helpers.h>
 #include "boot.h"
-
 #include <virtualization/arm/cpu.h>
 
+uint64_t cpu_vmpidr_el2_list[CONFIG_MP_NUM_CPUS] = {0};
 
 void __weak z_arm64_el_highest_plat_init(void)
 {
@@ -232,10 +232,11 @@ void z_arm64_el2_vhe_init(void)
 	reg = read_midr_el1();
 	write_vpidr_el2(reg);
 
-	/* Get an additional PE identification mechanism in multiprocessor system
-		and	info virtualization process id  */
 	reg = read_mpidr_el1();
 	write_vmpidr_el2(reg);
+
+	/*Get mpidr info for VM.*/
+	cpu_vmpidr_el2_list[MPIDR_TO_CORE(GET_MPIDR())] = reg;
 
 	/* Controls trapping to EL2 of accesses to CPACR, CPACR_EL1, trace */
 	reg = 0x33ff;

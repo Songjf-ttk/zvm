@@ -212,49 +212,51 @@ static int vdev_gicv3_init(struct vm *vm, struct vgicv3_dev *gicv3_vdev, uint32_
 	/* GICD PIDR2 */
 	vgic_sysreg_write32(0x3<<4, gicd->gicd_regs_base, VGICD_PIDR2);
     spi_num = ((VM_GLOBAL_VIRQ_NR + 32) >> 5) - 1;
+	/* GICD TYPER */
 	tmp_typer = (vm->vcpu_num << 5) | (9 << 19) | spi_num;
 	vgic_sysreg_write32(tmp_typer, gicd->gicd_regs_base, VGICD_TYPER);
 	/* Init spinlock */
 	ZVM_SPINLOCK_INIT(&gicd->gicd_lock);
 
-    for (i = 0; i < VGIC_RDIST_SIZE/VGIC_RD_SGI_SIZE + 1; i++) {
+    for (i = 0; i < MIN(VGIC_RDIST_SIZE/VGIC_RD_SGI_SIZE, vm->vcpu_num); i++) {
         gicr = (struct virt_gic_gicr *)k_malloc(sizeof(struct virt_gic_gicr));
         if(!gicr){
 			return -EMMAO;
 		}
 		/* store the vcpu id for gicr */
         gicr->vcpu_id = i;
+
 		/* init redistribute size */
 		gicr->gicr_rd_size = VGIC_RD_BASE_SIZE;
-		gicr->gicr_rd_reg_base = k_malloc(gicr->gicr_rd_size);
-		if(!gicr->gicr_rd_reg_base){
+		gicr->gicr_rd_reg_base = (uint32_t *)k_malloc(gicr->gicr_rd_size);
+		if(!gicr->gicr_rd_reg_base) {
 			ZVM_LOG_ERR("Allocat memory for gicr_rd error! \n");
         	return -EMMAO;
 		}
 		memset(gicr->gicr_rd_reg_base, 0, gicr->gicr_rd_size);
+
 		/* init sgi redistribute size */
 		gicr->gicr_sgi_size = VGIC_SGI_BASE_SIZE;
-		gicr->gicr_sgi_reg_base = k_malloc(gicr->gicr_sgi_size);
-		if(!gicr->gicr_sgi_reg_base){
+		gicr->gicr_sgi_reg_base = (uint32_t *)k_malloc(gicr->gicr_sgi_size);
+		if(!gicr->gicr_sgi_reg_base) {
 			ZVM_LOG_ERR("Allocat memory for gicr_sgi error! \n");
         	return -EMMAO;
 		}
 		memset(gicr->gicr_sgi_reg_base, 0, gicr->gicr_sgi_size);
 
-		gicr->gicr_rd_base = gicr_base + VGIC_RD_SGI_SIZE*i;
+		gicr->gicr_rd_base = gicr_base + VGIC_RD_SGI_SIZE * i;
 		gicr->gicr_sgi_base = gicr->gicr_rd_base + VGIC_RD_BASE_SIZE;
 		vgic_sysreg_write32(0x3<<4, gicr->gicr_rd_reg_base, VGICR_PIDR2);
-		/* Init spinlock */
 		ZVM_SPINLOCK_INIT(&gicr->gicr_lock);
 
-		if(i >= vm->vcpu_num - 1){
+		/* GICR TYPER */
+		tmp_typer = 1 << GICR_TYPER_LPI_AFFINITY_SHIFT | i << GICR_TYPER_PROCESSOR_NUMBER_SHIFT | ((uint64_t)i << GICR_TYPER_AFFINITY_VALUE_SHIFT);
+		if(i >= vm->vcpu_num - 1) {
 			/* set last gicr region flag here, means it is the last gicr region */
-			vgic_sysreg_write64(GICR_TYPER_LAST_FLAG, gicr->gicr_rd_reg_base, VGICR_TYPER);
-			vgic_sysreg_write64(GICR_TYPER_LAST_FLAG, gicr->gicr_sgi_reg_base, VGICR_TYPER);
-		}else{
-			vgic_sysreg_write64((uint64_t)i << 32, gicr->gicr_rd_reg_base, VGICR_TYPER);
-			vgic_sysreg_write64((uint64_t)i << 32, gicr->gicr_sgi_reg_base, VGICR_TYPER);
+			tmp_typer |= 1 << GICR_TYPER_LAST_SHIFT;
 		}
+		vgic_sysreg_write64(tmp_typer, gicr->gicr_rd_reg_base, VGICR_TYPER);
+		vgic_sysreg_write64(tmp_typer, gicr->gicr_sgi_reg_base, VGICR_TYPER);
 
 		gicv3_vdev->gicr[i] = gicr;
     }
@@ -398,6 +400,60 @@ int gicv3_inject_virq(struct vcpu *vcpu, struct virt_irq_desc *desc)
 	return 0;
 }
 
+int vgicv3_raise_sgi(struct vcpu *vcpu, unsigned long sgi_value)
+{
+	int i, bit, sgi_num=0;
+	uint32_t sgi_id, sgi_mode;
+	uint32_t target_list, aff1, aff2, aff3, tmp_id;
+	struct virt_irq_desc *desc;
+	struct vcpu *target;
+	struct vm *vm = vcpu->vm;
+	k_spinlock_key_t key;
+
+	sgi_id = (sgi_value & (0xf << 24)) >> 24;
+	__ASSERT_NO_MSG(GIC_IS_SGI(sgi_id));
+
+	sgi_mode = sgi_value & (1UL << 40) ? SGI_SIG_TO_OTHERS : SGI_SIG_TO_LIST;
+	if (sgi_mode == SGI_SIG_TO_OTHERS) {
+		for (i = 0; i < vm->vcpu_num; i++) {
+			target = vm->vcpus[i];
+			if (target == vcpu) {
+				continue;
+			}
+			target->virq_block.pending_sgi_num = sgi_id;
+			key = k_spin_lock(&target->vcpu_lock);
+			target->vcpuipi_count ++;
+			k_spin_unlock(&target->vcpu_lock, key);
+		}
+	} else if (sgi_mode == SGI_SIG_TO_LIST) {
+		target_list = sgi_value & 0xffff;
+		aff1 = (sgi_value & (uint64_t)(0xffUL << 16)) >> 16;
+		aff2 = (sgi_value & (uint64_t)(0xffUL << 32)) >> 32;
+		aff3 = (sgi_value & (uint64_t)(0xffUL << 48)) >> 48;
+		for (bit = 0; bit < 16; bit++) {
+			if (sys_test_bit((uintptr_t)&target_list, bit)) {
+				/*Each cluster has CONFIG_MP_NUM_CPUS*/
+				tmp_id = aff1 * CONFIG_MP_NUM_CPUS + bit;
+				/*@TODO: May need modified to vm->vcpu_num. */
+				if(++sgi_num > CONFIG_MAX_VCPU_PER_VM || tmp_id >= CONFIG_MAX_VCPU_PER_VM) {
+					ZVM_LOG_WARN("The target cpu list is too long.");
+					return -EVIRQ;
+				}
+				target = vm->vcpus[tmp_id];
+				target->virq_block.pending_sgi_num = sgi_id;
+				key = k_spin_lock(&target->vcpu_lock);
+				target->vcpuipi_count ++;
+				k_spin_unlock(&target->vcpu_lock, key);
+			}
+		}
+	} else {
+		ZVM_LOG_WARN("Unsupported sgi signal.");
+		return -EVIRQ;
+	}
+	arch_sched_ipi();
+	return 0;
+}
+
 int vgic_gicrsgi_mem_read(struct vcpu *vcpu, struct virt_gic_gicr *gicr,
                                 uint32_t offset, uint64_t *v)
 {
@@ -459,7 +515,7 @@ int vgic_gicrsgi_mem_write(struct vcpu *vcpu, struct virt_gic_gicr *gicr, uint32
 
 int vgic_gicrrd_mem_read(struct vcpu *vcpu, struct virt_gic_gicr *gicr, uint32_t offset, uint64_t *v)
 {
-	uint32_t *value = (uint32_t *)v;
+	uint64_t *value = v;
 
 	/* consider multiple cpu later, Now just return 0 */
 	switch (offset) {
@@ -470,11 +526,7 @@ int vgic_gicrrd_mem_read(struct vcpu *vcpu, struct virt_gic_gicr *gicr, uint32_t
 		vgic_sysreg_write32(*value, gicr->gicr_rd_reg_base, VGICR_CTLR);
 		break;
 	case GICR_TYPER:
-		*value = vgic_sysreg_read32(gicr->gicr_rd_reg_base, VGICR_TYPER);
-		*(value+1) = vgic_sysreg_read32(gicr->gicr_rd_reg_base, VGICR_TYPER+0x4);
-		break;
-	case 0x000c:
-		*value = vgic_sysreg_read32(gicr->gicr_rd_reg_base, VGICR_TYPER+0x4);
+		*value = vgic_sysreg_read64(gicr->gicr_rd_reg_base, VGICR_TYPER);
 		break;
 	default:
 		*value = 0;
@@ -489,42 +541,30 @@ int vgic_gicrrd_mem_write(struct vcpu *vcpu, struct virt_gic_gicr *gicr, uint32_
 	return 0;
 }
 
-int get_vcpu_gicr_type(struct virt_gic_gicr *gicr,
-		uint32_t addr, uint32_t *offset)
+struct virt_gic_gicr* get_vcpu_gicr_type(struct vgicv3_dev *vgic, uint32_t addr,
+											uint32_t *type,  uint32_t *offset)
 {
 	int i;
-	uint32_t vcpu_id = gicr->vcpu_id;
+	struct virt_gic_gicr *gicr;
+	struct vm *vm = get_current_vm();
 
-	/* master core can access all the other core's gicr */
-	if (vcpu_id == 0) {
-		for(i=0; i<VGIC_RDIST_SIZE/VGIC_RD_SGI_SIZE + 1; i++){
-			if ((addr >= gicr->gicr_sgi_base + i*VGIC_RD_SGI_SIZE) &&
-				(addr < gicr->gicr_sgi_base + i*VGIC_RD_SGI_SIZE + gicr->gicr_sgi_size)) {
-				*offset = addr - (gicr->gicr_sgi_base + i*VGIC_RD_SGI_SIZE);
-				return TYPE_GIC_GICR_SGI;
-			}
-
-			if ((addr >= gicr->gicr_rd_base + i*VGIC_RD_SGI_SIZE) &&
-				(addr < (gicr->gicr_rd_base +  i*VGIC_RD_SGI_SIZE + gicr->gicr_rd_size))) {
-				*offset = addr - (gicr->gicr_rd_base + i*VGIC_RD_SGI_SIZE);
-				return TYPE_GIC_GICR_RD;
-			}
-		}
-	} else {
-		if ((addr >= gicr->gicr_sgi_base + vcpu_id*VGIC_RD_SGI_SIZE) &&
-			(addr < (gicr->gicr_sgi_base + vcpu_id*VGIC_RD_SGI_SIZE + gicr->gicr_sgi_size))) {
-			*offset = addr - (gicr->gicr_sgi_base + vcpu_id*VGIC_RD_SGI_SIZE);
-			return TYPE_GIC_GICR_SGI;
+	for(i = 0; i < MIN(VGIC_RDIST_SIZE/VGIC_RD_SGI_SIZE, vm->vcpu_num); i++) {
+		gicr = vgic->gicr[i];
+		if ((addr >= gicr->gicr_sgi_base) && addr < gicr->gicr_sgi_base + gicr->gicr_sgi_size) {
+			*offset = addr - gicr->gicr_sgi_base;
+			*type = TYPE_GIC_GICR_SGI;
+			return vgic->gicr[i];
 		}
 
-		if ((addr >= gicr->gicr_rd_base + vcpu_id*VGIC_RD_SGI_SIZE) &&
-			(addr < (gicr->gicr_rd_base +  vcpu_id*VGIC_RD_SGI_SIZE + gicr->gicr_rd_size))) {
-			*offset = addr - (gicr->gicr_rd_base + vcpu_id*VGIC_RD_SGI_SIZE);
-			return TYPE_GIC_GICR_RD;
+		if (addr >= gicr->gicr_rd_base && addr < (gicr->gicr_rd_base + gicr->gicr_rd_size)) {
+			*offset = addr - gicr->gicr_rd_base;
+			*type = TYPE_GIC_GICR_RD;
+			return vgic->gicr[i];
 		}
 	}
 
-	return TYPE_GIC_INVAILD;
+	*type = TYPE_GIC_INVAILD;
+	return NULL;
 }
 
 int vgicv3_state_load(struct vcpu *vcpu, struct gicv3_vcpuif_ctxt *ctxt)
