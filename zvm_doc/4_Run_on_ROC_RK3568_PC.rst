@@ -56,6 +56,7 @@
    zephyr.bin                       #zephyr vm 镜像
    Image                            #linux vm 内核镜像
    rk3568-firefly-roc-pc-simple.dtb #Linux设备树文件
+   debian_rt.cpio.gz                #Linux rootfs文件
 
 准备好这些镜像后，需要将其统一烧录到rk3568的板卡上。具体来说，就是需要通过tftp协议将这些镜像
 烧录到开发板上。包括如下步骤：
@@ -104,11 +105,19 @@ rk3568板卡通电，使用串口助手连接板卡后，启动时长按`ctrl + 
    ping 192.168.1.101                       #测试tftp服务器地址是否可用，出现active说明正常
 
 由于使用rk3568运行zvm时，主机使用的板卡串口为串口uart3，因此需要主动配置
-板卡的uart相关的gpio端口为串口模式，才能正常使用uart3串口：
+板卡的uart相关的gpio端口为串口模式，才能正常使用uart3串口。同时，启动两个
+虚拟机时，还需要一个串口uart9分配给其他虚拟机，示例中为：
+
+- uart2: 分配给Linux虚拟机
+- uart3: 分配给Zephyr虚拟机
+- uart9: 分配给其他虚拟机
 
 .. code:: shell
 
    mw 0xfdc60000 0xffff0022                 #写入串口uart3配置
+
+   mw 0xfdc60074 0x04400440                 #写入串口uart9配置
+   mw 0xfdc60310 0xffff0100                 #写入串口uart9配置
 
 
 下载各个镜像到rk3568板卡：
@@ -116,9 +125,10 @@ rk3568板卡通电，使用串口助手连接板卡后，启动时长按`ctrl + 
 .. code:: shell
 
    tftp 0x10000000 zvm_host.bin                         #下载zvm镜像
-   tftp 0x48000000 zephyr.bin                           #下载zephyr vm镜像
-   tftp 0x80000000 Image                                #下载linux vm镜像
-   tftp 0xbe000000 rk3568-firefly-roc-pc-simple.dtb     #下载linux 设备树镜像
+   tftp 0x01000000 zephyr.bin                           #下载zephyr vm镜像
+   tftp 0x60000000 Image                                #下载linux vm镜像
+   tftp 0x99000000 rk3568-firefly-roc-pc-simple.dtb     #下载linux 设备树镜像
+   tftp 0x69000000 debian_rt.cpio.gz                    #下载linux rootfs镜像   
 
 运行镜像：
 
@@ -128,7 +138,7 @@ rk3568板卡通电，使用串口助手连接板卡后，启动时长按`ctrl + 
    dcache off;icache off;go 0x10000000                  #关闭数据和指令cache
    go 0x10000000                                        #将pc指针指0x10000000
 
-此时，打开uart3串口，即可使用zvm的shell来输入命令并启动虚拟机。
+此时，打开uart3串口，即可使用zvm的shell来输入命令并启动两个虚拟机。
 
 3.  RK3568平台的ZVM上运行Paddle Lite
 -----------------------
@@ -166,7 +176,7 @@ rk3568板卡通电，使用串口助手连接板卡后，启动时长按`ctrl + 
    tftp 0x48000000 zephyr.bin                           #下载zephyr vm镜像
    tftp 0x80000000 Image                                #下载linux vm镜像
    tftp 0x48000000 rk3568-firefly-roc-pc-simple.dtb     #下载linux 设备树镜像
-   tftp 0x90000000 mobilenet_v1.nb                      #下载mobilenetv1模型
+   tftp 0xa0000000 mobilenet_v1.nb                      #下载mobilenetv1模型
 
 运行镜像：
 

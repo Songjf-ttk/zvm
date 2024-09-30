@@ -14,8 +14,7 @@
         ptdevice5 = "/soc/pass_through_device/pwm@fe6f0000";
         ptdevice6 = "/soc/pass_through_device/linuxdev@103000";
         ptdevice7 = "/soc/pass_through_device/serial@fe6c0000";
-        ptdevice8 = "/soc/pass_through_device/model@90000000";
-        ptdevice9 = "/soc/pass_through_device/dwmmc@fe2b0000";
+        ptdevice8 = "/soc/pass_through_device/model@a0000000";
         linuxdebugger = "/soc/fiq-debugger";
         vmvirtmem = "/soc/virtmem@bf000000";
         vmshmemrw = "/soc/shmem_rw@bd000000";
@@ -118,9 +117,9 @@
                 label = "LINUXDEV";
             };
 
-            model: model@90000000 {
+            model: model@a0000000 {
                 compatible = "zephyr,model";
-                reg = <0x0 0x90000000 0x0 DT_SIZE_M(120)>;
+                reg = <0x0 0xa0000000 0x0 DT_SIZE_M(120)>;
                 interrupts = <GIC_SPI 12 IRQ_TYPE_EDGE 0>;
                 interrupt-names = "irq_0";
 		    };
@@ -162,17 +161,17 @@
         #address-cells = <2>;
         #size-cells = <2>;
         compatible = "zephyr-vm";
-        dtb_address = <0x49000000>;
+        dtb_address = <0x200000>;
         dtb_size = <DT_SIZE_M(2)>;
         vcpu_num = <0x01>;
 
-        zephyr_ddr: memory@48000000 {
+        zephyr_ddr: memory@1000000 {
             compatible = "vm-dram";
             memmap_type = "dirct";
             address_type = "normal_memory";
             vm_reg_base = <0x40000000>;
             vm_reg_size = <DT_SIZE_M(2)>;
-            reg = <0x0 0x48000000 0x0 DT_SIZE_M(12)>;
+            reg = <0x0 0x01000000 0x0 DT_SIZE_M(2)>;
             label = "VM0_MEM";
         };
 
@@ -182,17 +181,17 @@
         #address-cells = <2>;
         #size-cells = <2>;
         compatible = "linux-vm";
-        dtb_address = <0xbe000000>;
+        dtb_address = <0x99000000>;
         dtb_size = <DT_SIZE_M(2)>;
         vcpu_num = <0x01>;
 
-        linux_ddr: memory@80000000 {
+        linux_ddr: memory@60000000 {
             compatible = "vm-dram";
             memmap_type = "dirct";
             address_type = "normal_memory";
             vm_reg_base = <0x40000000>;
             vm_reg_size = <DT_SIZE_M(1024)>;
-            reg = <0x0 0x80000000 0x0 DT_SIZE_M(64)>;
+            reg = <0x0 0x60000000 0x0 DT_SIZE_M(64)>;
             label = "VM1_MEM";
         };
     };

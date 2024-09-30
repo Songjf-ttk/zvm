@@ -35,7 +35,5 @@ struct mem_vdevice {
  * @brief init vm mem device for the vm.
  */
 int vm_mem_create(struct vm *vm);
-int memory_read(struct virt_dev *vdev, uint64_t addr, uint64_t *value);
-int memory_write(struct virt_dev *vdev, uint64_t addr, uint64_t *value);
 
 #endif
