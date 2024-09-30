@@ -81,7 +81,7 @@ static int virt_syscon_init(const struct device *dev)
 }
 
 
-int syscon_vdev_mem_read(struct virt_dev *vdev, uint64_t addr, uint64_t *value)
+static int syscon_vdev_mem_read(struct virt_dev *vdev, uint64_t addr, uint64_t *value, uint16_t size)
 {
 	uint32_t read_value;
 	read_value = sys_read32(addr);
@@ -92,7 +92,7 @@ int syscon_vdev_mem_read(struct virt_dev *vdev, uint64_t addr, uint64_t *value)
 	return 0;
 }
 
-int syscon_vdev_mem_write(struct virt_dev *vdev, uint64_t addr, uint64_t *value)
+static int syscon_vdev_mem_write(struct virt_dev *vdev, uint64_t addr, uint64_t *value, uint16_t size)
 {
 	uint32_t be_write_value, write_value, af_write_value;
 

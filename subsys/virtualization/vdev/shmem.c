@@ -26,7 +26,7 @@ LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 #define SHMEM_SIZE DT_REG_SIZE(DT_ALIAS(vmvirtmem))
 #define SHMEM_VIRQ DT_IRQN(DT_ALIAS(vmvirtmem))
 
-#define DEV_CFG(dev) ((const struct virt_device_config *const)(dev)->config)
+#define DEV_CFG(dev) ((struct virt_device_config *const)(dev)->config)
 #define DEV_DATA(dev) ((struct virt_device_data *)(dev)->data)
 
 
@@ -48,7 +48,7 @@ static int vm_virt_mem_init(const struct device *dev, struct vm *vm, struct virt
 	struct mem_vdevice *mem;
 	struct zvm_dev_lists* vdev_list;
 	struct  _dnode *d_node, *ds_node;
-    struct virt_dev *vm_dev, *chosen_dev = NULL;
+    struct virt_dev *vm_dev;
 	char *dev_name = "VM_SHMEM";
 	mem = (struct mem_vdevice *)k_malloc(sizeof(struct mem_vdevice));
     if (!mem) {
@@ -104,7 +104,7 @@ static int vm_virt_mem_init(const struct device *dev, struct vm *vm, struct virt
 /**
  * @brief Memory read operation
 */
-int memory_read(struct virt_dev *vdev, uint64_t addr, uint64_t *value)
+static int memory_read(struct virt_dev *vdev, uint64_t addr, uint64_t *value, uint16_t size)
 {
 	return 0;
 }
@@ -112,7 +112,7 @@ int memory_read(struct virt_dev *vdev, uint64_t addr, uint64_t *value)
 /**
  * @brief Memory write operation
 */
-int memory_write(struct virt_dev *vdev, uint64_t addr, uint64_t *value)
+static int memory_write(struct virt_dev *vdev, uint64_t addr, uint64_t *value, uint16_t size)
 {
 	return 0;
 }

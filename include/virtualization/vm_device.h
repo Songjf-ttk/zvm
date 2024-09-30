@@ -106,8 +106,8 @@ struct virt_device_config {
 struct virt_device_api {
     int (*init_fn)(const struct device *dev, struct vm *vm, struct virt_dev *vdev_desc);
 
-    int (*virt_device_write)(struct virt_dev *vdev, uint64_t addr, uint64_t *value);
-    int (*virt_device_read)(struct virt_dev *vdev, uint64_t addr, uint64_t *value);
+    int (*virt_device_write)(struct virt_dev *vdev, uint64_t addr, uint64_t *value, uint16_t size);
+    int (*virt_device_read)(struct virt_dev *vdev, uint64_t addr, uint64_t *value, uint16_t size);
 #ifdef CONFIG_VIRT_DEVICE_INTERRUPT_DRIVEN
     void (*virt_irq_callback_set)(const struct device *dev, void *cb, void *user_data);
 #endif

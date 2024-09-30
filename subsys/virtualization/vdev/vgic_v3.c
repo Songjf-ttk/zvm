@@ -405,7 +405,6 @@ int vgicv3_raise_sgi(struct vcpu *vcpu, unsigned long sgi_value)
 	int i, bit, sgi_num=0;
 	uint32_t sgi_id, sgi_mode;
 	uint32_t target_list, aff1, aff2, aff3, tmp_id;
-	struct virt_irq_desc *desc;
 	struct vcpu *target;
 	struct vm *vm = vcpu->vm;
 	k_spinlock_key_t key;

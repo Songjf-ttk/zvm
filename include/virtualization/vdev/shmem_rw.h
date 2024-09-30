@@ -36,8 +36,5 @@ struct mem_rw_vdevice {
  * @brief init vm mem device for the vm.
  */
 int vm_mem_rw_create(struct vm *vm);
-int memory_rw_read(struct virt_dev *vdev, uint64_t addr, uint64_t *value);
-int memory_rw_write(struct virt_dev *vdev, uint64_t addr, uint64_t *value);
-
 
 #endif

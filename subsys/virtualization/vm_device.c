@@ -197,10 +197,10 @@ int vdev_mmio_abort(arch_commom_regs_t *regs, int write, uint64_t addr,
                 if ((addr >= vdev->vm_vdev_paddr) && (addr < vdev->vm_vdev_paddr + vdev->vm_vdev_size)) {
                     if (write) {
                         return ((const struct virt_device_api * \
-                            const)(vdevice_instance->api))->virt_device_write(vdev, addr, reg_value);
+                            const)(vdevice_instance->api))->virt_device_write(vdev, addr, reg_value, size);
                     }else{
                         return ((const struct virt_device_api * \
-                            const)(vdevice_instance->api))->virt_device_read(vdev, addr, reg_value);
+                            const)(vdevice_instance->api))->virt_device_read(vdev, addr, reg_value, size);
                     }
                 }
             }
