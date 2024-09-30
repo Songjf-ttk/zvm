@@ -3,11 +3,12 @@ ZVM 开源文档
 
  欢迎来到嵌入式实时虚拟机ZVM (Zephyr-based Virtual Machine) 项目的开发文档。
 
-本项目是在Linux基金会下流行的开源实时操作系统 `Zephyr RTOS <https://github.com/zephyrproject-rtos/zephyr>`__ 
-上构建的虚拟机管理器ZVM，其继承了Zephyr RTOS的优秀开源生态和特性，同时提供了一个原创的嵌入式虚拟化解决方案。
+ZVM项目是在开源实时操作系统 `Zephyr RTOS <https://github.com/zephyrproject-rtos/zephyr>`__ 
+（由Linux基金会托管）上构建的一款虚拟机管理器（Hypervisor），ZVM一方面继承了Zephyr RTOS的开源生态和特性，
+另一方面为业界提供了一个原创的面向嵌入式场景的开源虚拟化平台解决方案。
 
-ZVM由湖南大学教授、 嵌入式与网络计算湖南省重点实验室主任谢国琪老师团队开发，旨在嵌入式实现一款开源、实时、安全、易用
-的虚拟化管理平台，填补Linux-KVM虚拟化方案在嵌入式领域的空白，成为嵌入式领域的“Linux-KVM”。
+ZVM由湖南大学教授、 嵌入式与网络计算湖南省重点实验室主任谢国琪老师主导开发，这是一款面向嵌入式场景的
+开源、实时、安全、轻量及易用的虚拟机管理平台，致力于成为嵌入式领域的“Linux-KVM”，构建混合关键部署的开源生态。
 项目仓库中包含Zephyr RTOS内核、工具及虚拟化支持所需的一些代码，共同构成了ZVM的代码仓。
 
 ZVM使用 `zephyrproject-rtos <https://github.com/zephyrproject-rtos/zephyr>`__ 所遵守的
@@ -21,7 +22,7 @@ ZVM特点
 ZVM面向高性能嵌入式计算环境，提供嵌入式平台上操作系统级别的资源隔离和共享服务。可用于各种应用和行业领域，如工业物联网、可穿戴设备、机器学习等。
 ZVM架构图如下所示：
 
-.. figure:: https://gitee.com/openeuler/zvm/raw/master/zvm_doc/figure/zvm_demo.png
+.. figure:: https://gitee.com/openeuler/zvm/raw/master/zvm_doc/figure/overview.png
    :align: center
    :alt: zvm_demo
 
@@ -33,7 +34,6 @@ ZVM支持的虚拟机操作系统列表如下, 包括：
 - Zephyr RTOS
 - openEuler Embedded
 - Debian
-- xxx
 
 
 底层硬件平台
@@ -43,7 +43,6 @@ ZVM 支持的平台如下, 包括多核的ARMv8平台：
 - QEMU ARM64 virt (qemu-max)
 - RK3568 SoC (roc_rk3568_pc/ok3568/lubancat2)
 - ARM Fixed platform (cortex-a55x4)
-- xxx
 
 
 
