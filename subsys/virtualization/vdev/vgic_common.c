@@ -158,10 +158,9 @@ static int vgic_set_virq(struct vcpu *vcpu, struct virt_irq_desc *desc)
 	 * or it is in a idle states. So, we should consider all the
 	 * situations.
 	*/
-	if(vcpu->work->vcpu_thread != _current){
-		if(zvm_thread_active_elsewhere(vcpu->work->vcpu_thread)){
+	if(vcpu->work->vcpu_thread != _current) {
+		if(zvm_thread_active_elsewhere(vcpu->work->vcpu_thread)) {
 #if defined(CONFIG_SMP) &&  defined(CONFIG_SCHED_IPI_SUPPORTED)
-			ZVM_LOG_INFO("Ready to send arch_sched_ipi \n");
 			arch_sched_ipi();
 #endif
 		}else{
@@ -285,7 +284,7 @@ void arch_vdev_irq_enable(struct vcpu *vcpu)
 
 	SYS_DLIST_FOR_EACH_NODE_SAFE(&vm->vdev_list, d_node, ds_node) {
         vdev = CONTAINER_OF(d_node, struct virt_dev, vdev_node);
-		if(vdev->dev_pt_flag){
+		if(vdev->dev_pt_flag && vcpu->vcpu_id == 0) {
 			/* enable spi interrupt */
 			irq = vdev->hirq;
 			if (irq > CONFIG_NUM_IRQS) {
@@ -305,7 +304,7 @@ void arch_vdev_irq_disable(struct vcpu *vcpu)
 
 	SYS_DLIST_FOR_EACH_NODE_SAFE(&vm->vdev_list, d_node, ds_node) {
         vdev = CONTAINER_OF(d_node, struct virt_dev, vdev_node);
-		if(vdev->dev_pt_flag){
+		if(vdev->dev_pt_flag && vcpu->vcpu_id == 0) {
 			/* disable spi interrupt */
 			irq = vdev->hirq;
 			if(irq > CONFIG_NUM_IRQS){
@@ -316,43 +315,13 @@ void arch_vdev_irq_disable(struct vcpu *vcpu)
     }
 }
 
-int vgicv3_raise_sgi(struct vcpu *vcpu, unsigned long sgi_value)
+int vgic_vdev_mem_read(struct virt_dev *vdev, uint64_t addr, uint64_t *value, uint16_t size)
 {
-	int i;
-	uint32_t sgi_id, sgi_mode;
-	struct vcpu *target;
-	struct vm *vm = vcpu->vm;
-
-	sgi_id = (sgi_value & (0xf << 24)) >> 24;
-	__ASSERT_NO_MSG(GIC_IS_SGI(sgi_id));
-
-	sgi_mode = sgi_value & (1UL << 40) ? SGI_SIG_TO_OTHERS : SGI_SIG_TO_LIST;
-	if (sgi_mode == SGI_SIG_TO_OTHERS) {
-		for (i = 0; i < vm->vcpu_num; i++) {
-			target = vm->vcpus[i];
-			if (target == vcpu) {
-				continue;
-			}
-			set_virq_to_vcpu(vcpu, sgi_id);
-		}
-		return 0;
-	} else {
-		ZVM_LOG_WARN("Unsupported sgi signal.");
-		return -EVIRQ;
-	}
-
-	return 0;
-}
-
-int vgic_vdev_mem_read(struct virt_dev *vdev, uint64_t addr, uint64_t *value)
-{
-	uint32_t offset;
-    int i;
-	int type = TYPE_GIC_INVAILD;
+	uint32_t offset, type = TYPE_GIC_INVAILD;
 	struct vcpu *vcpu = _current_vcpu;
 	struct vgicv3_dev *vgic = (struct vgicv3_dev *)vdev->priv_vdev;
 	struct virt_gic_gicd *gicd = &vgic->gicd;
-	struct virt_gic_gicr *gicr = vgic->gicr[vcpu->vcpu_id];
+	struct virt_gic_gicr *gicr;
 
 	/*Avoid some case that we only just use '|' to get the value */
 	*value = 0;
@@ -361,26 +330,7 @@ int vgic_vdev_mem_read(struct virt_dev *vdev, uint64_t addr, uint64_t *value)
 		type = TYPE_GIC_GICD;
 		offset = addr - gicd->gicd_base;
 	} else {
-		type = get_vcpu_gicr_type(gicr, addr, &offset);
-		/* master vcpu may access other vcpu's gicr */
-		if (type == TYPE_GIC_INVAILD){
-			for (i = 0; i < vcpu->vm->vcpu_num; i++) {
-				gicr = vgic->gicr[i];
-				type = get_vcpu_gicr_type(gicr, addr, &offset);
-				if (type != TYPE_GIC_INVAILD)
-					break;
-			}
-		}
-	}
-
-	if (type == TYPE_GIC_INVAILD) {
-		ZVM_LOG_WARN("Invaild gic type and address! The address: %llx \n", addr);
-		return -EINVAL;
-	}
-	if (type != TYPE_GIC_GICD) {
-        /* cannot access other vcpu redistribution */
-		if (vcpu->vcpu_id != gicr->vcpu_id)
-			return -EACCES;
+		gicr = get_vcpu_gicr_type(vgic, addr, &type, &offset);
 	}
 
 	switch (type) {
@@ -394,46 +344,26 @@ int vgic_vdev_mem_read(struct virt_dev *vdev, uint64_t addr, uint64_t *value)
 			/* ignore vlpi register */
             return 0;
 	default:
-		ZVM_LOG_WARN("unsupport gic type %d\n", type);
-		return -EINVAL;
+		return 0;
 	}
 
 	return 0;
 }
 
-int vgic_vdev_mem_write(struct virt_dev *vdev, uint64_t addr, uint64_t *value)
+int vgic_vdev_mem_write(struct virt_dev *vdev, uint64_t addr, uint64_t *value, uint16_t size)
 {
     uint32_t offset;
-    int i;
 	int type = TYPE_GIC_INVAILD;
 	struct vcpu *vcpu = _current_vcpu;
 	struct vgicv3_dev *vgic = (struct vgicv3_dev *)vdev->priv_vdev;
 	struct virt_gic_gicd *gicd = &vgic->gicd;
-	struct virt_gic_gicr *gicr = vgic->gicr[vcpu->vcpu_id];
+	struct virt_gic_gicr *gicr;
 
     if ((addr >= gicd->gicd_base) && (addr < gicd->gicd_base + gicd->gicd_size)) {
 		type = TYPE_GIC_GICD;
 		offset = addr - gicd->gicd_base;
 	} else {
-		type = get_vcpu_gicr_type(gicr, addr, &offset);
-		/* master vcpu may access other vcpu's gicr */
-		if (type == TYPE_GIC_INVAILD)
-		for (i = 0; i < vcpu->vm->vcpu_num; i++) {
-			gicr = vgic->gicr[i];
-			type = get_vcpu_gicr_type(gicr, addr, &offset);
-			if (type != TYPE_GIC_INVAILD)
-				break;
-		}
-	}
-
-	if (type == TYPE_GIC_INVAILD) {
-		ZVM_LOG_WARN("Invaild gic type and address! The address: %llx \n", addr);
-		return -EINVAL;
-	}
-	if (type != TYPE_GIC_GICD) {
-        /* cannot access other vcpu redistribution */
-		if (vcpu->vcpu_id != gicr->vcpu_id)
-			return -EACCES;
+		gicr = get_vcpu_gicr_type(vgic, addr, &type, &offset);
 	}
 
 	switch (type) {
@@ -446,8 +376,7 @@ int vgic_vdev_mem_write(struct virt_dev *vdev, uint64_t addr, uint64_t *value)
 		case TYPE_GIC_GICR_VLPI:
 				return 0; //ignore on this stage. @TODO
 		default:
-			ZVM_LOG_WARN("Unsupport gic type %d\n", type);
-			return -EINVAL;
+			return 0;
 	}
 
 	return 0;
@@ -566,7 +495,7 @@ int virt_irq_flush_vgic(struct vcpu *vcpu)
 	}
 
 	/* no idle list register */
-	if(vcpu->arch->list_regs_map == ((1<<VGIC_TYPER_LR_NUM) -1) ){
+	if(vcpu->arch->list_regs_map == ((1 << VGIC_TYPER_LR_NUM) - 1)) {
 		k_spin_unlock(&vb->spinlock, key);
 		ZVM_LOG_WARN("There is no idle list register! ");
 		return 0;

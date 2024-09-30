@@ -102,6 +102,7 @@ struct vcpu_virt_irq_block {
      * it and it means there is a virt irq need to process.
     */
     uint32_t virq_pending_counts;
+    uint32_t pending_sgi_num;
 
     struct virt_irq_desc vcpu_virt_irq_desc[VM_LOCAL_VIRQ_NR];
     struct vcpu_wfi vwfi;

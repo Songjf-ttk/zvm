@@ -12,11 +12,7 @@
 
 struct getopt_state;
 
-#define OS_NAME_LENGTH 32
-
-/* Default vcpu num is 1 */
-#define VM_DEFAULT_VCPU_NUM (1)
-
+#define OS_NAME_LENGTH      (32)
 #define OS_TYPE_ZEPHYR      (0)
 #define OS_TYPE_LINUX       (1)
 #define OS_TYPE_OTHERS      (2)

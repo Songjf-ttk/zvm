@@ -14,3 +14,8 @@ properties:
       description: |
         vm dt file size.
       required: true
+
+    vcpu_num:
+      type: int
+      description: vcpu num for each linux vm (smp support).
+      required: true

@@ -1,6 +1,6 @@
 /*
  * Copyright 2021-2022 HNU
- * 
+ *
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -70,36 +70,17 @@ struct vm_ops {
  * All vm command include create, set, run, update, list, halt and delete vm.
  * These APIs will be called by subsys/zvm/shell.c.
  */
-
-/* Structure for parsing args. */
-//extern struct getopt_state *state;
-
-/**
- * @brief Create vm, other instructions will compose a function pointer struct
- * for operating vm.
- */
 int zvm_new_guest(size_t argc, char **argv);
-
-/**
- * @brief Run vm.
- * When shell call the vm new command, zvm will run this function and will
- * try to run the vcpu bind to this vm by active the pending vcpu thread.
- * @return int : error process.
- */
 int zvm_run_guest(size_t argc, char **argv);
-
-/**
- * @brief Pause vm.
- * When shell call the vm pause command, zvm will will run this fuction and
- * will try to pause the vm's vcpu thread.
- * @return int : error process.
- */
 int zvm_pause_guest(size_t argc, char **argv);
-
-/**
- * @brief For smp system, send ipi interrupt to vm
- */
 int zvm_delete_guest(size_t argc, char **argv);
 int zvm_info_guest(size_t argc, char **argv);
+
+/**
+ * @brief set vm status from service vm.
+ * This function will be called by service vm.
+ * For example: vm is not running, we can set it to running.
+ */
+int zvm_service_vmops(uint32_t hypercall_code);
 
 #endif /* ZEPHYR_INCLUDE_ZVM_VM_MANAGER_H_ */

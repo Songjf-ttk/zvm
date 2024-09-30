@@ -212,6 +212,16 @@ typedef struct vcpu_arch vcpu_arch_t;
 extern void *_vector_table[];
 extern void _hyp_vector_table(void);
 
+/* psci func for vcpu */
+uint64_t psci_vcpu_syspend(struct vcpu *vcpu, arch_commom_regs_t *arch_ctxt);
+uint64_t psci_vcpu_off(struct vcpu *vcpu, arch_commom_regs_t *arch_ctxt);
+uint64_t psci_vcpu_affinity_info(struct vcpu *vcpu, arch_commom_regs_t *arch_ctxt);
+uint64_t psci_vcpu_migration(struct vcpu *vcpu, arch_commom_regs_t *arch_ctxt);
+uint64_t psci_vcpu_migration_info_type(struct vcpu *vcpu, arch_commom_regs_t *arch_ctxt);
+uint64_t psci_vcpu_other(unsigned long psci_func);
+uint64_t psci_vcpu_on(struct vcpu *vcpu, arch_commom_regs_t *arch_ctxt);
+
+
 void arch_vcpu_context_save(struct vcpu *vcpu);
 void arch_vcpu_context_load(struct vcpu *vcpu);
 

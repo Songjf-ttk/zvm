@@ -217,8 +217,8 @@ int vgic_gicrrd_mem_write(struct vcpu *vcpu, struct virt_gic_gicr *gicr,
 /**
  * @brief get gicr address type.
  */
-int get_vcpu_gicr_type(struct virt_gic_gicr *gicr, uint32_t addr, uint32_t *offset);
-
+struct virt_gic_gicr* get_vcpu_gicr_type(struct vgicv3_dev *vgic, uint32_t addr,
+											uint32_t *type,  uint32_t *offset);
 /**
  * @brief raise a sgi signal to a vcpu.
  */

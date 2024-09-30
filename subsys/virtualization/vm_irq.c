@@ -81,7 +81,7 @@ done:
 /**
  * @brief Init call for creating interrupt control block for vm.
  */
-int vm_irq_ctrlblock_create(struct device *unused, struct vm *vm)
+static int vm_irq_ctrlblock_create(struct device *unused, struct vm *vm)
 {
     ARG_UNUSED(unused);
 	struct vm_virt_irq_block *vvi_block = &vm->vm_irq_block;
@@ -95,7 +95,7 @@ int vm_irq_ctrlblock_create(struct device *unused, struct vm *vm)
 	}
 
 	vvi_block->enabled = false;
-	vvi_block->cpu_num = CONFIG_MAX_VCPU_PER_VM;
+	vvi_block->cpu_num = vm->vcpu_num;
 	vvi_block->irq_num = VM_GLOBAL_VIRQ_NR;
 	memset(vvi_block->ipi_vcpu_source, 0, sizeof(uint32_t)*CONFIG_MP_NUM_CPUS*VM_SGI_VIRQ_NR);
 	memset(vvi_block->irq_bitmap, 0, VM_GLOBAL_VIRQ_NR/0x08);

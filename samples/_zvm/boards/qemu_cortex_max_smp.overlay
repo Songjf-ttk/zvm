@@ -18,7 +18,7 @@
 
     chosen {
 		vm,console = &uart0;
-        zephyr_pcie_controller = "/soc/pcie@10000000";
+        zephyr_pcie_controller = "/soc/pcie@4010000000";
 	};
 
     soc {
@@ -91,7 +91,7 @@
 
         };
 
-        pcie@10000000 {
+        pcie@4010000000 {
             compatible = "pci-host-ecam-generic";
             interrupt-map-mask = <0x1800 0x00 0x00 0x07>;
             interrupt-map = <0x00 0x00 0x00 0x01 0x8005 0x00 0x00 0x00 0x03 0x04
@@ -130,6 +130,7 @@
         compatible = "zephyr-vm";
         dtb_address = <0x00000000>;
         dtb_size = <DT_SIZE_M(2)>;
+        vcpu_num = <0x02>;
 
         zephyr_ddr: memory@c8000000 {
             compatible = "vm-dram";
@@ -148,6 +149,7 @@
         compatible = "linux-vm";
         dtb_address = <0xd0000000>;
         dtb_size = <DT_SIZE_M(2)>;
+        vcpu_num = <0x01>;
 
         linux_ddr: memory@f0000000 {
             compatible = "vm-dram";
@@ -161,7 +163,7 @@
 
         /* Define a pci device instance for vm. */
         linux_ivshmem {
-            compatible = "virt,pci";
+            compatible = "virtio,pci";
             /* ivshmem device */
             type = <0x03>;
             domain = <0x01>;

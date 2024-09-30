@@ -16,6 +16,12 @@
 #define VM_PPI_VIRQ_NR		(16)
 #define VM_SPI_VIRQ_NR 		(256 - VM_SGI_VIRQ_NR - VM_PPI_VIRQ_NR)
 
+/* Device access size. */
+#define ISS_SAS_8BIT		(0x0)
+#define ISS_SAS_16BIT		(0x1)
+#define ISS_SAS_32BIT		(0x2)
+#define ISS_SAS_64BIT		(0x3)
+
 /* HPFAR_EL2 addr mask */
 #define HPFAR_EL2_MASK			GENMASK(39,4)
 #define HPFAR_EL2_SHIFT			(4)

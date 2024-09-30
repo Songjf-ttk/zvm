@@ -36,7 +36,7 @@ z_vm_info_t z_overall_vm_infos[] = {
         .vm_sys_size = ZEPHYR_VMSYS_SIZE,
         .vm_image_base = ZEPHYR_VM_IMAGE_BASE,
         .vm_image_size = ZEPHYR_VM_IMAGE_SIZE,
-        .vcpu_num = VM_DEFAULT_VCPU_NUM,
+        .vcpu_num = ZEPHYR_VM_VCPU_NUM,
         .vm_os_type = OS_TYPE_ZEPHYR,
     },
     {
@@ -45,7 +45,7 @@ z_vm_info_t z_overall_vm_infos[] = {
         .vm_sys_size = LINUX_VMSYS_SIZE,
         .vm_image_base = LINUX_VM_IMAGE_BASE,
         .vm_image_size = LINUX_VM_IMAGE_SIZE,
-        .vcpu_num = VM_DEFAULT_VCPU_NUM,
+        .vcpu_num = LINUX_VM_VCPU_NUM,
         .vm_os_type = OS_TYPE_LINUX,
     },
 
@@ -71,17 +71,20 @@ static int zvm_hwsys_info_init(struct zvm_hwsys_info *z_info)
     return 0;
 }
 
-/**
- * @brief ipi handler for zvm.
- *
- */
 void zvm_ipi_handler(void)
 {
     struct vcpu *vcpu = _current_vcpu;
+    k_spinlock_key_t key;
 
     /* judge whether it is a vcpu thread */
     if (vcpu) {
-        vm_ipi_handler(vcpu->vm);
+        if (vcpu->vcpuipi_count) {
+            /* judge whether the ipi is send to vcpu. */
+            vm_ipi_handler(vcpu->vm);
+            key = k_spin_lock(&vcpu->vcpu_lock);
+            vcpu->vcpuipi_count--;
+            k_spin_unlock(&vcpu->vcpu_lock, key);
+        }
     }
 
 }

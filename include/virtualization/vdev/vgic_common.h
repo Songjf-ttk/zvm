@@ -72,7 +72,7 @@ struct virt_dev;
 /* virtual gic device register operation */
 #define vgic_sysreg_read32(base, offset)			sys_read32((long unsigned int)(base+((offset)/4)))
 #define vgic_sysreg_write32(data, base, offset)		sys_write32(data, (long unsigned int)(base+((offset)/4)))
-#define vgic_sysreg_read64(data, base, offset)		sys_read64(data, (long unsigned int)(base+((offset)/4)))
+#define vgic_sysreg_read64(base, offset)			sys_read64((long unsigned int)(base+((offset)/4)))
 #define vgic_sysreg_write64(data, base, offset)		sys_write64(data, (long unsigned int)(base+((offset)/4)))
 
 #define DEFAULT_DISABLE_IRQVAL	(0xFFFFFFFF)
@@ -143,9 +143,8 @@ void arch_vdev_irq_enable(struct vcpu *vcpu);
 void arch_vdev_irq_disable(struct vcpu *vcpu);
 
 
-int vgic_vdev_mem_read(struct virt_dev *vdev, uint64_t addr, uint64_t *value);
-
-int vgic_vdev_mem_write(struct virt_dev *vdev, uint64_t addr, uint64_t *value);
+int vgic_vdev_mem_read(struct virt_dev *vdev, uint64_t addr, uint64_t *value, uint16_t size);
+int vgic_vdev_mem_write(struct virt_dev *vdev, uint64_t addr, uint64_t *value, uint16_t size);
 
 /**
  * @brief send a virt irq signal to a vcpu.
@@ -222,7 +221,8 @@ static ALWAYS_INLINE int vgic_irq_enable(struct vcpu *vcpu, uint32_t virt_irq)
     }
     desc->virq_flags |= VIRQ_ENABLED_FLAG;
 	if (virt_irq > VM_LOCAL_VIRQ_NR) {
-		if (desc->virq_flags & VIRQ_HW_FLAG) {
+		/*@TODO: How to route virtual device's irq to vcpu. */
+		if (desc->virq_flags & VIRQ_HW_FLAG && vcpu->vcpu_id == 0) {
             if (desc->pirq_num > VM_LOCAL_VIRQ_NR)
                 irq_enable(desc->pirq_num);
             else {
@@ -247,7 +247,7 @@ static ALWAYS_INLINE int vgic_irq_disable(struct vcpu *vcpu, uint32_t virt_irq)
 	}
 	desc->virq_flags &= ~VIRQ_ENABLED_FLAG;
 	if (virt_irq > VM_LOCAL_VIRQ_NR) {
-		if (desc->virq_flags & VIRQ_HW_FLAG) {
+		if (desc->virq_flags & VIRQ_HW_FLAG  && vcpu->vcpu_id == 0) {
             if (desc->pirq_num > VM_LOCAL_VIRQ_NR) {
 				irq_disable(desc->pirq_num);
 			} else {

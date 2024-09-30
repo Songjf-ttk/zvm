@@ -32,6 +32,13 @@ LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 static int intra_vm_msg_handler(struct vm *vm)
 {
     ARG_UNUSED(vm);
+    struct vcpu *vcpu = _current_vcpu;
+    if (!vcpu) {
+        ZVM_LOG_WARN("Get current vcpu failed! \n");
+        return -ENODEV;
+    }
+    set_virq_to_vcpu(vcpu, vcpu->virq_block.pending_sgi_num);
+
     return 0;
 }
 
@@ -270,6 +277,7 @@ int vm_vcpus_create(uint16_t vcpu_num, struct vm *vm)
     /* init vcpu num */
     if (vcpu_num > CONFIG_MAX_VCPU_PER_VM) {
         vcpu_num = CONFIG_MAX_VCPU_PER_VM;
+        ZVM_LOG_WARN("Vcpu num is too big, set it to max vcpu num: %d\n", vcpu_num);
     }
     vm->vcpu_num = vcpu_num;
 
@@ -306,6 +314,11 @@ int vm_vcpus_init(struct vm *vm)
         if (i) {
             vm->vcpus[i-1]->next_vcpu = vcpu;
         }
+
+        vcpu->is_poweroff = true;
+        if (i == 0) {
+            vcpu->is_poweroff = false;
+        }
     }
 
     return 0;
@@ -328,7 +341,9 @@ int vm_vcpus_ready(struct vm *vm)
             k_spin_unlock(&vm->spinlock, key);
             return -ENODEV;
         }
-        vm_vcpu_ready(vcpu);
+        if (!vcpu->is_poweroff) {
+            vm_vcpu_ready(vcpu);
+        }
     }
     vm->vm_status = VM_STATE_RUNNING;
     k_spin_unlock(&vm->spinlock, key);

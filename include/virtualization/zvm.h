@@ -18,16 +18,12 @@
 #include <sys/util.h>
 #include <virtualization/os/os.h>
 
-
-/**
- * @brief We need devicetree.h file.
- *
- * Before managing VMs, we need to make clear that how many resource available
- * in current system. This information can be get from system device tree file.
- */
 #ifndef CONFIG_ZVM
 #define CONFIG_ZVM
 #endif  /* CONFIG_ZVM */
+#ifndef CONFIG_MAX_VM_NUM
+#define CONFIG_MAX_VM_NUM  (0)
+#endif /* CONFIG_MAX_VM_NUM */
 
 #define ZVM_MODULE_NAME zvm_host
 #define SINGLE_CORE     1U
@@ -223,7 +219,10 @@ struct zvm_dev_lists* get_zvm_dev_lists(void);
 int vm_create(struct z_vm_info *zvi, struct vm *vm);
 int load_os_image(struct vm *vm);
 
-static ALWAYS_INLINE int rt_get_idle_cpu(void){
+static uint32_t used_cpus = 0;
+static struct k_spinlock cpu_mask_lock;
+
+static ALWAYS_INLINE int rt_get_idle_cpu(void) {
     for (int i = 0; i < CONFIG_MP_NUM_CPUS; i++) {
 #ifdef CONFIG_SMP
         /* In SMP, _current is a field read from _current_cpu, which
@@ -265,7 +264,34 @@ static ALWAYS_INLINE int nrt_get_idle_cpu(void) {
     return -ESRCH;
 }
 
-static ALWAYS_INLINE bool is_vmid_full(void){
+static ALWAYS_INLINE int get_static_idle_cpu(void) {
+    k_spinlock_key_t key;
+
+    for (int i = 1; i < CONFIG_MP_NUM_CPUS; i++) {
+#ifdef CONFIG_SMP
+        /* In SMP, _current is a field read from _current_cpu, which
+        * can race with preemption before it is read.  We must lock
+        * local interrupts when reading it.
+        */
+        unsigned int k = arch_irq_lock();
+#endif
+        k_tid_t tid = _kernel.cpus[i].current;
+#ifdef CONFIG_SMP
+        arch_irq_unlock(k);
+#endif
+        int prio = k_thread_priority_get(tid);
+        if (prio == K_IDLE_PRIO && !(used_cpus & (1 << i))) {
+            key = k_spin_lock(&cpu_mask_lock);
+            used_cpus |= (1 << i);
+            k_spin_unlock(&cpu_mask_lock, key);
+            return i;
+        }
+    }
+    return -ESRCH;
+}
+
+static ALWAYS_INLINE bool is_vmid_full(void)
+{
     return zvm_overall_info->alloced_vmid == BIT_MASK(CONFIG_MAX_VM_NUM);
 }
 

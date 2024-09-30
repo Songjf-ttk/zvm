@@ -75,13 +75,14 @@
 
 #define SCR_RES1		(BIT(4) | BIT(5))
 
-/* MPIDR */
-#define MPIDR_AFFLVL_MASK	(0xffff)
+#define MPIDR_AFFLVL_MASK	(0xFFFFULL)
 
 #define MPIDR_AFF0_SHIFT	(0)
 #define MPIDR_AFF1_SHIFT	(8)
 #define MPIDR_AFF2_SHIFT	(16)
 #define MPIDR_AFF3_SHIFT	(32)
+
+#define MPIDR_AFF_MASK		(GENMASK(23, 0) | GENMASK(39, 32))
 
 #define MPIDR_AFFLVL(mpidr, aff_level) \
 		(((mpidr) >> MPIDR_AFF##aff_level##_SHIFT) & MPIDR_AFFLVL_MASK)
