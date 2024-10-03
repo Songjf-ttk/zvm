@@ -3,7 +3,7 @@ ZVM 开源文档
 
  欢迎来到嵌入式实时虚拟机ZVM (Zephyr-based Virtual Machine) 项目的开发文档。
 
-ZVM项目是在开源实时操作系统 `Zephyr RTOS <https://github.com/zephyrproject-rtos/zephyr>`__ 
+ZVM项目是在开源实时操作系统 `Zephyr RTOS <https://github.com/zephyrproject-rtos/zephyr>`__
 （由Linux基金会托管）上构建的一款虚拟机管理器（Hypervisor），ZVM一方面继承了Zephyr RTOS的开源生态和特性，
 另一方面为业界提供了一个原创的面向嵌入式场景的开源虚拟化平台解决方案。
 
@@ -54,15 +54,15 @@ ZVM 支持的平台如下, 包括多核的ARMv8平台：
 具体内容及简介：
 ^^^^^^^^^^^^^^
 
-`1.系统介绍： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/1_System_Design.rst>`__
+`1.系统介绍 <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/1_System_Design.rst>`__
 *****************************************************************************************************
 ZVM的架构及各个功能模块的介绍。
 
-`2.主机开发环境搭建： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/2_Environment_Configuration.rst>`__
+`2.主机开发环境搭建 <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/2_Environment_Configuration.rst>`__
 ***************************************************************************************************************
 Linux/Ubuntu主机开发环境的配置，zephyrproject SDK的配置及zvm仓库的初始化和简单sample的构建与测试等。
 
-`3.在QEMU上运行ZVM： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/3_Run_on_ARM64_QEMU.rst>`__
+`3.在QEMU上运行ZVM <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/3_Run_on_ARM64_QEMU.rst>`__
 ********************************************************************************************************
 在QEMU ARM64上面运行ZVM的教程。
 
@@ -70,7 +70,7 @@ Linux/Ubuntu主机开发环境的配置，zephyrproject SDK的配置及zvm仓库
 ********************************************************************************************************
 在ROC_RK3568_PC上面运行ZVM的教程。
 
-`5.加入我们： <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/5_Join_us.rst>`__
+`5.加入我们 <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/5_Join_us.rst>`__
 ********************************************************************************************************
 最后，我们介绍了我们团队的一些成员、如何加入ZVM进行开发以及开发过程中需要遵循的一些基本编码规则。
 以及为ZVM的后续发展制定了一些计划安排，你可以在这里找到它们。
@@ -80,19 +80,17 @@ Linux/Ubuntu主机开发环境的配置，zephyrproject SDK的配置及zvm仓库
 视频介绍
 --------------------
 
-EOSS分享视频：
+EOSS分享视频
 ^^^^^^^^^^^^^^^^^^^^^^
 
 `ZVM: An Embedded Real-time Virtual Machine Based on Zephyr RTOS <https://mp.weixin.qq.com/s/igDKghI7CptV01wu9JrwRA>`__
 *************************************************************************************************************************************
 
-Sig-Zephyr分享视频：
+Sig-Zephyr分享视频
 ^^^^^^^^^^^^^^^^^^^^^^
 
-`ZVM:基于Zephyr RTOSI的嵌入式实时虚拟机 <https://www.bilibili.com/video/BV1pe4y1A7o4/?spm_id_from=333.788.recommend_more_video.14&vd_source=64410f78d160e2b1870852fdc8e2e43a>`__
+`ZVM: 基于Zephyr RTOSI的嵌入式实时虚拟机 <https://www.bilibili.com/video/BV1pe4y1A7o4/?spm_id_from=333.788.recommend_more_video.14&vd_source=64410f78d160e2b1870852fdc8e2e43a>`__
 ******************************************************************************************************************************************************************************************
-
-
 
 
 参与贡献
