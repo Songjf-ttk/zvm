@@ -168,17 +168,11 @@ out:
     vm_info->vm_sys_size = tmp_vm_info.vm_sys_size;
 
     /* Get the vm's entry point */
-#if defined(CONFIG_SOC_QEMU_CORTEX_MAX)
-
 #ifdef  CONFIG_ZVM_ELF_LOADER
     ret = elf_loader((void *)tmp_vm_info.vm_image_base,(void *)tmp_vm_info.vm_virt_base, NULL, vm_info);
 #else
     vm_info->entry_point = tmp_vm_info.entry_point;
 #endif  /* CONFIG_ZVM_ELFLOADER */
-
-#else
-    vm_info->entry_point = tmp_vm_info.entry_point;
-#endif  /* CONFIG_SOC_QEMU_CORTEX_MAX */
 
     return ret;
 }

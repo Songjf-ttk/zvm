@@ -126,7 +126,9 @@
 	};
 
 	chosen {
-		bootargs = "earlycon=uart8250,mmio32,0xfe660000 console=ttyFIQ0";
+		bootargs = "root=/dev/ram0 init=/sbin/init earlycon=uart8250,mmio32,0xfe660000 console=ttyFIQ0 ramdisk_size=10000000 rootfstype=cpio rw";
+		linux,initrd-start = <0x49000000>;
+		linux,initrd-end = <0x5A2B91F8>;
 		stdout-path = "/serial@fe660000";
 		kaslr-seed = <0xfe5f4802 0xd861995f>;
 	};

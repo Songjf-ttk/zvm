@@ -19,3 +19,9 @@ properties:
       type: int
       description: vcpu num for each linux vm (smp support).
       required: true
+
+    rootfs_address:
+      type: int
+      description: |
+        vm root filesystem base address.
+      required: true

@@ -60,13 +60,13 @@ if [ "$OPS" = "${ops_array[0]}" ]; then
 elif [ "$OPS" = "${ops_array[1]}" ]; then
     if [ "$PLAT" = "${plat_array[0]}" ]; then
         $(pwd)/zvm_config/qemu_platform/hub/qemu-system-aarch64 \
-        -cpu max -m 4G -nographic -machine virt,virtualization=on,gic-version=3 \
+        -cpu max -m 8G -nographic -machine virt,virtualization=on,gic-version=3 \
         -net none -pidfile qemu.pid -chardev stdio,id=con,mux=on \
         -serial chardev:con -mon chardev=con,mode=readline -serial pty -serial pty -smp cpus=4 \
         -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/zephyr.bin,addr=0xc8000000,force-raw=on \
-        -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/Image,addr=0xf0000000,force-raw=on \
-        -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/Image,addr=0xd8000000,force-raw=on \
-        -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/linux-qemu-virtio.dtb,addr=0xd0000000 \
+        -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/Image_rfss,addr=0xe0000000,force-raw=on \
+        -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/linux-qemu-virt.dtb,addr=0xf2a00000 \
+        -device loader,file=$(pwd)/zvm_config/qemu_platform/hub/debian.cpio.gz,addr=0xe4000000 \
         -kernel $(pwd)/build/zephyr/zvm_host.elf
 ### using gdb to connect it:
 # gdb-multiarch -q -ex 'file ./build/zephyr/zvm_host.elf' -ex 'target remote localhost:1234'

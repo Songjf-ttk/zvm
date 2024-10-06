@@ -46,7 +46,7 @@
 .. code:: shell
 
     git clone https://gitee.com/hnu-esnl/zvm_vm_image.git
-    cp -r zvm_vm_image/qemu_max/linux/*  zvm/zvm_config/qemu_platform/hub
+    cp -r zvm_vm_image/qemu_max/linux_sp/*  zvm/zvm_config/qemu_platform/hub
     cp -r zvm_vm_image/qemu_max/zephyr/* zvm/zvm_config/qemu_platform/hub
 
 此时，在zvm_config/qemu_platform/hub目录下有Linux和zephyr虚拟机的镜像，直接执行如下命令即可运行：
@@ -98,6 +98,9 @@ Supported board: qemu_cortex_a53
 
    # build dtb file for linux os, the dts file is locate at ../zvm_config/qemu_platform/linux-qemu-virt.dts 
    dtc linux-qemu-virt.dts -I dts -O dtb > linux-qemu-virt.dtb
+
+   # if CONFIG_VIRTIO_MMIO=y && CONFIG_VIRTIO_BLK=y
+   dtc linux-qemu-virtio.dts -I dts -O dtb > linux-qemu-virtio.dtb
 
 （2） 生成文件系统.
 +++++++++++++++++++++++++++++
@@ -177,7 +180,7 @@ BusyBox，配置CONFIG_STATIC参数，编译静态版BusyBox，编译好的可�
 
       # Download Linux-5.16.12 or other version’s kernel.
       # chose the debug info, the .config file that is show on ../zvm_config/qemu_platform/.config_qemu
-      cp ../zvm_config/qemu_platform/.config_qemu path-to/kernel/
+      cp ../zvm_config/qemu_platform/.config_qemu_sp path-to/kernel/
       # add filesystem's *.cpio.gz file to kernel image by chosing it in menuconfig.
       make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- menuconfig
       # build kernel
@@ -186,7 +189,8 @@ BusyBox，配置CONFIG_STATIC参数，编译静态版BusyBox，编译好的可�
 最终在qemu平台，生成如下文件：
 
 .. code:: shell
-
+   
+   # maybe you need to change the name of rootfs in auto_zvm.sh
    zephyr.bin, linux-qemu-virt.dtb, Image, initramfs.cpio.gz
 
 再将其复制到zvm_config/qemu_platform/hub文件夹中，并运行：

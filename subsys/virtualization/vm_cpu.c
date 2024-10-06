@@ -160,6 +160,7 @@ static void vcpu_state_to_reset(struct vcpu *vcpu)
         break;
     case _VCPU_STATE_RUNNING:
     case _VCPU_STATE_PAUSED:
+        //arch_vcpu_destory(vcpu);
         arch_vcpu_init(vcpu);
         break;
     default:
@@ -339,6 +340,7 @@ struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name)
     int pcpu_num = 0;
     struct vcpu *vcpu;
     struct vcpu_work *vwork;
+    k_spinlock_key_t key;
 
     vcpu = (struct vcpu *)k_malloc(sizeof(struct vcpu));
     if (!vcpu) {
@@ -432,6 +434,10 @@ struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name)
     vcpu->resume_signal = false;
     vcpu->waitq_flag = false;
 
+    key = k_spin_lock(&vcpu->vm->vm_vcpu_id.vcpu_id_lock);
+    vcpu->vcpu_id = vcpu->vm->vm_vcpu_id.totle_vcpu_id++;
+    k_spin_unlock(&vcpu->vm->vm_vcpu_id.vcpu_id_lock, key);
+
     if (arch_vcpu_init(vcpu)) {
         k_free(vcpu);
         return  NULL;
@@ -453,4 +459,9 @@ int vm_vcpu_pause(struct vcpu *vcpu)
 int vm_vcpu_halt(struct vcpu *vcpu)
 {
     return vcpu_state_switch(vcpu->work->vcpu_thread, _VCPU_STATE_HALTED);
+}
+
+int vm_vcpu_reset(struct vcpu *vcpu)
+{
+    return vcpu_state_switch(vcpu->work->vcpu_thread, _VCPU_STATE_RESET);
 }

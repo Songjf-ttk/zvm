@@ -128,6 +128,12 @@ int arch_vcpu_run(struct vcpu *vcpu)
     if (ret) {
         return ret;
     }
+
+    if(vcpu->vm->reboot){
+        vcpu_sysreg_load(vcpu);
+        vcpu->vm->reboot=false;
+    }
+
     switch_to_guest_sysreg(vcpu);
 
     /* Jump to the fire too! */

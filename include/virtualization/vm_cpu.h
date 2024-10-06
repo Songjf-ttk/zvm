@@ -48,6 +48,7 @@ struct vcpu *vm_vcpu_init(struct vm *vm, uint16_t vcpu_id, char *vcpu_name);
 int vm_vcpu_ready(struct vcpu *vcpu);
 int vm_vcpu_pause(struct vcpu *vcpu);
 int vm_vcpu_halt(struct vcpu *vcpu);
+int vm_vcpu_reset(struct vcpu *vcpu);
 
 /**
  * @brief vcpu run func entry.

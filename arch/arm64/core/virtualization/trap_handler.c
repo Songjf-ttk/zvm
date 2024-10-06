@@ -16,12 +16,13 @@
 #include <virtualization/arm/vtimer.h>
 #include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/vdev/vgic_common.h>
+#include <virtualization/vdev/vpsci.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
 static uint64_t wzr_reg = 0;
 
-static inline uint64_t* find_index_reg(uint16_t index, arch_commom_regs_t *regs)
+uint64_t* find_index_reg(uint16_t index, arch_commom_regs_t *regs)
 {
     uint64_t *value;
 
@@ -195,51 +196,20 @@ static int cpu_hvc64_sync(struct vcpu *vcpu, arch_commom_regs_t *arch_ctxt, uint
 {
     int ret = 0;
     unsigned long hvc_imm;
-    unsigned long psci_func, val;
+
 #ifdef CONFIG_ZVM_TIME_MEASURE
     vm_irq_timing_print();
 #endif
     hvc_imm = GET_FIELD((esr_elx), 15, 0);
     /*hvc_imm != 0 means that it is not a psci hvc.*/
-    if(hvc_imm){
+    if(hvc_imm) {
         ret = zvm_service_vmops(hvc_imm);
         return ret;
     }
 
-    psci_func = arch_ctxt->esf_handle_regs.x0;
-    switch (psci_func) {
-    case PSCI_0_2_FN_PSCI_VERSION:
-    val = 2;
-    break;
-    case PSCI_0_2_FN_CPU_SUSPEND:
-    case PSCI_0_2_FN64_CPU_SUSPEND:
-    val = psci_vcpu_syspend(vcpu, arch_ctxt);
-    break;
-    case PSCI_0_2_FN_CPU_OFF:
-    val = psci_vcpu_off(vcpu, arch_ctxt);
-    break;
-    case PSCI_0_2_FN64_CPU_ON:
-    val = psci_vcpu_on(vcpu, arch_ctxt);
-    break;
-    case PSCI_0_2_FN_AFFINITY_INFO:
-    case PSCI_0_2_FN64_AFFINITY_INFO:
-    val = psci_vcpu_affinity_info(vcpu, arch_ctxt);
-    break;
-    case PSCI_0_2_FN_MIGRATE:
-    case PSCI_0_2_FN64_MIGRATE:
-    val = psci_vcpu_migration(vcpu, arch_ctxt);
-    break;
-    case PSCI_0_2_FN_MIGRATE_INFO_TYPE:
-    val = psci_vcpu_migration_info_type(vcpu, arch_ctxt);
-    break;
-    default:
-    val = psci_vcpu_other(psci_func);
-    break;
-    }
+    ret = do_psci_call(vcpu, arch_ctxt);
 
-    arch_ctxt->esf_handle_regs.x0 = val;
-
-	return 0;
+	return ret;
 }
 
 static int cpu_system_msr_mrs_sync(arch_commom_regs_t *arch_ctxt, uint64_t esr_elx)
