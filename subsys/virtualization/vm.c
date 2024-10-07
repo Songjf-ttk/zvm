@@ -79,6 +79,9 @@ static void z_list_vm_info(uint16_t vmid)
     case VM_STATE_HALT:
         vm_ss = "stopping";
         break;
+    case VM_STATE_RESET:
+        vm_ss = "reset";
+        break;
     default:
         ZVM_LOG_WARN("This vm status is invalid!\n");
         return;
@@ -401,6 +404,29 @@ int vm_vcpus_halt(struct vm *vm)
     return 0;
 }
 
+int vm_vcpus_reset(struct vm *vm)
+{
+    uint16_t i=0;
+    struct vcpu *vcpu;
+    k_spinlock_key_t key;
+
+    key = k_spin_lock(&vm->spinlock);
+    for(i = 0; i < vm->vcpu_num; i++) {
+        vcpu = vm->vcpus[i];
+        if (vcpu == NULL) {
+            ZVM_LOG_WARN("Pause vm error here, can't find vcpu: vcpu-%d \n", i);
+            k_spin_unlock(&vm->spinlock, key);
+            return -ENODEV;
+        }
+        vm_vcpu_reset(vcpu);
+    }
+
+    vm->vm_status = VM_STATE_RESET;
+    load_os_image(vm);
+    k_spin_unlock(&vm->spinlock, key);
+    return 0;
+}
+
 int vm_delete(struct vm *vm)
 {
     int ret=0;
@@ -528,18 +554,7 @@ int z_list_vms_info(uint16_t vmid)
 }
 
 int vm_sysinfo_init(size_t argc, char **argv, struct vm *vm_ptr, struct getopt_state *state,
-                struct z_vm_info *vm_info_ptr)
+                struct z_vm_info *vm_info)
 {
-    int ret = 0;
-    struct vm *vm = NULL;
-    struct z_vm_info *vm_info = NULL;
-
-    ret = z_parse_new_vm_args(argc, argv, state, vm_info_ptr, vm_ptr);
-	if (ret) {
-		k_free(vm);
-		k_free(vm_info);
-		return ret;
-	}
-
-    return ret;
+    return z_parse_new_vm_args(argc, argv, state, vm_info, vm_ptr);
 }

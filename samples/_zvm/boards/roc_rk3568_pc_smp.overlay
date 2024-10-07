@@ -18,6 +18,8 @@
         linuxdebugger = "/soc/fiq-debugger";
         vmvirtmem = "/soc/virtmem@bf000000";
         vmshmemrw = "/soc/shmem_rw@bd000000";
+        linuxcpy = "/soc/linux_cpy@e0000000";
+        linuxrfs = "/soc/linux_rootfs@bf000000";
 	};
 
 	chosen {
@@ -154,6 +156,13 @@
             status = "okay";
         };
 
+        linux_cpy@e0000000 {
+            reg = <0x0 0xe0000000 0x0 DT_SIZE_M(64)>;
+        };
+
+        linux_rootfs@bf000000 {
+            reg = <0x0 0xbf000000 0x0 DT_SIZE_M(180)>;
+        };
     };
 
     /*TODO: The device that used by vm will be added below. */
@@ -184,6 +193,7 @@
         dtb_address = <0x99000000>;
         dtb_size = <DT_SIZE_M(2)>;
         vcpu_num = <0x01>;
+        rootfs_address = <0x89000000>;
 
         linux_ddr: memory@60000000 {
             compatible = "vm-dram";

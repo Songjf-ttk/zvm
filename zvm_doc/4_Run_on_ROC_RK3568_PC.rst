@@ -44,7 +44,7 @@
 
 .. code:: shell
 
-    zvm_vm_image/roc_rk3568_pc/linux/*  #linux vm相关镜像
+    zvm_vm_image/roc_rk3568_pc/linux_sp/*  #linux vm相关镜像
     zvm_vm_image/roc_rk3568_pc/zephyr/* #zephyr vm相关镜像
 
 如果需要自定义构建相关的zephyr vm或者linux vm的文件，参考qemu章节的`自定义构建镜像方法`，
@@ -56,7 +56,7 @@
    zephyr.bin                       #zephyr vm 镜像
    Image                            #linux vm 内核镜像
    rk3568-firefly-roc-pc-simple.dtb #Linux设备树文件
-   debian_rt.cpio.gz                #Linux rootfs文件
+   initramfs.cpio.gz                #Linux rootfs
 
 准备好这些镜像后，需要将其统一烧录到rk3568的板卡上。具体来说，就是需要通过tftp协议将这些镜像
 烧录到开发板上。包括如下步骤：
@@ -128,7 +128,7 @@ rk3568板卡通电，使用串口助手连接板卡后，启动时长按`ctrl + 
    tftp 0x01000000 zephyr.bin                           #下载zephyr vm镜像
    tftp 0x60000000 Image                                #下载linux vm镜像
    tftp 0x99000000 rk3568-firefly-roc-pc-simple.dtb     #下载linux 设备树镜像
-   tftp 0x69000000 debian_rt.cpio.gz                    #下载linux rootfs镜像   
+   tftp 0x69000000 debian_rt.cpio.gz                    #下载linux rootfs镜像
 
 运行镜像：
 

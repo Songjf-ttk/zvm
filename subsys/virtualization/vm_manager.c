@@ -13,6 +13,7 @@
 #include <virtualization/os/os_linux.h>
 #include <virtualization/zvm.h>
 #include <virtualization/vdev/vgic_v3.h>
+#include <virtualization/vm_cpu.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
@@ -282,4 +283,29 @@ int zvm_service_vmops(uint32_t hypercall_code)
 
 	return ret;
 
+}
+/*TODO: add shell*/
+void zvm_shutdown_guest(struct vm *vm)
+{
+
+}
+
+/*
+ * TODO：add shell
+ * pause、reset and run
+ */
+void zvm_reboot_guest(struct vm *vm)
+{
+	int ret;
+	ZVM_LOG_INFO("vm reboot.... \n");
+	ret = vm_vcpus_pause(vm);
+	if(ret < 0) {
+		ZVM_LOG_WARN("VM reboot failed: pausing vm failed! \n");
+	}
+	/*
+	 * TODO: smp
+	 */
+    vm_vcpus_reset(vm);
+	vm->reboot = true;
+    vm_vcpus_ready(vm);
 }

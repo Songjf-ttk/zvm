@@ -34,6 +34,7 @@
 #define VM_STATE_RUNNING        (BIT(1))
 #define VM_STATE_PAUSE          (BIT(2))
 #define VM_STATE_HALT           (BIT(3))
+#define VM_STATE_RESET          (BIT(4))
 
 /**
  * @brief VM return values.
@@ -187,6 +188,7 @@ struct vm {
     bool is_rtos;
     uint16_t vmid;
     char vm_name[VM_NAME_LEN];
+    bool reboot;
 
     uint32_t vm_status;
 	uint32_t vcpu_num;
@@ -230,6 +232,7 @@ int vm_vcpus_init(struct vm *vm);
 int vm_vcpus_ready(struct vm *vm);
 int vm_vcpus_pause(struct vm *vm);
 int vm_vcpus_halt(struct vm *vm);
+int vm_vcpus_reset(struct vm *vm);
 int vm_delete(struct vm *vm);
 
 /**
@@ -255,7 +258,7 @@ int z_list_vms_info(uint16_t vmid);
  * @return int : error code.
  */
 int vm_sysinfo_init(size_t argc, char **argv, struct vm *vm_ptr, struct getopt_state *state,
-                struct z_vm_info *vm_info_ptr);
+                struct z_vm_info *vm_info);
 
 /**
  * @brief Process vm exit for pause or delete vm now.

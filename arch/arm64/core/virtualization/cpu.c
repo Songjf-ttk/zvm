@@ -20,6 +20,7 @@
 #include <virtualization/vm_cpu.h>
 #include <virtualization/vdev/vgic_v3.h>
 #include <virtualization/os/os_linux.h>
+#include <virtualization/arm/vtimer.h>
 
 LOG_MODULE_DECLARE(ZVM_MODULE_NAME);
 
@@ -28,7 +29,7 @@ extern uint64_t cpu_vmpidr_el2_list[CONFIG_MP_NUM_CPUS];
 /**
  * @brief vcpu_sysreg_loads_vhe - Load guest system registers to the physical CPU.
  */
-static void vcpu_sysreg_load(struct vcpu *vcpu)
+void vcpu_sysreg_load(struct vcpu *vcpu)
 {
     struct zvm_vcpu_context *g_context = &vcpu->arch->ctxt;
 
@@ -63,7 +64,7 @@ static void vcpu_sysreg_load(struct vcpu *vcpu)
 /**
  * @brief store system register to vcpu struct for keeping the VM state.
  */
-static void vcpu_sysreg_save(struct vcpu *vcpu)
+void vcpu_sysreg_save(struct vcpu *vcpu)
 {
     struct zvm_vcpu_context *g_context = &vcpu->arch->ctxt;
 
@@ -250,7 +251,7 @@ static void arch_vcpu_common_regs_init(struct vcpu *vcpu)
     struct zvm_vcpu_context *ctxt;
 
     ctxt = &vcpu->arch->ctxt;
-    memset(&ctxt->regs, 0, sizeof(struct arch_commom_regs));
+    memset(&ctxt->regs, 0, sizeof(struct zvm_vcpu_context));
 
     ctxt->regs.pc = vcpu->vm->os->code_entry_point;
     ctxt->regs.pstate = (SPSR_MODE_EL1H | DAIF_DBG_BIT | DAIF_ABT_BIT |
@@ -263,66 +264,6 @@ static void arch_vcpu_fp_regs_init(struct vcpu *vcpu)
     ARG_UNUSED(vcpu);
 }
 
-uint64_t psci_vcpu_syspend(struct vcpu *vcpu, arch_commom_regs_t *arch_ctxt)
-{
-    ZVM_LOG_WARN("PSCI_0_2_FN_CPU_SUSPEND\n");
-    ZVM_LOG_WARN("do not support now! \n");
-    return -1;
-}
-
-uint64_t psci_vcpu_off(struct vcpu *vcpu, arch_commom_regs_t *arch_ctxt)
-{
-    ZVM_LOG_WARN("PSCI_0_2_FN_CPU_OFF\n");
-    ZVM_LOG_WARN("do not support now! \n");
-    return -1;
-}
-
-uint64_t psci_vcpu_affinity_info(struct vcpu *vcpu, arch_commom_regs_t *arch_ctxt)
-{
-    ZVM_LOG_WARN("PSCI_0_2_FN_AFFINITY_INFO\n");
-    ZVM_LOG_WARN("do not support now! \n");
-    return -1;
-}
-
-uint64_t psci_vcpu_migration(struct vcpu *vcpu, arch_commom_regs_t *arch_ctxt)
-{
-    ZVM_LOG_WARN("PSCI_0_2_FN_MIGRATE\n");
-    ZVM_LOG_WARN("do not support now! \n");
-    return -1;
-}
-
-uint64_t psci_vcpu_migration_info_type(struct vcpu *vcpu, arch_commom_regs_t *arch_ctxt)
-{
-    return 2;
-}
-
-uint64_t psci_vcpu_other(unsigned long psci_func)
-{
-    ZVM_LOG_WARN("PSCI_0_2_FN_OTHER: %lx \n", psci_func);
-    ZVM_LOG_WARN("do not support now! \n");
-    return -1;
-}
-
-uint64_t psci_vcpu_on(struct vcpu *vcpu, arch_commom_regs_t *arch_ctxt)
-{
-    uint64_t cpu_id;
-
-	uint64_t context_id;
-	uint64_t target_pc;
-    struct zvm_vcpu_context *ctxt;
-    struct vm *vm = vcpu->vm;
-
-    cpu_id = arch_ctxt->esf_handle_regs.x1;
-    target_pc = arch_ctxt->esf_handle_regs.x2;
-    context_id = arch_ctxt->esf_handle_regs.x3;
-    vcpu = vm->vcpus[cpu_id];
-
-    ctxt = &vcpu->arch->ctxt;
-    ctxt->regs.pc = target_pc;
-
-    vm_vcpu_ready(vcpu);
-    return PSCI_RET_SUCCESS;
-}
 
 /**
  * @brief Load guest system register.
@@ -424,11 +365,6 @@ int arch_vcpu_init(struct vcpu *vcpu)
     int ret = 0;
     struct vcpu_arch *vcpu_arch = vcpu->arch;
     struct vm_arch *vm_arch = vcpu->vm->arch;
-    k_spinlock_key_t key;
-
-    key = k_spin_lock(&vcpu->vm->vm_vcpu_id.vcpu_id_lock);
-    vcpu->vcpu_id = vcpu->vm->vm_vcpu_id.totle_vcpu_id++;
-    k_spin_unlock(&vcpu->vm->vm_vcpu_id.vcpu_id_lock, key);
 
     vcpu->cpu = _current_cpu->id;
 
@@ -491,4 +427,12 @@ int zvm_arch_init(void *op)
         return ret;
     }
     return ret;
+}
+
+void arch_vcpu_destory(struct vcpu *vcpu)
+{
+    if(vcpu->arch->vtimer_context)
+        k_free(vcpu->arch->vtimer_context);
+    if(vcpu->arch->virq_data)
+        k_free(vcpu->arch->virq_data);
 }

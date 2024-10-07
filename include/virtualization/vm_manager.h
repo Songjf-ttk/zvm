@@ -83,4 +83,15 @@ int zvm_info_guest(size_t argc, char **argv);
  */
 int zvm_service_vmops(uint32_t hypercall_code);
 
+/**
+ * @brief shutdown guest
+ */
+void zvm_shutdown_guest(struct vm *vm);
+
+/**
+ * @brief reset guset
+ */
+void zvm_reboot_guest(struct vm *vm);
+
+
 #endif /* ZEPHYR_INCLUDE_ZVM_VM_MANAGER_H_ */
