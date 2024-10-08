@@ -199,5 +199,3 @@ uart3: 用作主机shell控制
 具体主机如何连接到串口uart3，需要看不同板卡的设计手册并自主引出串口线。
 
 `Prev>> 在QEMU上运行ZVM <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/3_Run_on_ARM64_QEMU.rst>`__
-
-`Next>> 加入我们 <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/5_Join_us.rst>`__
