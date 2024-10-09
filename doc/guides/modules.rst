@@ -74,7 +74,7 @@ Module Repositories
 Synchronizing with upstream
 ===========================
 
-It is preferred to synchronize a module respository with the latest stable
+It is preferred to synchronize a module repository with the latest stable
 release of the corresponding external project. It is permitted, however, to
 update a Zephyr module repository with the latest development branch tip,
 if this is required to get important updates in the module codebase. When
@@ -111,7 +111,7 @@ module repository.
 Upstream changes brought as a single *snapshot* commit (manual diff) in a
 pull request against the module's main branch, which may be merged using
 the *Rebase & merge* operation. This approach is simple and
-should be applicable to all modules with the downside of supressing the
+should be applicable to all modules with the downside of suppressing the
 upstream history in the module repository.
 
   .. note::

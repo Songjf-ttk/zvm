@@ -113,7 +113,7 @@ stack pointer manipulation* during thread context switching, without affecting t
 handler mode.
 
 In Arm Cortex-M builds a single interrupt stack memory is shared among exceptions and interrupts. The size of the interrupt stack needs
-to be selected taking into consideration nested interrupts, each pushing an additional stack frame. Deverlopers can modify the interrupt
+to be selected taking into consideration nested interrupts, each pushing an additional stack frame. Developers can modify the interrupt
 stack size using :kconfig:`CONFIG_ISR_STACK_SIZE`.
 
 The interrupt stack is also used during early boot so the kernel can initialize the main thread's stack before switching to the main thread.
@@ -469,7 +469,7 @@ Certain thread-specific MPU regions may be re-programmed dynamically, at each th
 
 * an unprivileged RW region for the current thread's stack area (for user threads)
 * a read-only region for the MPU stack guard
-* unprivileged RW regions for the partitions of the currentl thread's application memory
+* unprivileged RW regions for the partitions of the currently thread's application memory
   domain.
 
 
@@ -562,7 +562,7 @@ of the image vector table.
 
 Baseline Cortex-M platforms without VTOR register might not be able to relocate their
 vector table which remains at a fixed location. Therefore, a chain-loadable image will
-require an alternative way to route HW interrupts and system exeptions to its own vector
+require an alternative way to route HW interrupts and system exceptions to its own vector
 table; this is achieved with software vector relaying.
 
 When a bootloader image enables :kconfig:`CONFIG_SW_VECTOR_RELAY`
