@@ -44,7 +44,7 @@ ZVM 支持的平台如下, 包括多核的ARMv8平台：
 
 #### Sig-Zephyr分享视频
 
-[ZVM: 基于Zephyr RTOSI的嵌入式实时虚拟机](https://www.bilibili.com/video/BV1pe4y1A7o4/?spm_id_from=333.788.recommend_more_video.14&vd_source=64410f78d160e2b1870852fdc8e2e43a)
+[ZVM: 基于Zephyr RTOS的嵌入式实时虚拟机](https://www.bilibili.com/video/BV1pe4y1A7o4/?spm_id_from=333.788.recommend_more_video.14&vd_source=64410f78d160e2b1870852fdc8e2e43a)
 
 ## 快速上手ZVM
 
