@@ -128,7 +128,7 @@ void smf_set_initial(struct smf_ctx *ctx, const struct smf_state *init_state);
 void smf_set_state(struct smf_ctx *ctx, const struct smf_state *new_state);
 
 /**
- * @brief Termate a state machine
+ * @brief Terminate a state machine
  *
  * @param ctx  State machine context
  * @param val  Non-Zero termination value that's returned by the smf_run_state
