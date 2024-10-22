@@ -176,7 +176,7 @@ static void test_init(void)
 		return;
 	}
 
-	/* For testing purposes we need to set the adddresses preferred */
+	/* For testing purposes we need to set the addresses preferred */
 	ifaddr->addr_state = NET_ADDR_PREFERRED;
 #endif
 
