@@ -17,7 +17,13 @@
  * LINUX_VM_IMAGE_BASE presents that the linux image base
  * in the ddr(@TODO: In the disk better). And LINUX_VM_IMAGE_SIZE
  * presents the linux image size in the ddr.
-*/
+ * LINUX_VM_IMAGE_BASE: Linux VM image base;
+ * LINUX_VM_IMAGE_SIZE: Linux VM image size;
+ * LINUX_VMSYS_BASE: Linux VM virtual memory base;
+ * LINUX_VMSYS_SIZE: Linux VM virtual memory size;
+ * LINUX_VMCPY_BASE: Linux VM image tmp base;
+ * LINUX_VMCPY_SIZE: Linux VM image tmp size;
+ */
 #define LINUX_VM_IMAGE_BASE     DT_REG_ADDR(DT_NODELABEL(linux_ddr))
 #define LINUX_VM_IMAGE_SIZE     DT_REG_SIZE(DT_NODELABEL(linux_ddr))
 #define LINUX_VMSYS_BASE        DT_PROP(DT_NODELABEL(linux_ddr), vm_reg_base)
