@@ -2,9 +2,9 @@
 
 [![License](https://img.shields.io/badge/license-Apache%202-blue.svg)](LICENSE)
 
-ZVM项目是在开源实时操作系统 [Zephyr RTOS](https://github.com/zephyrproject-rtos/zephyr)（由Linux基金会托管）上构建的一款虚拟机管理器（Hypervisor），ZVM一方面继承了Zephyr RTOS的开源生态和特性，另一方面为业界提供了一个原创的面向嵌入式场景的开源虚拟化平台解决方案。
+ZVM（Zephyr-based Virtual Machine）是基于开源微内核实时操作系统 Zephyr RTOS [Zephyr RTOS](https://github.com/zephyrproject-rtos/zephyr)（由Linux基金会托管）开发的一款虚拟机管理器（Hypervisor），能在单一硬件平台上启动多个操作系统，以构建安全隔离的多内核混合部署系统。
 
-ZVM由湖南大学教授、嵌入式与网络计算湖南省重点实验室主任谢国琪老师主导开发，这是一款面向嵌入式场景的开源、实时、安全、轻量及易用的虚拟机管理平台，致力于成为嵌入式领域的“Linux-KVM”，构建混合关键部署的开源生态。项目仓库中包含Zephyr RTOS内核、工具及虚拟化支持所需的一些代码，共同构成了ZVM的代码仓。
+ZVM由湖南大学教授、嵌入式与网络计算湖南省重点实验室主任谢国琪老师主导开发，一方面继承了Zephyr RTOS的微内核体系结构和开源生态，另一方面为业界提供了一个原创的面向嵌入式场景的开源虚拟化平台解决方案。ZVM项目仓库中包含Zephyr RTOS内核、工具及虚拟化支持代码。
 
 ## 架构设计
 
@@ -16,22 +16,22 @@ ZVM面向高性能嵌入式计算环境，提供嵌入式平台上操作系统�
 
 ZVM将持续支持多种虚拟机操作系统和底层硬件平台，拓展软硬件生态。
 
-#### 虚拟机操作系统
+#### 虚拟机操作系统（Guest OS）支持
 
-ZVM支持的虚拟机操作系统列表如下, 包括：
+ZVM目前支持的Guest OS列表如下, 包括：
 
-- Zephyr RTOS
-- openEuler Embedded
-- Debian
-- **欢迎您提交新的虚拟机OS支持到ZVM社区**
+- Zephyr RTOS、FreeRTOS
+- openEuler Embedded、Debian GNU/Linux
+- **欢迎您提交新的Guest OS支持到ZVM社区**
 
-#### 底层硬件平台
+#### 底层芯片支持
 
-ZVM 支持的平台如下, 包括多核的ARMv8平台：
+ZVM目前支持基于ARMv8架构的处理器芯片：
 
+- 瑞芯微RK3568/RK3588
+- 飞腾D3000/S5000C
 - QEMU ARM64 virt (qemu-max)
-- RK3568 SoC (roc_rk3568_pc/ok3568/lubancat2)
-- ARM Fixed platform (cortex-a55x4)
+- ARM FVP(Fixed Virtual Platform, A55)
 - **欢迎您提交新的芯片支持到ZVM社区**
 
 ## 视频介绍

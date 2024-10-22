@@ -112,6 +112,9 @@ rk3568板卡通电，使用串口助手连接板卡后，启动时长按`ctrl + 
 - uart3: 分配给Zephyr虚拟机
 - uart9: 分配给其他虚拟机
 
+注：进行测试时尽可能3个串口都连接上，不然可能出现由于串口浮空导致的异常
+中断问题；
+
 .. code:: shell
 
    mw 0xfdc60000 0xffff0022                 #写入串口uart3配置
@@ -126,7 +129,7 @@ rk3568板卡通电，使用串口助手连接板卡后，启动时长按`ctrl + 
 
    tftp 0x10000000 zvm_host.bin                         #下载zvm镜像
    tftp 0x01000000 zephyr.bin                           #下载zephyr vm镜像
-   tftp 0x60000000 Image                                #下载linux vm镜像
+   tftp 0xe0000000 Image                                #下载linux vm镜像
    tftp 0x99000000 rk3568-firefly-roc-pc-simple.dtb     #下载linux 设备树镜像
    tftp 0x69000000 debian_rt.cpio.gz                    #下载linux rootfs镜像
 
