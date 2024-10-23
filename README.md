@@ -2,9 +2,9 @@
 
 [![License](https://img.shields.io/badge/license-Apache%202-blue.svg)](LICENSE)
 
-ZVM（Zephyr-based Virtual Machine）是基于开源微内核实时操作系统 Zephyr RTOS [Zephyr RTOS](https://github.com/zephyrproject-rtos/zephyr)（由Linux基金会托管）开发的一款虚拟机管理器（Hypervisor），能在单一硬件平台上启动多个操作系统，以构建安全隔离的多内核混合部署系统。
-
-ZVM由湖南大学教授、嵌入式与网络计算湖南省重点实验室主任谢国琪老师主导开发，一方面继承了Zephyr RTOS的微内核体系结构和开源生态，另一方面为业界提供了一个原创的面向嵌入式场景的开源虚拟化平台解决方案。ZVM项目仓库中包含Zephyr RTOS内核、工具及虚拟化支持代码。
+ZVM（Zephyr-based Virtual Machine）是基于开源微内核实时操作系统 [Zephyr RTOS](https://github.com/zephyrproject-rtos/zephyr)（由Linux基金会托管）
+开发的一款虚拟机管理器（Hypervisor），能在单一硬件平台上启动多个操作系统，以构建安全隔离的多内核混合部署系统。
+ZVM一方面继承了Zephyr RTOS的微内核体系结构和开源生态，另一方面为业界提供了一个原创的面向嵌入式场景的开源虚拟化平台解决方案。ZVM项目仓库中包含Zephyr RTOS内核、工具及虚拟化支持代码。
 
 ## 架构设计
 
@@ -18,21 +18,19 @@ ZVM将持续支持多种虚拟机操作系统和底层硬件平台，拓展软�
 
 #### 虚拟机操作系统（Guest OS）支持
 
-ZVM目前支持的Guest OS列表如下, 包括：
+ZVM目前支持运行多款Guest OS，包括：
 
 - Zephyr RTOS、FreeRTOS
 - openEuler Embedded、Debian GNU/Linux
-- **欢迎您提交新的Guest OS支持到ZVM社区**
 
 #### 底层芯片支持
 
-ZVM目前支持基于ARMv8架构的处理器芯片：
+ZVM目前支持兼容ARMv8架构的处理器芯片，包括：
 
 - 瑞芯微RK3568/RK3588
 - 飞腾D3000/S5000C
 - QEMU ARM64 virt (qemu-max)
 - ARM FVP(Fixed Virtual Platform, A55)
-- **欢迎您提交新的芯片支持到ZVM社区**
 
 ## 视频介绍
 
@@ -58,7 +56,7 @@ ZVM目前支持基于ARMv8架构的处理器芯片：
 
 #### 3. ZVM运行与测试：
 
-ZVM现在支持快速在qemu和rk3568板卡上进行验证，可以在上面运行多个虚拟机并进行虚拟化功能测试，下面是ZVM在各个平台上运行的详细教程：
+我们提供了ZVM在QEMU和RK353568板卡进行验证的指南，可以在上面运行多个虚拟机并进行虚拟化功能测试，下面是ZVM在各个平台上运行的详细教程：
 
 - [ZVM on QEMU：https://gitee.com/openeuler/zvm/blob/master/zvm_doc/3_Run_on_ARM64_QEMU.rst](https://gitee.com/openeuler/zvm/blob/master/zvm_doc/3_Run_on_ARM64_QEMU.rst)
 - [ZVM on RK3568：https://gitee.com/openeuler/zvm/blob/master/zvm_doc/4_Run_on_ROC_RK3568_PC.rst](https://gitee.com/openeuler/zvm/blob/master/zvm_doc/4_Run_on_ROC_RK3568_PC.rst)
@@ -123,9 +121,9 @@ ZVM作为Zephyr实时操作系统生态在国内的关键一环，致力于构�
 
 研发团队依托 [嵌入式与网络计算湖南省重点实验室](http://esnl.hnu.edu.cn/index.htm) 及 [车网智能融合技术研创中心](http://cyy.hnu.edu.cn/yjly1/cwznrhjs1.htm) 等平台，核心成员如下：
 
-**谢国琪教授**: [个人主页](http://csee.hnu.edu.cn/people/xieguoqi)
+**谢国琪（ZVM项目负责人）**，邮箱：xgqman@hnu.edu.cn, [个人主页](http://csee.hnu.edu.cn/people/xieguoqi)
 
-**熊程来**，邮箱：xiongcl@hnu.edu.cn
+**熊程来（openEuler SIG-Zephyr maintainer）**，邮箱：xiongcl@hnu.edu.cn
 
 **胡星宇**，邮箱：huxingyu@hnu.edu.cn
 
@@ -138,8 +136,6 @@ ZVM作为Zephyr实时操作系统生态在国内的关键一环，致力于构�
 **温浩**，邮箱：wenhao@stu.ynu.edu.cn
 
 **胡宇昊**，邮箱：ahui@hun.edu.cn
-
-**魏胜骏**，邮箱：weishengjun@hnu.edu.cn
 
 欢迎大家反馈开发中遇到的问题，可以联系上面邮箱或者加入技术交流群。
 
