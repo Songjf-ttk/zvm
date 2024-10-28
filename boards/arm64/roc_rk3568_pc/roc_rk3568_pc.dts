@@ -14,12 +14,12 @@
 	compatible = "rockchip,rk3568";
 
 	aliases {
-		serial2 = &uart2;
+		serial2 = &uart9;
 	};
 
 	chosen {
-		zephyr,console = &uart2;
-		zephyr,shell-uart = &uart2;
+		zephyr,console = &uart9;
+		zephyr,shell-uart = &uart9;
 		zephyr,sram = &sram0;
 	};
 
@@ -31,7 +31,7 @@
 
 };
 
-&uart2 {
+&uart9 {
 	status = "okay";
 	current-speed = <1500000>;
 };

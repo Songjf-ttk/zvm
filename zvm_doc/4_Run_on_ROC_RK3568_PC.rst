@@ -201,4 +201,16 @@ uart3: 用作主机shell控制
 
 具体主机如何连接到串口uart3，需要看不同板卡的设计手册并自主引出串口线。
 
+
+4.  串口调试说明
+-----------------------
+前面已经说过，本文给到的例子中，涉及的串口为uart2,3,9。即正常启动两个虚拟机时两个虚拟机各
+分配一个串口。现有的sample中分配如下：
+
+- uart2: Linux 虚拟机；
+- uart3: Zephyr 虚拟机；
+- uart9: zvm虚拟机管理器；
+
+这么分配的原因是Linux虚拟机只能使用uart2作为其debug串口（和瑞芯微rk3568的bsp相关）。
+
 `Prev>> 在QEMU上运行ZVM <https://gitee.com/openeuler/zvm/blob/master/zvm_doc/3_Run_on_ARM64_QEMU.rst>`__
