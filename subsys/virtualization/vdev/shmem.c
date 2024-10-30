@@ -82,7 +82,7 @@ static int vm_virt_mem_init(const struct device *dev, struct vm *vm, struct virt
     }
 
 	if (chosen_flag) {
-		vdev = vm_virt_dev_add(vm, dev->name, false, false,
+		vdev = vm_virt_dev_add(vm, dev->name, true, false,
 								DT_REG_ADDR(DT_ALIAS(vmvirtmem)),
 								DT_REG_ADDR(DT_ALIAS(vmvirtmem)),
 								vm_dev->vm_vdev_size,
@@ -92,7 +92,7 @@ static int vm_virt_mem_init(const struct device *dev, struct vm *vm, struct virt
         	return -ENODEV;
 		}
 		vdev->priv_data = mem_instance;
-		vdev->priv_vdev = dev;
+		vdev->priv_vdev = mem;
         vm_device_irq_init(vm, vdev);
 		ZVM_LOG_INFO("** Add %s device to vm successful. \n", dev->name);
 
