@@ -82,7 +82,7 @@ static int vm_virt_mem_rw_init(const struct device *dev, struct vm *vm, struct v
 
 	if(chosen_flag)
 	{
-        vdev = vm_virt_dev_add(vm, dev->name, false, false,
+        vdev = vm_virt_dev_add(vm, dev->name, true, false,
 								DT_REG_ADDR(DT_ALIAS(vmshmemrw)),
 								DT_REG_ADDR(DT_ALIAS(vmshmemrw)),
 								vm_dev->vm_vdev_size,
@@ -92,7 +92,7 @@ static int vm_virt_mem_rw_init(const struct device *dev, struct vm *vm, struct v
         	return -ENODEV;
 		}
 		vdev->priv_data = mem_instance;
-		vdev->priv_vdev = dev;
+		vdev->priv_vdev = mem;
         vm_device_irq_init(vm, vdev);
 		ZVM_LOG_INFO("** Add %s device to vm successful. \n", dev->name);
 
@@ -116,6 +116,7 @@ int memory_rw_write(struct virt_dev *vdev, uint64_t addr, uint64_t *value, uint1
 {
 	struct vm *vm;
     char *char_value = (char *)value;
+	int os_id;
     /*
         '1' : irq from linux
         '2' : irq from linux (exit entry)
@@ -123,21 +124,16 @@ int memory_rw_write(struct virt_dev *vdev, uint64_t addr, uint64_t *value, uint1
     */
     if (char_value[0] == '1') {
         /* linux sends irq to zephyr */
-        vm = zvm_overall_info->vms[0];
+		os_id = get_os_id_by_type("zephyr");
+        vm = zvm_overall_info->vms[os_id];
         int ret = set_virq_to_vm(vm, SHMEM_VIRQ);
         if (ret < 0) {
                 ZVM_LOG_WARN("Send virq to vm error!");
         }
-    } else if (char_value[0] == '2'){
-        /* linux send irq-2 to zephyr */
-        vm = zvm_overall_info->vms[0];
-        int ret2 = set_virq_to_vm(vm, SHMEM_VIRQ);
-		if (ret2 < 0) {
-                ZVM_LOG_WARN("Send virq to vm error!");
-        }
     } else {
         /* zephyr sends irq to linux */
-        vm = zvm_overall_info->vms[2];
+		os_id = get_os_id_by_type("linux");
+        vm = zvm_overall_info->vms[os_id];
         int ret3 = set_virq_to_vm(vm, SHMEM_VIRQ);
 		if (ret3 < 0) {
                 ZVM_LOG_WARN("Send virq to vm error!");
