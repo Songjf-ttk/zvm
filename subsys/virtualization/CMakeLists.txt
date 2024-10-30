@@ -14,6 +14,9 @@ zephyr_sources_ifdef(
     vm_manager.c
     vm_mm.c
     vm.c
-    zvm_shell.c
     zvm.c
 )
+
+if(CONFIG_SHELL AND CONFIG_ZVM)
+    zephyr_sources(zvm_shell.c)
+endif()

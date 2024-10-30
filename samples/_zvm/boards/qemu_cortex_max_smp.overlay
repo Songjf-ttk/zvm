@@ -144,7 +144,7 @@
         compatible = "zephyr-vm";
         dtb_address = <0x00000000>;
         dtb_size = <DT_SIZE_M(2)>;
-        vcpu_num = <0x02>;
+        vcpu_num = <0x01>;
 
         zephyr_ddr: memory@c8000000 {
             compatible = "vm-dram";

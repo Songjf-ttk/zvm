@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ksched.h>
+#include <getopt.h>
 #include <kernel/thread.h>
 #include <kernel/thread_stack.h>
 #include <kernel_internal.h>

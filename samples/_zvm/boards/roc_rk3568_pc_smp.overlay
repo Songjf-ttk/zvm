@@ -23,7 +23,7 @@
 	};
 
 	chosen {
-		vm,console = &uart9;
+		vm,console = &uart2;
 	};
 
 
@@ -66,8 +66,7 @@
                 label = "PTUART8";
             };
 
-            /* VM1's uart here! rk3568's port num is uart9 */
-            uart9: serial@fe660000 {
+            uart2: serial@fe660000 {
                 compatible = "rockchip,rk3568-uart", "ns16550";
                 reg = <0x0 0xfe660000 0x0 0x10000>;
                 interrupts = <GIC_SPI 118 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY>;
@@ -76,7 +75,7 @@
                 reg-shift = <2>;
                 status = "reserved";
                 current-speed = <1500000>;
-                label = "UART9";
+                label = "UART2";
             };
 
             gpio3: gpio@fe760000 {

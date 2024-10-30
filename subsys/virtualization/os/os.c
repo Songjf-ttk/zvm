@@ -6,7 +6,7 @@
 
 #include <string.h>
 #include <zephyr.h>
-
+#include <getopt.h>
 #include <virtualization/os/os.h>
 #include <virtualization/os/os_zephyr.h>
 #include <virtualization/os/os_linux.h>

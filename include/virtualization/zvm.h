@@ -48,10 +48,9 @@
 #define EPANO   (155)       /* Erorr on vm input parameter */
 #define EVIRQ   (156)       /* VM's virq error */
 #define EVMOS   (157)       /* VM's os type error */
-#endif
 
-#define ZVM_EXIT_UNKNOWN            (11)
-#define ZVM_DEV_NAME_LENGTH         (32)
+#endif /* CONFIG_ZVM */
+
 
 /**
  * @brief We should define overall priority for zvm system.
@@ -74,7 +73,6 @@
 #else
 #define ZVM_LOG_INFO(...)
 #endif
-#define ZVM_PRINTK(...)     LOG_PRINTK(__VA_ARGS__)
 
 #else
 
