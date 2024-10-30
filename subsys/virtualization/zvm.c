@@ -223,8 +223,8 @@ static int zvm_init_idle_device_1(const struct device *dev, struct virt_dev *vde
     vm_dev->vm = NULL;
     vm_dev->priv_data = (void *)dev;
 
-    printk("Init idle device %s successful! \n", vm_dev->name);
-    printk("The device's paddress is 0x%x, paddress is 0x%x, size is 0x%x, hirq is %d, virq is %d. \n",
+    ZVM_LOG_INFO("Init idle device %s successful! \n", vm_dev->name);
+    ZVM_LOG_INFO("The device's paddress is 0x%x, paddress is 0x%x, size is 0x%x, hirq is %d, virq is %d. \n",
             vm_dev->vm_vdev_paddr, vm_dev->vm_vdev_vaddr, vm_dev->vm_vdev_size, vm_dev->hirq, vm_dev->virq);
 
     sys_dnode_init(&vm_dev->vdev_node);

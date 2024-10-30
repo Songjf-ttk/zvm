@@ -66,7 +66,6 @@
                 label = "PTUART8";
             };
 
-            /* VM1's uart here! rk3568's port num is uart9 */
             uart2: serial@fe660000 {
                 compatible = "rockchip,rk3568-uart", "ns16550";
                 reg = <0x0 0xfe660000 0x0 0x10000>;

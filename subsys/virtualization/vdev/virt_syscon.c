@@ -48,7 +48,6 @@ int z_info_syscon(const char *name, uint32_t addr_base,
 
 	/* Add clock syscon info to overall lists. */
 	key = k_spin_lock(&overall_syscons.vsyscon_lock);
-	/*dlist must be init to address to itself.*/
 	if(!first_entry_flag){
 		sys_dlist_init(&overall_syscons.syscon_list);
 		first_entry_flag = true;
@@ -87,7 +86,7 @@ static int syscon_vdev_mem_read(struct virt_dev *vdev, uint64_t addr, uint64_t *
 	read_value = sys_read32(addr);
 	*(uint32_t *)value = read_value;
 
-	printk("Syscon-%s Read:addr is %llx, value is %x\n", vdev->name, addr, read_value);
+	ZVM_LOG_INFO("Syscon-%s Read:addr is %llx, value is %x\n", vdev->name, addr, read_value);
 
 	return 0;
 }
@@ -101,7 +100,7 @@ static int syscon_vdev_mem_write(struct virt_dev *vdev, uint64_t addr, uint64_t 
 	sys_write32(write_value, addr);
 	af_write_value = sys_read32(addr);
 
-	printk("Syscon-%s Write:addr is %llx, be_value is %x, ne_value is %x, af_value is %x\n",
+	ZVM_LOG_INFO("Syscon-%s Write:addr is %llx, be_value is %x, ne_value is %x, af_value is %x\n",
 			 vdev->name, addr, be_write_value, write_value, af_write_value);
 
 	return 0;

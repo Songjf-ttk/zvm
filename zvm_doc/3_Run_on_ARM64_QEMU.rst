@@ -189,7 +189,7 @@ BusyBox，配置CONFIG_STATIC参数，编译静态版BusyBox，编译好的可�
 最终在qemu平台，生成如下文件：
 
 .. code:: shell
-   
+
    # maybe you need to change the name of rootfs in auto_zvm.sh
    zephyr.bin, linux-qemu-virt.dtb, Image, initramfs.cpio.gz
 

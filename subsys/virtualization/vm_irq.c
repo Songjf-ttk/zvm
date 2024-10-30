@@ -139,16 +139,16 @@ void vm_device_irq_init(struct vm *vm, struct virt_dev *vm_dev)
     struct virt_irq_desc *desc;
 
 	desc = get_virt_irq_desc(vm->vcpus[DEFAULT_VCPU], vm_dev->virq);
-    if(vm_dev->dev_pt_flag){
+    if(vm_dev->dev_pt_flag) {
         desc->virq_flags |= VIRQ_HW_FLAG;
-    }else{
-        ZVM_LOG_ERR("There is no supported virtual interrupt");
+    }else {
+        ZVM_LOG_WARN("There is no supported virtual interrupt for %s device !\n", vm_dev->name);
     }
     desc->id = desc->virq_num;
     desc->pirq_num = vm_dev->hirq;
     desc->virq_num = vm_dev->virq;
-    /*For passthrough device, using fast irq path. */
-    if(vm_dev->dev_pt_flag){
+    /* For passthrough device, using fast irq path. */
+    if(vm_dev->dev_pt_flag) {
         bit_map = vm->vm_irq_block.irq_bitmap;
         bit_map[vm_dev->hirq] = true;
     }
