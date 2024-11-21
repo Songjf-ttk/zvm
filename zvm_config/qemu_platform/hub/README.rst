@@ -1,30 +1,3 @@
-仿真平台
-==================
-- qemu-system-aarch64: with zvm_config/qemu_platform/qemu/qemu-6.2.0-virt.c.patch
-
-
-虚拟机镜像
-==================
-
-linux
-------------------
-- Image: v5.16 with simple filesystem made by busybox
-- Image_oee: openEuler Embeded v23.09
-- Image_debian: Debian v10
-    - login1:root/123 
-    - login2:zvm/123456789zxcv!
-- Image_ubuntu: Ubuntu 20
-    - login:root/123
-- Image_ubuntu16_base: Ubuntu 16
-    - login:root/123
-zephyr
-------------------
-- zephyr.bin: Zephyr version 2.7.99
-
-虚拟机设备树文件
-==================
-
-linux
-------------------
-- linux-qemu-virt.dtb: no virtio-mmio device
-- linux-qemu-virtio.dtb: have ten virtio-mmio device
+version https://git-lfs.github.com/spec/v1
+oid sha256:e18c14b23826effc78a3c236ce102bfe8e0da189214f103c633af7ad952205ad
+size 682
